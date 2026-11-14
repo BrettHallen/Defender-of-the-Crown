@@ -1,0 +1,174 @@
+# Names for AA.ASM (the CGA build), from their AB matches (matchfuncs.py AB.ASM AA.ASM, similarity 0.60 or more; the AB address and name follow '='). Routines with NO MATCH in AA_vs_AB.txt are the CGA build's own (drawing) and not named yet.
+01EB new_game ; = AB 10B2 new_game (similarity 0.93)
+08A3 title_twinkle ; = AB 179A title_twinkle
+0A2C options_menu ; = AB 1957 options_menu
+0B66 orders_menu ; = AB 1A91 orders_menu
+0C19 month ; = AB 1B44 month
+0FE3 setup_armies ; = AB 1F11 setup_armies
+1085 setup_garrisons ; = AB 1FB3 setup_garrisons
+10E8 army_empty ; = AB 2016 army_empty
+1106 army_move_to ; = AB 2034 army_move_to
+114B army_go_home ; = AB 2079 army_go_home
+118F send_others_home ; = AB 20BD send_others_home
+11BD send_home_armies_at ; = AB 20EB send_home_armies_at
+11E6 army_settle ; = AB 2114 army_settle
+1272 army_merge ; = AB 21A0 army_merge
+129E setup_sides ; = AB 21CC setup_sides
+143F copy_lord ; = AB 236D copy_lord
+147E side_income ; = AB 23AC side_income
+14D8 side_falls ; = AB 2406 side_falls
+150D setup_ladies ; = AB 243B setup_ladies
+1583 lady_to_side ; = AB 24B1 lady_to_side
+15FB lady_at ; = AB 2529 lady_at
+1628 setup_enmity ; = AB 2556 setup_enmity
+16B7 enmity_add ; = AB 25E5 enmity_add
+177C tournament_goodwill ; = AB 26AA tournament_goodwill
+179E copy_path ; = AB 26CC copy_path
+17C1 army_strength ; = AB 26EF army_strength
+17D6 target_value ; = AB 2704 target_value
+18D5 ai_find_target ; = AB 2803 ai_find_target (similarity 0.99)
+198A ai_search ; = AB 28B8 ai_search
+1A67 ai_turn ; = AB 2995 ai_turn
+1B0E best_site_for_castle ; = AB 2A3C best_site_for_castle
+1B70 ai_buy ; = AB 2A9E ai_buy
+1D32 ai_reinforce_garrison ; = AB 2C60 ai_reinforce_garrison
+1DE2 ai_do_order ; = AB 2D10 ai_do_order
+1E56 ai_choose_order ; = AB 2D84 ai_choose_order
+1F09 see_robin ; = AB 2E37 see_robin
+1F56 robin_men ; = AB 2E84 robin_men
+1FBE next_event_in ; = AB 2EEC next_event_in
+1FCD show_plotters_picture ; = AB 2EFB show_plotters_picture
+1FE6 side_last_territory ; = AB 2F14 side_last_territory
+2020 monthly_event ; = AB 2F4E monthly_event
+2207 send_army ; = AB 3135 send_army
+22A7 attack ; = AB 31D5 attack
+23EE ask_passage ; = AB 331C ask_passage
+24B7 apply_result ; = AB 33E5 apply_result
+2657 choose_destination ; = AB 3585 choose_destination
+26B2 seek_conquest ; = AB 35E0 seek_conquest
+27F3 transfer_forces ; = AB 3721 transfer_forces
+2A99 buy_army ; = AB 39C7 buy_army
+2D81 place_castles ; = AB 3CAF place_castles
+2E54 is_neighbour ; = AB 3D82 is_neighbour
+2E86 territory_info ; = AB 3DB4 territory_info
+3021 draw_castles ; = AB 3F4F draw_castles (similarity 0.97)
+30E4 redraw_map ; = AB 4013 redraw_map (similarity 0.93)
+3150 read_map ; = AB 4084 read_map
+3192 flash_territory ; = AB 40C6 flash_territory
+320E choose_territory ; = AB 4142 choose_territory
+3309 set_owner ; = AB 423D set_owner (similarity 0.96)
+33DD rescue_offer ; = AB 4316 rescue_offer
+34BD choose_raid_victim ; = AB 43F6 choose_raid_victim
+34EF ai_raid ; = AB 4428 ai_raid (similarity 0.97)
+35FF choose_raid_target ; = AB 4538 choose_raid_target
+3673 go_raiding ; = AB 45AC go_raiding
+36B3 raid ; = AB 45EC raid
+385F lady_animate ; = AB 479B lady_animate (similarity 0.98)
+395A romance ; = AB 48EB romance (similarity 0.98)
+3CB5 bar_shorten ; = AB 4C5C bar_shorten
+3D05 sword_pose_b ; = AB 4CAC sword_pose_b
+3E41 sword_pose_a ; = AB 4DE8 sword_pose_a
+3F7D sword_fight ; = AB 4F24 sword_fight (similarity 0.98)
+44A6 raid_attack ; = AB 5449 raid_attack (similarity 0.97)
+45CB raid_defense ; = AB 5571 raid_defense (similarity 0.98)
+46DB show_armies ; = AB 5684 show_armies
+47D8 battle ; = AB 5781 battle
+4812 battle_shown ; = AB 57BB battle_shown (similarity 0.99)
+5063 battle_auto ; = AB 600C battle_auto
+5142 battle_round ; = AB 60EB battle_round
+5259 army_damage ; = AB 6202 army_damage
+52D3 percent_of_lead ; = AB 627C percent_of_lead
+52E7 take_losses ; = AB 6290 take_losses
+5313 tournament ; = AB 62BC tournament (similarity 0.94)
+550A joust_round ; = AB 6475 joust_round
+58E2 joust_approach ; = AB 6850 joust_approach (similarity 0.95)
+5B4D lance_step ; = AB 6B09 lance_step (similarity 0.96)
+5CB2 joust_outcome ; = AB 6C59 joust_outcome (similarity 0.96)
+5EDA joust ; = AB 6EC2 joust (similarity 0.87)
+6077 choose_opponent ; = AB 7094 choose_opponent
+60F6 leadership_add ; = AB 7113 leadership_add
+614B catapult_aim ; = AB 7168 catapult_aim (similarity 0.95)
+6373 show_shot ; = AB 739D show_shot (similarity 0.98)
+6489 siege ; = AB 74B5 siege
+64D9 choose_ammo ; = AB 7505 choose_ammo
+6610 siege_by_player ; = AB 763E siege_by_player (similarity 0.99)
+6872 siege_of_player ; = AB 78A9 siege_of_player
+6A49 dialog ; = AB 7A80 dialog
+6EBB wait_ticks ; = AB 7EF2 wait_ticks
+6EF3 wait_key ; = AB 7F2A wait_key
+6F27 get_key ; = AB 7F5E get_key
+6F55 bios_key ; = AB 7F8C bios_key
+6F70 flush_keys ; = AB 7FA7 flush_keys
+6F7A joystick_key ; = AB 7FB1 joystick_key (similarity 0.90)
+704F read_joystick ; = AB 8086 read_joystick
+70B3 fill_rect ; = AB 80EA fill_rect
+7111 xor_rect ; = AB 8223 xor_rect
+7175 xor_sprite ; = AB 82D2 xor_sprite
+71E9 xor_mask ; = AB 83E2 xor_mask
+7258 put_sprite ; = AB 8495 put_sprite
+7310 clear_screen ; = AB 8647 clear_screen (similarity 0.84)
+733A clear_back ; = AB 865F clear_back (similarity 0.84)
+7364 clear_screen_worker ; = AB 8677 clear_screen_worker (similarity 0.76)
+737B clear_back_worker ; = AB 8698 clear_back_worker (similarity 0.76)
+7488 get_pixel ; = AB 87C1 get_pixel
+74A2 put_pixel ; = AB 87DB put_pixel (similarity 0.88)
+74C3 put_pixel_back ; = AB 87F8 put_pixel_back (similarity 0.88)
+74E5 sprites_erase ; = AB 8816 sprites_erase (similarity 0.68)
+7F9B month_status ; = AB 90A3 month_status
+82FF show_portrait ; = AB 9407 show_portrait (similarity 0.99)
+839B morale_add ; = AB 9464 morale_add
+83C4 str_append ; = AB 948D str_append
+83EC num_append ; = AB 94B5 num_append
+8476 beep ; = AB 9520 beep
+8490 speaker_off ; = AB 953A speaker_off
+8497 speaker_tone ; = AB 9541 speaker_tone
+84AF play_tune ; = AB 9559 play_tune
+84E4 wait_tune ; = AB 958E wait_tune
+8514 tune_playing ; = AB 95BE tune_playing
+855B tune_hook ; = AB 9605 tune_hook (similarity 0.92)
+8655 tune_unhook ; = AB 96FF tune_unhook
+866F cache_bj_bk ; = AB 9732 cache_bj_bk
+86F2 cache_bn_bo_bd ; = AB 97B5 cache_bn_bo_bd
+87B6 cache_more ; = AB 9879 cache_more
+87B7 load_file ; = AB 987A load_file
+87D5 show_picture ; the Q picture loaded at 1000:7000: LZW to the back buffer 3000:8000 (the matcher paired it with AB 9902 present, another push-all wrapper)
+A0EA save_back ; 3000:8000 to 2000:8000 (16K; the siege; the matcher paired it with AB 994A)
+A12E lzw_unpack ; = AB 9ABB lzw_unpack
+A219 lzw_code ; = AB 9BA6 lzw_code
+A26F lzw_out ; = AB 9BFC lzw_out
+A285 lzw_add ; = AB 9C12 lzw_add
+A2A4 delay_ticks ; = AB 9CAF delay_ticks
+A303 get_ticks ; = AB 9CF1 get_ticks
+A30E random ; = AB 9CFC random
+A345 shuffle ; = AB 9D33 shuffle
+A3A8 random_next ; = AB 9D96 random_next
+A3C5 seed_random ; = AB 9DB3 seed_random
+A3ED lfsr_step ; = AB 9DDB lfsr_step (similarity 0.78)
+A423 long_div ; = AB 9DF8 long_div
+A4A2 long_shl ; = AB 9E77 long_shl
+A4DC struct_arg ; = AB 9EB1 struct_arg
+# AA's own, read with the rest (video type 3, "other" in GameSYS's configuration, gets its own screen copies: 4 banks of 2000h at B800, 80 bytes a line):
+0100 start ; jmp main (014D); loads BH, main loop as AB's main
+09D2 fire_flicker ; (frames): the Sherwood campfire: XORs one of the flame sprites (1000:016C, frame random(4) through DS:092F) on and off
+390E fire_flicker2 ; (frames): the same in the romance scene
+70D9 fill_rect_worker ; back buffer 3000:8000 (CGA layout)
+7137 xor_rect_worker
+7198 xor_sprite_worker
+720C xor_mask_worker
+727B put_sprite_shift ; put_sprite at an x that is not a multiple of 4 pixels: shifts each row (self-modifying count at CS:72CC)
+7393 clear_screen_type3 ; (fill word): all 32K of B800 (4 banks)
+73C1 get_pixel_worker
+73FC put_pixel_worker
+7441 put_pixel_back_worker
+758D sprites_draw ; the masked sprite slots (DS:1210-12A0, as AB's 88CF), drawn into the back buffer
+8359 set_region_colour ; as AB 9719: sets a territory mask's colour
+8457 crtc_write ; (register, value): if DS:0000 is 2, waits for the retrace and writes a CRTC register (the joust's bobbing view: lance_step)
+8807 present_bottom ; lines 100-199 of the back buffer to the screen: 8816, or 8AF9 for video type 3
+8816 present_bottom_cga ; unrolled copy to B800's two banks, at the retrace
+8AF9 present_bottom_type3 ; the same for the 4-bank layout
+9066 present ; the back buffer to the screen: 9075, or 9614 for video type 3
+9075 present_cga ; unrolled copy of 3000:8000 to B800 (two banks), at the retrace
+9614 present_type3 ; the same for the 4-bank layout
+A0C7 copy_32k ; (as AC's 9F0F; redraw_map)
+A10C restore_back ; 2000:8000 to 3000:8000
+A2D8 wait_retrace ; port 3DAh (not for video type 3)

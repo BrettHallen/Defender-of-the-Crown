@@ -84,7 +84,9 @@ def routine(i):
         m = re.match(r'^(L_[0-9A-F]{4}):', l)
         if m: out.append(('label', m.group(1))); continue
         m = re.match(r'^([0-9A-F]{4})  ([0-9a-f]+)\s+(\S+)\s*(.*?)(\s+;.*)?$', l)
-        if m: out.append((int(m.group(1), 16), m.group(3), m.group(4)))
+        if m:
+            if m.group(5) and 'dialog box' in m.group(5): out.append(('comment', m.group(5).split(';', 1)[1].strip()))
+            out.append((int(m.group(1), 16), m.group(3), m.group(4)))
     return name, out
 
 REG16 = ['ax', 'bx', 'cx', 'dx', 'si', 'di']
@@ -160,6 +162,8 @@ class Dec:
         for it in s.ins:
             if it[0] == 'label':
                 s.flush(); s.out.append(it[1] + ':'); continue
+            if it[0] == 'comment':
+                s.emit('/* ' + it[1] + ' */'); continue
             a, mn, ops = it
             o = [x.strip() for x in re.split(r',(?![^\[]*\])', ops)] if ops else []
             if mn in ('push',) and o[0] in ('si', 'di', 'bp') and not s.out and len(s.stack) < 3 and o[0] not in s.r:

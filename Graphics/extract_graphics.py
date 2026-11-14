@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Extract the graphics of both PC versions of Defender of the Crown.
 
 Usage: python3 extract_graphics.py [ORIGINAL_DIR] [OUT_DIR]
@@ -8,6 +8,8 @@ Writes:
                 each file's sprites (LIB_sprites.png, numbered by item)
   Booter_CGA/   GAME.DAT's Q files: the booter's CGA pictures (16000 bytes, 2 bits a pixel)
   Booter_EGA/   GAME.DAT's C files: the booter's 16-colour pictures (EGA and Tandy)
+  Booter_EGA/sprites/  the EGA build's sprite files (BE BJ BK BL BN BO Bd Bh Bi), one sheet each,
+                numbered by item, in the palette of the picture they are shown over
 CGA pictures are drawn in palette 0 low intensity (green, red, brown) on black, as both
 programs set it (DOC.EXE 070A:01B3; checked in DOSBox for both versions' title)."""
 import os, sys, glob, struct
@@ -70,4 +72,58 @@ for n, e in sorted(gamedat.directory(dat).items()):
                 for pl in range(4): c |= ((u[o + pl * 8000] >> bit) & 1) << pl
                 pix[y * 320 + x] = pal[c]
         im.putdata(pix); im.save(os.path.join(de, n + '.png'))
+# The EGA build's sprite files: a table of word pointers (the item number is the word's index;
+# 0 = no item), each item either a "big" sprite (word height, word bytes a row, then planes
+# 3, 2, 1, 0) or a slot sprite (4 word pointers to pre-shifted copies, here all the same; the copy:
+# byte rows, byte bytes a row, word plane size, the mask (1 = transparent), then planes 3, 2, 1, 0).
+SCENE = {'BE': 'CE', 'BJ': 'CJ', 'BK': 'CI', 'BL': 'CK', 'BN': 'CN', 'BO': 'CL', 'Bd': 'CP', 'Bh': 'CR', 'Bi': 'CS'}
+def picpal(n):
+    r = gamedat.raw(dat, gamedat.directory(dat)[n])
+    return [(v & 7) | ((v >> 1) & 8) for v in r[:16]]
+def planes_image(d, o, h, bpr, pal, mask=None):
+    im = Image.new('RGBA', (bpr * 8, h), (0, 0, 0, 0)); px = im.load(); ps = h * bpr
+    for y in range(h):
+        for x in range(bpr * 8):
+            k = y * bpr + (x >> 3); bit = 7 - (x & 7)
+            if mask is not None and (d[mask + k] >> bit) & 1: continue
+            c = 0
+            for j, pl in enumerate((3, 2, 1, 0)): c |= ((d[o + j * ps + k] >> bit) & 1) << pl
+            px[x, y] = RGB16[pal[c]] + (255,)
+    return im
+def sprite_items(d):
+    w = lambda o: struct.unpack('<H', d[o:o + 2])[0]
+    first = None; i = 0; items = []
+    while 2 * i + 2 <= len(d) and (first is None or 2 * i < first):
+        v = w(2 * i)
+        if v and (first is None or v < first): first = v
+        items.append(v); i += 1
+    for k, p in enumerate(items):
+        if not p or p + 8 > len(d): continue
+        q = [w(p + 2 * j) for j in range(4)]
+        if all(first <= x < len(d) for x in q) and d[q[0]] and d[q[0] + 1]:
+            yield k, 'slot', q[0]
+        else:
+            yield k, 'big', p
+ds = os.path.join(de, 'sprites'); os.makedirs(ds, exist_ok=True)
+for n, pic in SCENE.items():
+    d = gamedat.lzw(gamedat.raw(dat, gamedat.directory(dat)[n])); pal = picpal(pic); tiles = []
+    for k, kind, o in sprite_items(d):
+        if kind == 'slot':
+            h, bpr = d[o], d[o + 1]
+            if o + 4 + 5 * h * bpr > len(d): continue
+            im = planes_image(d, o + 4 + h * bpr, h, bpr, pal, o + 4)
+        elif n == 'BL' and k <= 19:
+            # the territories' shapes for the map (xor_mask): word height, word bytes a row, word colour, 1 bit a pixel
+            h, bpr, col = struct.unpack('<HHH', d[o:o + 6])
+            im = Image.new('RGBA', (bpr * 8, h), (0, 0, 0, 0)); px = im.load()
+            for y in range(h):
+                for x in range(bpr * 8):
+                    if (d[o + 6 + y * bpr + (x >> 3)] >> (7 - (x & 7))) & 1: px[x, y] = (255, 255, 255, 255)
+        else:
+            h, bpr = struct.unpack('<HH', d[o:o + 4])
+            if not (0 < h <= 200 and 0 < bpr <= 40) or o + 4 + 4 * h * bpr > len(d): continue
+            im = planes_image(d, o + 4, h, bpr, pal)
+        bg = Image.new('RGBA', im.size, (60, 60, 90, 255)); bg.alpha_composite(im)
+        tiles.append((k, bg.convert('RGB')))
+    sprite_sheet(tiles, os.path.join(ds, '%s_in_%s.png' % (n, pic)))
 print('GAME.DAT done')

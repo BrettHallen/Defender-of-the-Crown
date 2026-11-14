@@ -8,13 +8,14 @@ Analysis of the files in `Original/`, started 14 Nov 2026 with the method used f
 | `GAME_LOGIC.md` | The game's rules as read from the code: the data, the setup, the month, events, buying, conquest, the computer lords (the action scenes still to come) |
 | `DOC.ASM` | Disassembly of DOC.EXE (the 1987 DOS CGA version), 19,900 lines: 232 routines in 76 segments, 95% of the code bytes reached. Routines are named `f_SEG_OFF` for now |
 | `GAMESYS.ASM` | The booter's loader, GameSYS 4.0 (GAME.DAT disk 0 track 0 sectors 2-9), with its services named |
-| `AA.ASM`, `AB.ASM`, `AC.ASM` | Disassemblies of the booter's three game programs (CGA, EGA, Tandy), with the data file BH's strings as comments. AC's Tandy-only routines are named (`disassembler/ac_names.txt`) |
-| `AC_vs_AB.txt` | Every routine of AC (Tandy) with its match in AB (EGA) and how alike they are |
+| `AA.ASM`, `AB.ASM`, `AC.ASM` | Disassemblies of the booter's three game programs (CGA, EGA, Tandy), with the data file BH's strings and the message boxes' texts as comments. Every routine is named: AB's by reading them all (`disassembler/ab_names.txt`), AA's and AC's from their AB matches plus their own (`aa_names.txt`, `ac_names.txt`) |
+| `AC_vs_AB.txt`, `AA_vs_AB.txt` | Every routine of AC (Tandy) and of AA (CGA) with its match in AB (EGA) and how alike they are |
 | `disassembler/docdis.py` | Writes `DOC.ASM` (`python3 docdis.py DOC.EXE > DOC.ASM`, needs capstone). Follows far calls through the relocations, near calls and jumps, switch tables, far pointers to functions and the remaining `push bp / mov bp,sp` prologues. Names go in a `names.py` beside it (`NAMES`, `DNAMES`, `COMMENTS`, keyed by linear address) |
-| `disassembler/flatdis.py` | Disassembles a flat 16-bit binary from given entry points (`flatdis.py FILE BASE ENTRIES [names.txt] [--prologues] [--ds DATAFILE]`): follows calls, jumps and switch tables, with `--prologues` also every C routine start not yet reached; used for GameSYS and AA-AC |
+| `disassembler/flatdis.py` | Disassembles a flat 16-bit binary from given entry points (`flatdis.py FILE BASE ENTRIES [names.txt] [--prologues] [--ds DATAFILE]`): follows calls, jumps and switch tables (sized by their bounds check, and the search-a-value kind), treats the block a program starts by jumping over as data, with `--prologues` also every C routine start not yet reached; used for GameSYS and AA-AC |
 | `disassembler/matchfuncs.py` | Matches the routines of two listings (`matchfuncs.py AB.ASM AC.ASM`) |
-| `disassembler/gamesys_names.txt`, `disassembler/ac_names.txt`, `disassembler/ab_names.txt` | The names in `GAMESYS.ASM`, `AC.ASM` and `AB.ASM` |
+| `disassembler/gamesys_names.txt`, `aa_names.txt`, `ab_names.txt`, `ac_names.txt` | The names in `GAMESYS.ASM`, `AA.ASM`, `AB.ASM` and `AC.ASM` |
 | `tools/dec.py`, `tools/ds_names.txt` | C-like pseudocode for a routine of AB.ASM (or `-f AC.ASM`), with the data segment's names (`python3 tools/dec.py attack`) |
+| `tools/joust_scripts.py` | Lists the joust's four outcome animations (BJ items 37-40: each frame's two knights, item, rows, x, y) |
 | `../Sound/tandymusic.py` | A port of the Tandy build's music driver: plays the tunes in BG into WAV files (`python3 tandymusic.py GAME.DAT OUTDIR [SECONDS]`) |
 | `../Sound/speakermusic.py` | A port of the PC-speaker music player shared by DOC.EXE and the booter's CGA and EGA builds (`python3 speakermusic.py GAME.DAT-or-DOCCHARS.LIB OUTDIR [SECONDS]`) |
 | `tools/dosbox/` | DOSBox configurations that run both versions (see below) |
@@ -44,15 +45,19 @@ Analysis of the files in `Original/`, started 14 Nov 2026 with the method used f
 ### The Tandy 1000 version (AC)
 It is the third build in GAME.DAT, not a separate release. GameSYS runs it when it finds a Tandy (its machine check and video detection, int 2Fh: [34C] = 2) and offers "16-color Tandy mode" at the prompt.
 
-**The same game as the EGA build, with its own video and sound layer.** AC has 190 routines: 104 are instruction for instruction the same as in AB (EGA), 43 more are close matches (mostly differing in constants such as the segments where data is loaded), and 43 are AC's own: the video primitives, the sprite engine, the palette and the music driver (`AC_vs_AB.txt`). All the game logic is shared (at different addresses), and so is the data file BH. The remake can therefore keep one game and switch only the drawing and the sound.
+**The same game as the EGA build, with its own video and sound layer.** AC has 191 routines: 105 are instruction for instruction the same as in AB (EGA), 44 more are close matches (mostly differing in constants such as the segments where data is loaded), and 42 are AC's own: the video primitives, the sprite engine, the palette and the music driver (`AC_vs_AB.txt`). All the game logic is shared (at different addresses), and so is the data file BH. The remake can therefore keep one game and switch only the drawing and the sound.
 
-**Video.** Mode 9 (320x200, 16 colours). AC draws into a back buffer at 3000:8000 laid out linearly (160 bytes a line, 2 pixels a byte, the left one in the high nibble; it uses the same row table DS:0D30 as AB, times 4) and copies it to the screen (B800h, four banks of 2000h) after the vertical retrace (show_back_buffer 96A3). The Tandy's palette registers (3DAh/3DEh) are set from the picture's 16 palette bytes (tandy_set_palette A15C: *v* & 0Fh, plus 8 if *v* & 30h).
+**The CGA build (AA) is built the same way.** It has 172 routines: 115 the same as AB's, 34 close matches, and 23 its own: the drawing into a back buffer at 3000:8000 in the CGA's own layout, the copies to the screen (B800h, two banks) and, for GameSYS's video type 3 ("other"), separate copies in a four-bank layout, the fire flicker (XORed flames chosen at random) and a CRTC register write used by the joust (lance_step) when GameSYS's configuration word DS:0000 is 2 (`AA_vs_AB.txt`, `disassembler/aa_names.txt`).
+
+**Video.** Mode 9 (320x200, 16 colours). AC draws into a back buffer at 3000:8000 laid out linearly (160 bytes a line, 2 pixels a byte, the left one in the high nibble; it uses the same row table DS:0D30 as AB, times 4) and copies it to the screen (B800h, four banks of 2000h) after the vertical retrace (present_worker 96A3). The Tandy's palette registers (3DAh/3DEh) are set from the picture's 16 palette bytes (tandy_set_palette A15C: *v* & 0Fh, plus 8 if *v* & 30h).
 
 **Pictures**: the same 20 C files as the EGA build, unpacked to planes and converted to packed pixels (planar_to_packed A1A4). With every picture's palette the Tandy mapping gives the same colours as the EGA's, and the title is pixel-identical in DOSBox.
 
 **Sprites**: the same pixels as the EGA build, stored as packed pixels instead of planes (formats in the file reference). Checked: all 24 sprites of Bh (EGA) and Bj (Tandy) are identical; so are the message-box pieces of BB and BC, except that **the Tandy build has only 4 of the 6 edge pieces for the top and bottom of a box** (BC's pieces 16h and 19h point at copies of 14h and 17h). That is the one difference seen on screen: a box's top and bottom edges repeat a slightly different pattern (in DOSBox, 150 pixels of the "insert reel two" box). Other screens compared in DOSBox (the introduction, Sherwood, the map, the orders menu, the tournament) differed only in game state (the territories are dealt at random, and the two builds run at different speeds).
 
 **Sound.** The Tandy build alone has music for the Tandy's three-voice sound chip (SN76489, port C0h); the CGA and EGA builds play one-voice versions of the same tunes on the PC speaker (below). The Tandy music driver (AC 7444-7C53) runs from IRQ 0, which it speeds up to the song's tempo (149-239 interrupts a second) while still calling the BIOS clock at 18.2 Hz: every 4th interrupt is a sequencer tick, the others run the volume envelopes. The tunes are in BG (format in the file reference). `../Sound/tandymusic.py` ports the driver interrupt by interrupt and renders the tunes; the title tune it renders matches DOSBox's Tandy recording (the same notes; note starts within 10 ms over 30 s, loudness envelope correlation 0.91-0.99).
+
+**The scenes do not wait for the Tandy music.** The CGA and EGA builds time parts of the opening by their tunes (the title waits for tune 97h to end, Sherwood's fire flickers until tune 98h ends, twice; with music off the tunes still run silently for this). AC has no play_tune / wait_tune: it starts a song (music_play) and times the same scenes by frame counts (Sherwood: 19 and 25 rounds of 4 fire frames, then 125). The two kinds of tune also differ in length (the title 65.2 s on the speaker, 50.1 s on the Tandy; the intro 14.7 s against a song that runs on through Sherwood).
 
 | Tune | Played (AC, with the scene's pictures and files) |
 |---|---|
@@ -90,9 +95,18 @@ Driver quirks a faithful remake keeps: a note word FFFAh turns vibrato off but t
 (The pairs come from the routines that start them, matched between AB and AC; only the title was heard in both.)
 
 ### Graphics extracted (`../Graphics`)
+- `CGA_compare/`: DOC.EXE's and the booter's CGA pictures side by side with their differing pixels, and DOSBox screens of both.
 - `CGA_DOS/`: DOC.EXE's 20 pictures and a numbered sheet of each .LIB's sprites (portraits, fonts, territory shapes, swordsmen, jousting knights, siege effects, the lady's eyes).
 - `Booter_CGA/`: the booter's 20 CGA pictures.
 - `Booter_EGA/`: the booter's 20 16-colour pictures (EGA and Tandy).
+
+### The two CGA versions compared (`../Graphics/CGA_compare`)
+**The same drawings, partly recoloured and retouched.** DOC.EXE's 20 CGA pictures (in its .LIB files) and the booter's 20 (QA-QT) are the same 20 scenes; the booter's are not a straight copy:
+- **Identical or nearly** (97-100% of pixels): the jousting lane, the second siege castle (SIEGE_01 / QQ), the window, the land view (QL, the sky aside).
+- **Recoloured in places** (the same lines, other colours): the title's bricks (DOS red, booter green), the map's surround (DOS red, booter brown), the castle hall (DOS red, booter brown), the first siege castle (DOS brown, booter red), the trumpeters' banner and sky, the lady's dress, the character-choice panels (DOS brown, booter green).
+- **Sprites baked in or left out**: DOC.EXE's pictures include things the booter draws as sprites (the knight on the lane, the two silhouettes and the window's figures in the romance, the raid's strength bars), and DOC.EXE's Sherwood (TITLE_06) has its scroll drawn in.
+- **Palettes**: both use CGA palette 0, low intensity, on black (checked in DOSBox: title, character choice, Sherwood and the map in both). DOC.EXE alone switches on the intensity bit for one picture, the romance's bedchamber (LOVE2; 050E:0626 sets the background register's bit 4), so that scene is brighter there.
+- **Other differences seen in DOSBox**: DOC.EXE's opening is shorter ("Master Designer Software, Inc. presents...", no credit boxes after the title); its character choice marks the character with a twinkle by the portrait instead of the booter's red box over the name.
 
 ## Running the originals in DOSBox
 `tools/dosbox/` has four configurations; edit the `mount` line if the repo is elsewhere:

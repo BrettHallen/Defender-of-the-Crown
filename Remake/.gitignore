@@ -1,0 +1,5 @@
+build/
+build-*/
+test/run_script
+test/dump_assets
+test/battle_test

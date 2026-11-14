@@ -1,9 +1,9 @@
 # Names for AC.ASM (the Tandy 1000 build). Routines found only in AC (matchfuncs.py AB.ASM AC.ASM: NO MATCH).
 0100 start ; loads BH (the data segment) to 1200:0000, int 2Ch config, main loop
-71E5 fill_rect ; back buffer 3000:8000, 160 bytes a line (row table DS:0D30 x 4), x in CGA bytes x 2
-7257 xor_rect
-72C2 xor_sprite ; sprite: word height, word bytes per row, packed 4bpp rows
-7341 put_sprite
+71E5 fill_rect_worker ; back buffer 3000:8000, 160 bytes a line (row table DS:0D30 x 4), x in CGA bytes x 2
+7257 xor_rect_worker
+72C2 xor_sprite_worker ; sprite: word height, word bytes per row, packed 4bpp rows
+7341 put_sprite_worker
 73BB put_font_char ; 1bpp-style font, colour from DS:12C4
 7444 music_play ; arg: song number (BG table); only when [33] (sound on)
 747A music_start_at ; BX = song header in BG (4B80:xxxx); FFFEh = loop marker kept in [4BD0]
@@ -27,11 +27,168 @@
 7CA7 set_pit0 ; AX = divisor
 7CC2 music_install_irq
 7CF4 music_remove_irq
-8007 draw_sprite_list ; the masked-sprite engine (frame pieces, map, animations)
-943B recolour_sprite
-96A3 show_back_buffer ; 3000:8000 (linear) -> B800 (4 banks of 2000h), waits for retrace, sets the palette
-9C37 show_back_buffer_part
+8007 sprites_draw ; (as AB 88CF) the masked-sprite engine (frame pieces, map, animations)
+943B set_region_colour ; as AB 9719 (the matcher found no match)
+96A3 present_worker ; (show_back_buffer) 3000:8000 (linear) -> B800 (4 banks of 2000h), waits for retrace, sets the palette
+9C37 present_bottom_worker ; lines 100-199 only
 9F0F copy_32k
 A15C tandy_set_palette ; from CS:0103 (the picture's 16 palette bytes): v & 0Fh, | 8 if v & 30h
 A193 tandy_palette_reg ; 3DAh index 10h + n, 3DEh value
 A1A4 planar_to_packed ; EGA-style planes (3000:0000, 4 x 1F40h) -> packed 4bpp at 3000:8000: the C pictures
+# Named from their AB matches (matchfuncs.py AB.ASM AC.ASM, similarity 0.60 or more; the AB address and name follow '='):
+01EA new_game ; = AB 10B2 new_game (similarity 0.92)
+08CC title_twinkle ; = AB 179A title_twinkle
+09FB fire_flicker ; = AB 18C9 fire_flicker (similarity 0.80)
+0A9B options_menu ; = AB 1957 options_menu
+0BD5 orders_menu ; = AB 1A91 orders_menu
+0C88 month ; = AB 1B44 month (similarity 0.97)
+1049 setup_armies ; = AB 1F11 setup_armies
+10EB setup_garrisons ; = AB 1FB3 setup_garrisons
+114E army_empty ; = AB 2016 army_empty
+116C army_move_to ; = AB 2034 army_move_to
+11B1 army_go_home ; = AB 2079 army_go_home
+11F5 send_others_home ; = AB 20BD send_others_home
+1223 send_home_armies_at ; = AB 20EB send_home_armies_at
+124C army_settle ; = AB 2114 army_settle
+12D8 army_merge ; = AB 21A0 army_merge
+1304 setup_sides ; = AB 21CC setup_sides
+14A5 copy_lord ; = AB 236D copy_lord
+14E4 side_income ; = AB 23AC side_income
+153E side_falls ; = AB 2406 side_falls
+1573 setup_ladies ; = AB 243B setup_ladies
+15E9 lady_to_side ; = AB 24B1 lady_to_side
+1661 lady_at ; = AB 2529 lady_at
+168E setup_enmity ; = AB 2556 setup_enmity
+171D enmity_add ; = AB 25E5 enmity_add (similarity 0.99)
+17E0 tournament_goodwill ; = AB 26AA tournament_goodwill (similarity 0.95)
+1802 copy_path ; = AB 26CC copy_path
+1825 army_strength ; = AB 26EF army_strength
+183A target_value ; = AB 2704 target_value (similarity 0.84)
+1939 ai_find_target ; = AB 2803 ai_find_target
+19EE ai_search ; = AB 28B8 ai_search
+1ACB ai_turn ; = AB 2995 ai_turn
+1B72 best_site_for_castle ; = AB 2A3C best_site_for_castle
+1BD4 ai_buy ; = AB 2A9E ai_buy (similarity 0.98)
+1D96 ai_reinforce_garrison ; = AB 2C60 ai_reinforce_garrison
+1E46 ai_do_order ; = AB 2D10 ai_do_order
+1EBA ai_choose_order ; = AB 2D84 ai_choose_order
+1F6D see_robin ; = AB 2E37 see_robin
+1FBA robin_men ; = AB 2E84 robin_men
+2022 next_event_in ; = AB 2EEC next_event_in
+2031 show_plotters_picture ; = AB 2EFB show_plotters_picture
+204A side_last_territory ; = AB 2F14 side_last_territory
+2084 monthly_event ; = AB 2F4E monthly_event
+226B send_army ; = AB 3135 send_army
+230B attack ; = AB 31D5 attack
+2452 ask_passage ; = AB 331C ask_passage
+251B apply_result ; = AB 33E5 apply_result (similarity 0.98)
+26BB choose_destination ; = AB 3585 choose_destination
+2716 seek_conquest ; = AB 35E0 seek_conquest
+2857 transfer_forces ; = AB 3721 transfer_forces
+2AFD buy_army ; = AB 39C7 buy_army
+2DE5 place_castles ; = AB 3CAF place_castles
+2EB8 is_neighbour ; = AB 3D82 is_neighbour
+2EEA territory_info ; = AB 3DB4 territory_info
+3085 draw_castles ; = AB 3F4F draw_castles
+3149 redraw_map ; = AB 4013 redraw_map (similarity 0.93)
+31BF read_map ; = AB 4084 read_map
+3201 flash_territory ; = AB 40C6 flash_territory
+327D choose_territory ; = AB 4142 choose_territory
+3378 set_owner ; = AB 423D set_owner (similarity 0.96)
+3448 rescue_offer ; = AB 4316 rescue_offer
+3528 choose_raid_victim ; = AB 43F6 choose_raid_victim
+355A ai_raid ; = AB 4428 ai_raid (similarity 0.97)
+366A choose_raid_target ; = AB 4538 choose_raid_target
+36DE go_raiding ; = AB 45AC go_raiding
+371E raid ; = AB 45EC raid (similarity 0.96)
+38B4 lady_animate ; = AB 479B lady_animate (similarity 0.98)
+3963 fire_flicker2 ; = AB 4853 fire_flicker2 (similarity 0.91)
+3A05 romance ; = AB 48EB romance (similarity 0.86)
+3D0D bar_shorten ; = AB 4C5C bar_shorten
+3D5D sword_pose_b ; = AB 4CAC sword_pose_b
+3E99 sword_pose_a ; = AB 4DE8 sword_pose_a
+3FD5 sword_fight ; = AB 4F24 sword_fight (similarity 0.99)
+44FA raid_attack ; = AB 5449 raid_attack (similarity 0.96)
+461B raid_defense ; = AB 5571 raid_defense (similarity 0.99)
+472B show_armies ; = AB 5684 show_armies
+4828 battle ; = AB 5781 battle
+4862 battle_shown ; = AB 57BB battle_shown (similarity 0.97)
+5087 battle_auto ; = AB 600C battle_auto
+5166 battle_round ; = AB 60EB battle_round
+527D army_damage ; = AB 6202 army_damage
+52F7 percent_of_lead ; = AB 627C percent_of_lead
+530B take_losses ; = AB 6290 take_losses
+5337 tournament ; = AB 62BC tournament (similarity 0.87)
+553F joust_round ; = AB 6475 joust_round (similarity 0.92)
+5943 joust_approach ; = AB 6850 joust_approach (similarity 0.95)
+5C31 lance_step ; = AB 6B09 lance_step (similarity 0.96)
+5D7D joust_outcome ; = AB 6C59 joust_outcome (similarity 0.99)
+5FE3 joust ; = AB 6EC2 joust (similarity 0.84)
+61B2 choose_opponent ; = AB 7094 choose_opponent
+6231 leadership_add ; = AB 7113 leadership_add
+6286 catapult_aim ; = AB 7168 catapult_aim (similarity 0.93)
+64AE show_shot ; = AB 739D show_shot (similarity 0.97)
+65C4 siege ; = AB 74B5 siege
+6614 choose_ammo ; = AB 7505 choose_ammo
+674D siege_by_player ; = AB 763E siege_by_player (similarity 0.97)
+69AB siege_of_player ; = AB 78A9 siege_of_player (similarity 0.99)
+6B7E dialog ; = AB 7A80 dialog
+6FF0 wait_ticks ; = AB 7EF2 wait_ticks
+7028 wait_key ; = AB 7F2A wait_key
+705C get_key ; = AB 7F5E get_key
+708A bios_key ; = AB 7F8C bios_key
+70A5 flush_keys ; = AB 7FA7 flush_keys
+70AF joystick_key ; = AB 7FB1 joystick_key (similarity 0.92)
+715F read_joystick ; = AB 8086 read_joystick (similarity 0.89)
+71B9 fill_rect ; = AB 80EA fill_rect (similarity 0.88)
+722B xor_rect ; = AB 8223 xor_rect (similarity 0.88)
+72A1 xor_sprite ; = AB 82D2 xor_sprite (similarity 0.65)
+7318 xor_mask ; = AB 83E2 xor_mask (similarity 0.88)
+7392 put_sprite ; = AB 8495 put_sprite (similarity 0.88)
+7DD9 clear_back ; = AB 865F clear_back (the only wrapper here; the matcher paired it with AB 8647)
+7E1F clear_back_worker ; = AB 8698 clear_back_worker (similarity 0.76)
+7F00 get_pixel ; = AB 87C1 get_pixel
+7F1A put_pixel ; = AB 87DB put_pixel
+7F37 put_pixel_back ; = AB 87F8 put_pixel_back
+7F55 sprites_erase ; = AB 8816 sprites_erase (similarity 0.78)
+8DDF month_status ; = AB 90A3 month_status
+9143 show_portrait ; = AB 9407 show_portrait
+91A0 morale_add ; = AB 9464 morale_add
+91C9 str_append ; = AB 948D str_append
+91F1 num_append ; = AB 94B5 num_append
+925C beep ; = AB 9520 beep
+9276 speaker_off ; = AB 953A speaker_off
+927D speaker_tone ; = AB 9541 speaker_tone (similarity 0.70)
+9341 tune_hook ; = AB 9605 tune_hook (similarity 0.92)
+9489 cache_bn_bo_bd ; = AB 97B5 cache_bn_bo_bd (similarity 0.68)
+9573 cache_bj_bk ; = AB 9732 cache_bj_bk (similarity 0.95)
+95F6 load_file ; = AB 987A load_file
+9614 ask_reel_two ; = AB 9898 ask_reel_two
+963F show_picture ; = AB 98C3 show_picture (similarity 0.91)
+9677 present ; = AB 9902 present
+968D present_bottom ; = AB 994A present_bottom
+9F76 lzw_unpack ; = AB 9ABB lzw_unpack
+A061 lzw_code ; = AB 9BA6 lzw_code
+A0B7 lzw_out ; = AB 9BFC lzw_out
+A0CD lzw_add ; = AB 9C12 lzw_add
+A0EC keep_palette ; = AB 9C31 keep_palette
+A11A use_palette ; = AB 9C5F use_palette
+A145 picture_palette ; = AB 9C8A picture_palette
+A270 delay_ticks ; = AB 9CAF delay_ticks
+A2A4 wait_retrace ; = AB 9CE3 wait_retrace
+A2C7 random ; = AB 9CFC random
+A2FE shuffle ; = AB 9D33 shuffle
+A361 random_next ; = AB 9D96 random_next
+A37E seed_random ; = AB 9DB3 seed_random
+A3A6 lfsr_step ; = AB 9DDB lfsr_step
+A3C3 long_div ; = AB 9DF8 long_div
+A442 long_shl ; = AB 9E77 long_shl
+A47C struct_arg ; = AB 9EB1 struct_arg
+# AC's own, read with the rest:
+7DF1 clear_screen_worker ; (fill word): all 32K of the Tandy screen B800:0000 (4 banks of 2000h; never called)
+7E37 get_pixel_worker ; (x, y, page): the screen's packed pixel (row table DS:1050)
+7E72 put_pixel_worker ; (x, y, colour, page) on the screen
+7EB7 put_pixel_back_worker ; (x, y, colour, page) in the back buffer 3000:8000
+9F32 save_back ; 3000:8000 to 2000:8000 (32K; the siege)
+9F54 restore_back ; 2000:8000 to 3000:8000
+A2B2 get_ticks ; int 1Ah: BIOS tick count (DX:AX)

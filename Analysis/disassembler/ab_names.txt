@@ -95,3 +95,89 @@
 7094 choose_opponent
 7113 leadership_add
 26AA tournament_goodwill
+0100 start ; jmp main; 0103-1013 is data: the current EGA palette (0103, 16 bytes), the LZW state (0116-0127), the file-cache pointers (0138-014B: far pointers to BJ, BK, BN, BO, Bd when they are kept in memory), the fire sprite (014C/0154: 4 pre-shifted pointers each to the two flame frames at 015C and 08B8: byte rows 47, byte bytes a row 8, word plane size, the mask (1 = transparent), the planes)
+179A title_twinkle ; (x, y, d): a sparkle: 11 rounds of 4 more pixels around (x, y) (offsets DS:0936) turn white (colour 0Fh), each round a busy loop of DS:0005 x 1500; 2 ticks; the same rounds put back; d ticks; returns get_key (the title's sparkles; a key skips the credits)
+18C9 fire_flicker ; (frames): the campfire in Sherwood: sprite slot 0 at (144, 121) cycles off / flame 1 / flame 2 (the sprites at CS:014C, CS:0154) each frame, showing the bottom half of the screen (present_bottom)
+2529 lady_at ; (territory): the lady (0-3) whose territory it is, or -1 (never called)
+3F4F draw_castles ; on the back page: a castle sprite (picture item by castle type) for every territory with a castle, at its map position (DS:0C14), and the player's campaign army at its territory (DS:0C3A); through sprite slot 0
+40C6 flash_territory ; (territory, n): XORs the territory's mask on the screen n times, once a timer tick (makes it blink)
+479B lady_animate ; (lady): puts her frames, the BE sprites (2000:0) item DS:0ABE[lady] + 2 up to + 5 (ladies' bases 2, 8, 14, 20), one a tick, at x DS:0AA0 / y DS:0A9E (4 bytes a lady; Anne's x + 1) (the romance scene)
+4853 fire_flicker2 ; (frames): the same flames in sprite slot 1 at (128, 113) (the hearth in the romance scene)
+4C5C bar_shorten ; (ptr): erases 2 pixels (lines 195-196) at the bar's end x = [ptr] and moves it 2 to the left (strength bars of the sword fight and the raids)
+4CAC sword_pose_b ; (10): the two background fighters of the Attack (record DS:0B1C) into sprite slots 4-7
+4DE8 sword_pose_a ; (0): the player and the enemy (record DS:0B08: x, y, legs, body, strength for each) into sprite slots 0-3: bodies at (x, y), legs at (x, y + 24), the enemy's legs at x + 8 (BN items)
+6850 joust_approach ; the tournament from above (CH): a knight rides in (BJ 2-22), turns (23-24) and back (25-29) as the other comes in (30-35); then both portraits and names (opponent at 9,3, player at 53,3), "An expectant hush falls over the gallery..."; loads BK if not cached
+6C59 joust_outcome ; (result 0 near miss, 1 opponent unhorsed, 2 player unhorsed, 3 the horse hit): the stands (CJ) and the script BJ item 37+result (2 knights a frame, 4 bytes each: item - 20, rows, x, y; see ../tools/joust_scripts.py)
+7EF2 wait_ticks ; (n): counts n changes of the tick count (the first at once: its first comparison is with an uninitialised value), reading and dropping keys meanwhile
+7F2A wait_key ; waits for a key or the joystick; returns its scan code
+7F5E get_key ; a key or joystick move if there is one, else 0; keypad + (4Eh) and F1 (3Bh) read as Enter (1Ch)
+7F8C bios_key ; int 16h: the scan code of a waiting key, else 0
+7FA7 flush_keys
+7FB1 joystick_key ; the joystick as keys: the stick's direction as the keypad's scan codes 71-81, the button as Enter (1Ch), with a repeat delay (DS:08C7)
+8086 read_joystick ; port 201h: x and y by timing loops, buttons
+80EA fill_rect ; (x, y, w, h, colour): wrapper of 8110 (x and w in 4-pixel units, as the CGA build's bytes; the colour's high byte gives the 4 planes' fill bytes)
+8110 fill_rect_worker ; on the back page (A000:2000)
+8223 xor_rect ; (x, y, w, h, colour): wrapper of 8249 (XORs a rectangle with a colour: menu highlights)
+8249 xor_rect_worker ; graphics controller function XOR, set/reset
+82D2 xor_sprite ; (x, y, sprite, segment): wrapper of 82F5 (big 4-plane sprite: word h, word bytes a row, planes 3, 2, 1, 0)
+82F5 xor_sprite_worker ; XORs the sprite's planes onto the back page (the character-choice frame, the catapult's sight, ...)
+83E2 xor_mask ; (x, y, mask, segment): wrapper of 8405 (1-bit mask: word h, word bytes a row, word colour; the map's territory shapes)
+8405 xor_mask_worker ; set/reset with the mask's colour, function XOR
+8495 put_sprite ; (x, y, sprite, segment): wrapper of 84B8 (big 4-plane sprite, copied opaque)
+84B8 put_sprite_worker
+8591 draw_glyph ; (x pixels, y, glyph, segment): wrapper of 85B4 (the dialog's font)
+85B4 draw_glyph_worker ; 1-bit glyph shifted to x & 7 (DS:12BC), function AND (dark letters)
+8647 clear_screen ; (fill byte): wrapper of 8677 (never called)
+865F clear_back ; (fill byte): wrapper of 8698
+8677 clear_screen_worker ; A000:0000, 8000 bytes
+8698 clear_back_worker ; A000:2000, 8000 bytes
+86BA put_pixel_worker ; (x, y, colour, page): write mode 2 with the bit mask DS:12CA
+871E get_pixel_worker ; (x, y, page): reads the 4 planes
+87C1 get_pixel ; (x, y) on the screen
+87DB put_pixel ; (x, y, colour) on the screen
+87F8 put_pixel_back ; (x, y, colour) on the back page
+8816 sprites_erase ; puts back what the active sprite slots (0-11) covered on the back page (write mode 1 latch copies from the saved areas). Slot tables: DS:1210 save area, 1228 active, 1240 x, 1258 y, 1270 image, 1288 image segment, 12A0 width trim
+88CF sprites_draw ; slots 11 down to 0: saves the background under each active slot, then draws its masked sprite (image = 4 pointers to pre-shifted copies chosen by x & 6; byte rows, byte bytes a row, word plane size, mask, planes) with the unrolled row and column code at 8A97-8ED2 (entry tables CS:8ED3, 8F91, 8FB9, 9079)
+8A97 rows_draw ; unrolled: (call cx; add di, [bp-0Eh]) x 96; entered part-way (table) to draw a given number of rows
+8C78 cols_latch ; unrolled (lodsb; mov ah, es:[di]; stosb) x 20: one row, loading the latches first
+8CDD rows_save ; unrolled (call cx; add si, [bp-0Eh]) x 96
+8EBE cols_copy ; unrolled movsb x 20, entered part-way for the width
+9407 show_portrait ; (portrait, x, y): a framed box (dialog DS:1FE0 moved to x, y) with the portrait (BL, 3000:0) inside
+948D str_append ; (dst, src)
+94B5 num_append ; (number, dst): decimal, a space before numbers under 10
+953A speaker_off
+9541 speaker_tone ; (divisor)
+9605 tune_hook ; (tune): sets the tune pointer and hooks int 1Ch (the player of the speaker tunes)
+96FF tune_unhook ; restores int 1Ch, speaker off
+9719 set_region_colour ; (mask, segment, colour, side): sets the colour word of a territory's map mask (owner colours DS:0C7E)
+9732 cache_bj_bk ; with 6 or more 64K blocks (DS:0004): keeps BJ (4000:0) and BK (5000:0) in memory (pointers CS:0138, 013C)
+97B5 cache_bn_bo_bd ; with 8 or more: also BN (6000:0), BO (6000:8000) and Bd (7000:0) (CS:0140-014B)
+9879 cache_more ; with 10 or more: nothing more (empty)
+9898 ask_reel_two ; "Please insert reel two and press any key to continue..." until int 22h reports disk 2
+98C3 show_picture ; the C picture loaded at 1000:7000: its palette to CS:0103 (9C8A), LZW from 1000:7010 to 3000:8000, the planes to the back page (9993); then present and set_ega_palette show it
+9902 present ; wrapper of 9918
+9918 present_worker ; at vertical retrace: copies the back page A000:2000 to the screen A000:0000 (write mode 1, all planes)
+994A present_bottom ; wrapper of 9960
+9960 present_bottom_worker ; the same for lines 100-199 only
+9993 put_planes ; (offset): copies the 4 unpacked planes at 3000:8000 to A000:offset
+9A1F copy_page ; (dst, src) in video memory
+9A5B save_back ; A000:2000 to A000:4000 (the siege keeps the castle there)
+9A8B restore_back ; A000:4000 to A000:2000
+9BA6 lzw_code ; the next code from the packed bits
+9BFC lzw_out ; one byte out to the destination (CS:0125:0127)
+9C12 lzw_add ; adds a table entry (3 bytes: prefix code, character)
+9C31 keep_palette ; (slot): the loaded picture's palette to CS:E700 + 16 * slot (slot 0 = the map)
+9C5F use_palette ; (slot): CS:E700 + 16 * slot to the current palette CS:0103
+9C8A picture_palette ; 1000:7000 (the picture's 16 palette bytes) to CS:0103
+9CA1 set_ega_palette ; int 10h AX=1002h with CS:0103 (and overscan 0)
+9CAF delay_ticks ; (n): as wait_ticks without reading the keys
+9CE3 wait_retrace ; port 3DAh bit 3
+9CF1 get_ticks ; int 1Ah: BIOS tick count in DX:AX
+9D96 random_next ; 16-bit Galois LFSR at DS:005B (shift right; if a 1 fell out, xor 0B400h); every 65535 calls (DS:0025) it reseeds
+9DB3 seed_random ; seed = the BIOS tick count's low word (not 0), then the LFSR is stepped a tick-dependent number of times
+9DDB lfsr_step
+9DF8 long_div ; C runtime: signed 32-bit divide (ret 8)
+9E77 long_shl ; C runtime: 32-bit shift left by CL (9E8B-9EB0, never called: the shift rights)
+9EB1 struct_arg ; copies CX bytes from DX:AX onto the stack (a struct passed by value: the dialog boxes' 12-byte descriptions)
+44F4 take_gold ; (side): takes all of a side's gold up to 15, 15 of 16-38, else 40% (gold * 4 / 10); returns the amount (never called)
+968A int1c_tune ; the timer-tick handler of the speaker tunes (old vector CS:9682, tune pointer CS:9686; see ../Sound/speakermusic.py), then chains to the old handler

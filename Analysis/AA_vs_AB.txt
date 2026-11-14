@@ -1,0 +1,173 @@
+# matchfuncs.py AB.ASM AA.ASM: each routine of AA (CGA) with its match in AB (EGA) and the similarity (1.00 = the same instructions)
+start        57 insns  = main 0.94
+new_game    635 insns  = new_game 0.93
+title_twinkle  126 insns  = title_twinkle 1.00
+fire_flicker   44 insns  NO MATCH
+options_menu  103 insns  = options_menu 1.00
+orders_menu   69 insns  = orders_menu 1.00
+month       347 insns  = month 1.00
+setup_armies   64 insns  = setup_armies 1.00
+setup_garrisons   41 insns  = setup_garrisons 1.00
+army_empty   13 insns  = army_empty 1.00
+army_move_to   32 insns  = army_move_to 1.00
+army_go_home   33 insns  = army_go_home 1.00
+send_others_home   23 insns  = send_others_home 1.00
+send_home_armies_at   21 insns  = send_home_armies_at 1.00
+army_settle   63 insns  = army_settle 1.00
+army_merge   20 insns  = army_merge 1.00
+setup_sides  167 insns  = setup_sides 1.00
+copy_lord    27 insns  = copy_lord 1.00
+side_income   43 insns  = side_income 1.00
+side_falls   27 insns  = side_falls 1.00
+setup_ladies   49 insns  = setup_ladies 1.00
+lady_to_side   51 insns  = lady_to_side 1.00
+lady_at      24 insns  = lady_at 1.00
+setup_enmity   64 insns  = setup_enmity 1.00
+enmity_add   82 insns  = enmity_add 1.00
+tournament_goodwill   20 insns  = tournament_goodwill 1.00
+copy_path    19 insns  = copy_path 1.00
+army_strength   10 insns  = army_strength 1.00
+target_value  104 insns  = target_value 1.00
+ai_find_target   80 insns  = ai_find_target 0.99
+ai_search    92 insns  = ai_search 1.00
+ai_turn      73 insns  = ai_turn 1.00
+best_site_for_castle   47 insns  = best_site_for_castle 1.00
+ai_buy      182 insns  = ai_buy 1.00
+ai_reinforce_garrison   74 insns  = ai_reinforce_garrison 1.00
+ai_do_order   48 insns  = ai_do_order 1.00
+ai_choose_order   75 insns  = ai_choose_order 1.00
+see_robin    28 insns  = see_robin 1.00
+robin_men    44 insns  = robin_men 1.00
+next_event_in    7 insns  = next_event_in 1.00
+show_plotters_picture   11 insns  = show_plotters_picture 1.00
+side_last_territory   28 insns  = side_last_territory 1.00
+monthly_event  187 insns  = monthly_event 1.00
+send_army    65 insns  = send_army 1.00
+attack      131 insns  = attack 1.00
+ask_passage   82 insns  = ask_passage 1.00
+apply_result  173 insns  = apply_result 1.00
+choose_destination   44 insns  = choose_destination 1.00
+seek_conquest  126 insns  = seek_conquest 1.00
+transfer_forces  284 insns  = transfer_forces 1.00
+buy_army    298 insns  = buy_army 1.00
+place_castles   49 insns  = place_castles 1.00
+is_neighbour   26 insns  = is_neighbour 1.00
+territory_info  162 insns  = territory_info 1.00
+draw_castles   77 insns  = draw_castles 0.97
+redraw_map   51 insns  = redraw_map 0.93
+read_map     27 insns  = read_map 1.00
+flash_territory   56 insns  = flash_territory 1.00
+choose_territory  107 insns  = choose_territory 1.00
+set_owner    94 insns  = set_owner 0.96
+rescue_offer   86 insns  = rescue_offer 1.00
+choose_raid_victim   23 insns  = choose_raid_victim 1.00
+ai_raid      88 insns  = ai_raid 0.97
+choose_raid_target   51 insns  = choose_raid_target 1.00
+go_raiding   28 insns  = go_raiding 1.00
+raid        144 insns  = raid 1.00
+lady_animate   80 insns  = lady_animate 0.98
+fire_flicker2   38 insns  NO MATCH
+romance     331 insns  = romance 0.98
+bar_shorten   42 insns  = bar_shorten 1.00
+sword_pose_b  118 insns  = sword_pose_b 1.00
+sword_pose_a  118 insns  = sword_pose_a 1.00
+sword_fight  450 insns  = sword_fight 0.98
+raid_attack   96 insns  = raid_attack 0.97
+raid_defense  102 insns  = raid_defense 0.98
+show_armies  121 insns  = show_armies 1.00
+battle       25 insns  = battle 1.00
+battle_shown  784 insns  = battle_shown 0.99
+battle_auto   98 insns  = battle_auto 1.00
+battle_round  103 insns  = battle_round 1.00
+army_damage   48 insns  = army_damage 1.00
+percent_of_lead   10 insns  = percent_of_lead 1.00
+take_losses   22 insns  = take_losses 1.00
+tournament  182 insns  = tournament 0.94
+joust_round  379 insns  = joust_round 1.00
+joust_approach  240 insns  = joust_approach 0.95
+lance_step  125 insns  = lance_step 0.96
+joust_outcome  214 insns  = joust_outcome 0.96
+joust       158 insns  = joust 0.87
+choose_opponent   54 insns  = choose_opponent 1.00
+leadership_add   35 insns  = leadership_add 1.00
+catapult_aim  215 insns  = catapult_aim 0.95
+show_shot   106 insns  = show_shot 0.98
+siege        24 insns  = siege 1.00
+choose_ammo  125 insns  = choose_ammo 1.00
+siege_by_player  220 insns  = siege_by_player 0.99
+siege_of_player  195 insns  = siege_of_player 1.00
+dialog      436 insns  = dialog 1.00
+wait_ticks   25 insns  = wait_ticks 1.00
+wait_key     24 insns  = wait_key 1.00
+get_key      21 insns  = get_key 1.00
+bios_key     13 insns  = bios_key 1.00
+flush_keys    5 insns  = flush_keys 1.00
+joystick_key   80 insns  = joystick_key 0.90
+read_joystick   53 insns  = read_joystick 1.00
+fill_rect    22 insns  = fill_rect 1.00
+fill_rect_worker   26 insns  NO MATCH
+xor_rect     22 insns  = xor_rect 1.00
+xor_rect_worker   29 insns  NO MATCH
+xor_sprite   21 insns  = xor_sprite 1.00
+xor_sprite_worker   39 insns  NO MATCH
+xor_mask     21 insns  = xor_mask 1.00
+xor_mask_worker   36 insns  NO MATCH
+put_sprite   21 insns  = put_sprite 1.00
+put_sprite_shift   71 insns  NO MATCH
+clear_screen   22 insns  = clear_screen 0.84
+clear_back   22 insns  = clear_back 0.84
+clear_screen_worker   12 insns  = clear_screen_worker 0.76
+clear_back_worker   12 insns  = clear_back_worker 0.76
+clear_screen_type3   22 insns  NO MATCH
+get_pixel_worker   29 insns  NO MATCH
+put_pixel_worker   33 insns  NO MATCH
+put_pixel_back_worker   34 insns  NO MATCH
+get_pixel    15 insns  = get_pixel 1.00
+put_pixel    18 insns  = put_pixel 0.88
+put_pixel_back   18 insns  = put_pixel_back 0.88
+sprites_erase   69 insns  = sprites_erase 0.68
+sprites_draw  246 insns  NO MATCH
+month_status  343 insns  = month_status 1.00
+show_portrait   41 insns  = show_portrait 0.99
+set_region_colour   35 insns  NO MATCH
+morale_add   14 insns  = morale_add 1.00
+str_append   25 insns  = str_append 1.00
+num_append   54 insns  = num_append 1.00
+crtc_write   14 insns  NO MATCH
+beep         12 insns  = beep 1.00
+speaker_off    4 insns  = speaker_off 1.00
+speaker_tone   13 insns  = speaker_tone 1.00
+play_tune    26 insns  = play_tune 1.00
+wait_tune    25 insns  = wait_tune 1.00
+tune_playing   35 insns  = tune_playing 1.00
+tune_hook    57 insns  = tune_hook 0.92
+tune_unhook   11 insns  = tune_unhook 1.00
+cache_bj_bk   37 insns  = cache_bj_bk 1.00
+cache_bn_bo_bd   55 insns  = cache_bn_bo_bd 1.00
+cache_more    1 insns  = cache_more 1.00
+load_file    19 insns  = load_file 1.00
+show_picture   24 insns  = present 0.91
+present_bottom    6 insns  NO MATCH
+present_bottom_cga  327 insns  NO MATCH
+present_bottom_type3  627 insns  NO MATCH
+present       6 insns  NO MATCH
+present_cga  627 insns  NO MATCH
+present_type3 1227 insns  NO MATCH
+copy_32k     22 insns  NO MATCH
+save_back    22 insns  = present_bottom 0.62
+restore_back   22 insns  NO MATCH
+lzw_unpack   86 insns  = lzw_unpack 1.00
+lzw_code     35 insns  = lzw_code 1.00
+lzw_out      12 insns  = lzw_out 1.00
+lzw_add      10 insns  = lzw_add 1.00
+delay_ticks   21 insns  = delay_ticks 1.00
+wait_retrace   23 insns  NO MATCH
+get_ticks     7 insns  = get_ticks 1.00
+random       28 insns  = random 1.00
+shuffle      49 insns  = shuffle 1.00
+random_next   11 insns  = random_next 1.00
+seed_random   17 insns  = seed_random 1.00
+lfsr_step    10 insns  = lfsr_step 0.78
+long_div     62 insns  = long_div 1.00
+long_shl     14 insns  = long_shl 1.00
+struct_arg   21 insns  = struct_arg 1.00
