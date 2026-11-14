@@ -1,5 +1,5 @@
 # Defender of the Crown
-Analysis of Cinemaware's Defender of the Crown for the IBM PC, as a step towards a modern remake for the Mac (as was done for The Ancient Art of War).
+Analysis of Cinemaware's Defender of the Crown for the IBM PC, as a step towards a modern remake for the Mac (as was done for [The Ancient Art of War](https://github.com/BrettHallen/Ancient-Art-of-War)).
 
 ## Versions
 The [original files](/Original) hold two different PC versions:
