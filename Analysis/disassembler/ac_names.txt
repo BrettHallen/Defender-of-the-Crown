@@ -1,0 +1,37 @@
+# Names for AC.ASM (the Tandy 1000 build). Routines found only in AC (matchfuncs.py AB.ASM AC.ASM: NO MATCH).
+0100 start ; loads BH (the data segment) to 1200:0000, int 2Ch config, main loop
+71E5 fill_rect ; back buffer 3000:8000, 160 bytes a line (row table DS:0D30 x 4), x in CGA bytes x 2
+7257 xor_rect
+72C2 xor_sprite ; sprite: word height, word bytes per row, packed 4bpp rows
+7341 put_sprite
+73BB put_font_char ; 1bpp-style font, colour from DS:12C4
+7444 music_play ; arg: song number (BG table); only when [33] (sound on)
+747A music_start_at ; BX = song header in BG (4B80:xxxx); FFFEh = loop marker kept in [4BD0]
+74BA music_load_song ; tempo -> PIT 0, 4 voice pointers, instruments
+7590 copy_instrument ; 6 words to DS:4B33 + 12 x voice
+75A4 music_irq ; int 8: calls [4BE9] (music_tick), chains to the BIOS clock every 65536 PIT counts
+75F4 music_tick ; every 4th interrupt: sequencer; otherwise envelopes
+7678 voice0_next_event
+76E2 voice1_next_event
+774C voice2_next_event ; tests FFFEh the other way round from voices 0 and 1
+77B6 voice3_next_event
+7820 sn_set_tone ; port C0h: latch (AL | channel bits [4BB1]), then the high 6 bits
+7835 split_tone
+7A6F clamp_0_15
+7A83 voice0_vibrato
+7AF7 voice1_vibrato
+7B6B voice2_vibrato
+7BDF voice3_vibrato
+7C53 music_stop ; speaker off, silence, timer back to 18.2 Hz
+7C78 sn_silence ; attenuation 15 on all four channels
+7CA7 set_pit0 ; AX = divisor
+7CC2 music_install_irq
+7CF4 music_remove_irq
+8007 draw_sprite_list ; the masked-sprite engine (frame pieces, map, animations)
+943B recolour_sprite
+96A3 show_back_buffer ; 3000:8000 (linear) -> B800 (4 banks of 2000h), waits for retrace, sets the palette
+9C37 show_back_buffer_part
+9F0F copy_32k
+A15C tandy_set_palette ; from CS:0103 (the picture's 16 palette bytes): v & 0Fh, | 8 if v & 30h
+A193 tandy_palette_reg ; 3DAh index 10h + n, 3DEh value
+A1A4 planar_to_packed ; EGA-style planes (3000:0000, 4 x 1F40h) -> packed 4bpp at 3000:8000: the C pictures

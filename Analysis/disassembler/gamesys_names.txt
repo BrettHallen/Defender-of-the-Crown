@@ -1,0 +1,17 @@
+# Names for GAMESYS.ASM (flatdis.py GAME.DAT track 0 sectors 2-9, loaded at 0050:0100; DEFENDER.COM loads it at 8C00:0100)
+03CC gamesys_start ; installs int 20h-22h, 2Ch-2Fh, detects the video, loads AA/AB/AC to 0170:0100 and unpacks it
+04FB key_poll ; int 16h: AX = key or 0
+0509 delay
+0515 iret_stub ; ints 0-5
+0516 int20_print ; DS:SI = 0-terminated string, BIOS teletype
+052A int21_load_file ; AX = 2-char name (AL first), CL = drive, ES:BX = buffer: finds the name in the directory sector (track 0 sector 9, read to CS:0F00 by int 22h), reads its sectors; DX:AX = bytes. DEFENDER.COM patches the int 13h at 05B0
+0615 int22_read_directory ; reads track 0 sector 9 of drive CL to CS:0F00; AX = the disk's number (word at 1FCh). DEFENDER.COM patches 0637 (and flips its disk 0/1 when called)
+065D lzw_unpack ; [3B5]:[3B7] -> [3B9]:[3BB], codes 9-12 bits LSB first, 100h clear, 101h end
+073A lzw_get_code
+078D lzw_put_byte
+079F lzw_add_entry
+07BE int2C_get_config ; AH [32A], AL [326], BX [36C], CX [36E], DX [34C] video type (0 CGA, 1 EGA, 2 Tandy, 3 other), DI [34A], SI [327]
+07DF int2D_timer2 ; AL 0/1: programs PIT channel 1
+0800 int2F_detect_video ; sets [34C]: 0 CGA, 1 EGA (int 10h 12h), 2 Tandy (mode 9), 3; CF on error (AX = message index)
+08BD measure_cpu_speed
+09A3 detect_machine ; F000:FFFE model byte, Tandy/Tandon ROM strings

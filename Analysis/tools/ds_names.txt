@@ -1,0 +1,30 @@
+# DS (BH) names for dec.py: HEX name size [record_size field_offset=name ...]
+009F side 168 24 0=name 2=pad 4=portrait 6=lady 8=home 10=at 12=spend 14=joust 16=lead 18=sword 20=income 22=gold
+0695 terr 285 15 0=name 2=pad 4=owner 5=castle 6=vassals 7=income 8=nb
+04E7 lord 160 16 0=name 2=pad 4=portrait 6=lead 8=joust 10=sword 12=s12 14=s14
+0B54 cur_terr
+0051 player
+002D game_over
+0029 quit
+0043 month
+0478 lady 32 8 0=name 2=side 4=terr 6=flag
+0416 enmity 98 14
+0053 kidnapped
+0055 robin_left
+0035 tune_once
+0037 tune_loop
+0039 tune_stop
+0033 sound_on
+0147 army 260 10 0=at 2=base 4=soldiers 6=knights 8=catapults   # 0-6 campaign armies by side, 7+t garrison of territory t
+0D2E income_lost
+0045 month_no       # 0-11 (0 = January)
+0047 year
+024B ai_last_order 14
+0075 search_seen 38
+0073 search_best
+009B search_target
+0A90 price 16       # by item 2-5: soldier 1, knight 8, catapult 15, castle 20
+0B56 nav 152 8      # per territory: the territory reached with each of the 8 keypad directions
+0B4C dmg_to_att
+0B4E dmg_to_def
+37B1 rating 22      # stat 0-10 -> "Weak"/"Average"/"Good"/"Strong" string

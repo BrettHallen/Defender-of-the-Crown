@@ -1,0 +1,97 @@
+# Names for AB.ASM (the EGA build; the same game code is in AA and AC at other addresses: see AC_vs_AB.txt)
+1014 main ; loads BH, then: new_game, then month until game over; again until quit
+10B2 new_game ; title, credits, intro, choose a character, setup (setup_sides, place_castles, setup_ladies, setup_garrisons, setup_armies, next_event_in, setup_enmity)
+1957 options_menu
+1A91 orders_menu ; 1 tournament, 2 seek_conquest, 3 go_raiding, 4 buy_army, 5 read_map, 6 pass, 7 options
+1B44 month ; sides 1-6 in turn: the player (income, events, status, orders) or ai_turn; then the end checks
+1F11 setup_armies ; campaign armies at home: 15 soldiers (the player's 0); home garrisons 5 (the player's 10)
+1FB3 setup_garrisons ; garrison of each territory = its vassals
+2016 army_empty
+2034 army_move_to
+2079 army_go_home
+20BD send_others_home
+20EB send_home_armies_at
+2114 army_settle ; stays where it is if that territory is still its side's, else goes home
+21A0 army_merge ; a1 into a2
+21CC setup_sides ; Saxon homes 1, 5, 8 shuffled, Normans 11, 13, 15; copies the lords' records into the sides
+236D copy_lord
+23AC side_income ; sum of the incomes of the side's territories
+2406 side_falls
+243B setup_ladies
+24B1 lady_to_side
+2556 setup_enmity ; Saxon-Norman 2, same faction 0; the three Normans +3 against the player
+25E5 enmity_add ; both ways, kept in -10..10
+26CC copy_path
+26EF army_strength ; 4 x knights + soldiers
+2704 target_value
+2803 ai_find_target
+28B8 ai_search ; depth-first through the side's own territories, up to 4 steps
+2995 ai_turn
+2A3C best_site_for_castle
+2A9E ai_buy
+2C60 ai_reinforce_garrison
+2D10 ai_do_order
+2D84 ai_choose_order
+2EEC next_event_in ; 5 + random(8) months
+2EFB show_plotters_picture
+2F14 side_last_territory ; highest-numbered territory of the side that is not its home
+2F4E monthly_event
+31D5 attack ; returns the result code (see GAME_LOGIC.md)
+33E5 apply_result
+35E0 seek_conquest
+39C7 buy_army
+3CAF place_castles
+3DB4 territory_info
+4013 redraw_map
+4084 read_map
+4142 choose_territory ; cursor on the map, moved with the keypad through nav[]
+423D set_owner
+45AC go_raiding
+4316 rescue_offer
+5781 battle
+57BB battle_shown ; the player's battle with tactics
+600C battle_auto
+60EB battle_round
+6202 army_damage
+627C percent_of_lead ; (a x lead + 5) / 10
+6290 take_losses ; soldiers first, then knights
+62BC tournament
+74B5 siege
+763E siege_by_player
+78A9 siege_of_player
+7A80 dialog
+90A3 month_status ; status panel, gold += income, the date
+9520 beep
+9559 play_tune
+958E wait_tune
+95BE tune_playing
+9CFC random ; 0 .. a1-1
+9D33 shuffle
+987A load_file
+9ABB lzw_unpack
+2E37 see_robin
+2E84 robin_men
+3135 send_army
+331C ask_passage
+3585 choose_destination
+3721 transfer_forces
+3D82 is_neighbour
+5684 show_armies
+7168 catapult_aim
+739D show_shot
+7505 choose_ammo
+9464 morale_add
+4428 ai_raid
+43F6 choose_raid_victim
+4538 choose_raid_target
+45EC raid
+48EB romance
+4F24 sword_fight
+5449 raid_attack
+5571 raid_defense
+6475 joust_round
+6B09 lance_step
+6EC2 joust
+7094 choose_opponent
+7113 leadership_add
+26AA tournament_goodwill
