@@ -125,7 +125,16 @@ Each game opens a new text file in `Logs/` in the remake's folder (`~/Library/Ap
 [October   1149, month  1] YOU order: Pass
 ```
 Switching the video mode (Tab) or the pixel shape (F2) during a game adds a `SETTING` line.
-- **STATUS**: the month's status panel. **YOU**: your orders, purchases, transfers, marches and tactics. **ROBIN**, **PASSAGE**: Robin's men, a Saxon's offer of safe passage. **TOURNAMENT**, **JOUST**: who holds one, the stakes and opponent (and whose jousting the joust is judged by), each pass with the lance's point and the target, and the result. **RAID**: your raids, the fighters' strengths and how each fight ended (with verbose, every hit). **EVENT**: the month's event. **AI**: each computer lord's turn: its gold, the men it moves into a garrison, the order it chose and why (the random draws), what it buys, the target it marches on with its value and way; with verbose, every territory it looked at and its value. **BATTLE**, **SIEGE**, **RESULT**, **OWNER**, **FALLS**: the fighting and who holds what afterwards (with verbose, **ROUND**: each round of a battle you do not see). **ENMITY** (verbose): the Saxons growing hostile. **END**: how the game ended. **REMAKE**: something not ported yet.
+- **STATUS**: the month's status panel. 
+- **YOU**: your orders, purchases, transfers, marches and tactics. 
+- **ROBIN**, **PASSAGE**: Robin's men, a Saxon's offer of safe passage. 
+- **TOURNAMENT**, **JOUST**: who holds one, the stakes and opponent (and whose jousting the joust is judged by), each pass with the lance's point and the target, and the result. 
+- **RAID**: your raids, the fighters' strengths and how each fight ended (with verbose, every hit). 
+- **EVENT**: the month's event. **AI**: each computer lord's turn: its gold, the men it moves into a garrison, the order it chose and why (the random draws), what it buys, the target it marches on with its value and way; with verbose, every territory it looked at and its value. 
+- **BATTLE**, **SIEGE**, **RESULT**, **OWNER**, **FALLS**: the fighting and who holds what afterwards (with verbose, **ROUND**: each round of a battle you do not see). 
+- **ENMITY** (verbose): the Saxons growing hostile. 
+- **END**: how the game ended. 
+- **REMAKE**: something not ported yet.
 
 The log only reads the game: it never calls the random numbers, so a logged game plays as one not logged.
 
