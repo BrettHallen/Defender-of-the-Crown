@@ -6,7 +6,8 @@ The EXE is a plain MZ large-model program (many code segments, far calls fixed u
 by relocations, one data segment DGROUP). Code is found by following the entry point,
 far calls (9A + relocation), near calls/jumps, far pointers pushed as seg/offset pairs,
 switch tables (jmp cs:[bx+T]) and the remaining 'push bp; mov bp,sp' prologues.
-Names for routines and data go in NAMES / DNAMES (names.py next to this file)."""
+Names for routines and data: ../tools/doc_names.txt and doc_ds_names.txt, and NAMES / DNAMES /
+COMMENTS in a names.py next to this file if there is one."""
 import sys, struct, os, re
 import capstone
 from capstone import x86
@@ -16,6 +17,33 @@ try:
     from names import NAMES, DNAMES, COMMENTS
 except ImportError:
     NAMES, DNAMES, COMMENTS = {}, {}, {}
+
+RECORDS = []   # (start, size, record size, {field offset: name}, name) from doc_ds_names.txt
+recrefs = {}   # instruction -> "table.field"
+
+def record_field(disp):
+    for st, size, rs, fields, nm in RECORDS:
+        if st <= disp < st + size:
+            f = (disp - st) % rs if rs else disp - st
+            return '%s.%s' % (nm, fields[f]) if f in fields else '%s+%d' % (nm, f)
+    return None
+
+# the names worked out so far: ../tools/doc_names.txt (SEG:OFF name) and doc_ds_names.txt (DS offset name ...)
+_tools = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools')
+try:
+    for _l in open(os.path.join(_tools, 'doc_names.txt')):
+        _m = re.match(r'([0-9A-Fa-f]{4}):([0-9A-Fa-f]{4})\s+(\S+)', _l)
+        if _m: NAMES.setdefault(int(_m.group(1), 16) * 16 + int(_m.group(2), 16), _m.group(3))
+    for _l in open(os.path.join(_tools, 'doc_ds_names.txt')):
+        _m = re.match(r'([0-9A-Fa-f]{4})\s+(\S+)', _l)
+        if _m:
+            DNAMES.setdefault(int(_m.group(1), 16), _m.group(2))
+            _f = _l.split('#')[0].split()
+            if len(_f) >= 4 and _f[2].isdigit() and _f[3].isdigit():
+                RECORDS.append((int(_f[0], 16), int(_f[2]), int(_f[3]),
+                                {int(x.split('=')[0]): x.split('=')[1] for x in _f[4:] if '=' in x}, _f[1]))
+except OSError:
+    pass
 
 d = open(sys.argv[1], 'rb').read()
 h = struct.unpack('<14H', d[:28])
@@ -117,6 +145,9 @@ def walk(seg, off):
         for op in i.operands:
             if op.type == x86.X86_OP_MEM and op.mem.base == 0 and op.mem.index == 0 and op.mem.segment in (0, x86.X86_REG_DS):
                 dsrefs[lin] = op.mem.disp & 0xFFFF
+            elif op.type == x86.X86_OP_MEM and op.mem.base not in (x86.X86_REG_BP, x86.X86_REG_SP) and op.mem.segment in (0, x86.X86_REG_DS):
+                rec = record_field(op.mem.disp & 0xFFFF)   # [bx + table]: a record table's field
+                if rec: recrefs[lin] = rec
         off = nxt
 
 swtab = {}
@@ -235,6 +266,7 @@ for lin in sorted(set(insn) | set(swtab)):
     if lin in dsrefs:
         o = dsrefs[lin]
         if o in DNAMES: cmt = DNAMES[o]
+    elif lin in recrefs: cmt = recrefs[lin]
     for op in i.operands:
         if op.type == x86.X86_OP_IMM and i.mnemonic in ('mov', 'push') and op.size == 2:
             s = dsstr(op.imm & 0xFFFF)

@@ -5,7 +5,7 @@
 
 ;================ segment 0000 ================
 
-f_0000_0000 proc  ; 0000:0000  callers: f_0AB8_0017
+main proc  ; 0000:0000  callers: f_0AB8_0017
 0000:0000  55             push   bp
 0000:0001  8bec           mov    bp, sp
 0000:0003  c7061e430000   mov    word ptr [0x431e], 0
@@ -19,18 +19,18 @@ f_0000_0000 proc  ; 0000:0000  callers: f_0AB8_0017
 0000:0020  268807         mov    byte ptr es:[bx], al
 0000:0023  b80400         mov    ax, 4
 0000:0026  50             push   ax
-0000:0027  9a00008409     lcall  f_0984_0000
+0000:0027  9a00008409     lcall  video_init
 0000:002C  59             pop    cx
-0000:002D  9a0200f208     lcall  f_08F2_0002
+0000:002D  9a0200f208     lcall  ega_present
 0000:0032  85c0           test   ax, ax
 0000:0034  7411           je     0x47
-0000:0036  c606324310     mov    byte ptr [0x4332], 0x10
-0000:003B  c6063443e1     mov    byte ptr [0x4334], 0xe1
+0000:0036  c606324310     mov    byte ptr [0x4332], 0x10   ; crtc_reg
+0000:003B  c6063443e1     mov    byte ptr [0x4334], 0xe1   ; crtc_value
 0000:0040  c606334308     mov    byte ptr [0x4333], 8
 0000:0045  eb0f           jmp    0x56
 L_0000_0047:
-0000:0047  c606324305     mov    byte ptr [0x4332], 5
-0000:004C  c606344306     mov    byte ptr [0x4334], 6
+0000:0047  c606324305     mov    byte ptr [0x4332], 5   ; crtc_reg
+0000:004C  c606344306     mov    byte ptr [0x4334], 6   ; crtc_value
 0000:0051  c606334301     mov    byte ptr [0x4333], 1
 L_0000_0056:
 0000:0056  1e             push   ds
@@ -57,19 +57,19 @@ L_0000_0056:
 0000:0093  c41e2243       les    bx, ptr [0x4322]
 0000:0097  268a07         mov    al, byte ptr es:[bx]
 0000:009A  a22043         mov    byte ptr [0x4320], al
-0000:009D  c70636430200   mov    word ptr [0x4336], 2
+0000:009D  c70636430200   mov    word ptr [0x4336], 2   ; speed
 0000:00A3  b0fd           mov    al, 0xfd
 0000:00A5  c6062043fd     mov    byte ptr [0x4320], 0xfd
 0000:00AA  84c0           test   al, al
 0000:00AC  7408           je     0xb6
-0000:00AE  c70636430100   mov    word ptr [0x4336], 1
+0000:00AE  c70636430100   mov    word ptr [0x4336], 1   ; speed
 0000:00B4  eb11           jmp    0xc7
 L_0000_00B6:
 0000:00B6  b0fc           mov    al, 0xfc
 0000:00B8  c6062043fc     mov    byte ptr [0x4320], 0xfc
 0000:00BD  84c0           test   al, al
 0000:00BF  7406           je     0xc7
-0000:00C1  c70636430300   mov    word ptr [0x4336], 3
+0000:00C1  c70636430300   mov    word ptr [0x4336], 3   ; speed
 L_0000_00C7:
 0000:00C7  c7062c430000   mov    word ptr [0x432c], 0
 0000:00CD  c7062a431400   mov    word ptr [0x432a], 0x14
@@ -96,9 +96,9 @@ L_0000_0112:
 0000:011C  b80000         mov    ax, 0
 0000:011F  52             push   dx
 0000:0120  50             push   ax
-0000:0121  9a06002909     lcall  f_0929_0006
+0000:0121  9a06002909     lcall  tune_hook?
 0000:0126  83c404         add    sp, 4
-0000:0129  9a02001c02     lcall  f_021C_0002
+0000:0129  9a02001c02     lcall  new_game
 0000:012E  33c0           xor    ax, ax
 0000:0130  c70604000000   mov    word ptr [4], 0
 0000:0136  a30843         mov    word ptr [0x4308], ax
@@ -106,21 +106,21 @@ L_0000_0112:
 L_0000_013C:
 0000:013C  833e084300     cmp    word ptr [0x4308], 0
 0000:0141  7507           jne    0x14a
-0000:0143  9a68022c08     lcall  f_082C_0268
+0000:0143  9a68022c08     lcall  month
 0000:0148  ebf2           jmp    0x13c
 L_0000_014A:
 0000:014A  ebc6           jmp    0x112
 L_0000_014C:
 0000:014C  b80400         mov    ax, 4
 0000:014F  50             push   ax
-0000:0150  9a00008409     lcall  f_0984_0000
+0000:0150  9a00008409     lcall  video_init
 0000:0155  59             pop    cx
 0000:0156  c41e1c43       les    bx, ptr [0x431c]
 0000:015A  a01a43         mov    al, byte ptr [0x431a]
 0000:015D  268807         mov    byte ptr es:[bx], al
 0000:0160  b80300         mov    ax, 3
 0000:0163  50             push   ax
-0000:0164  9a00008409     lcall  f_0984_0000
+0000:0164  9a00008409     lcall  video_init
 0000:0169  59             pop    cx
 0000:016A  c41e2a43       les    bx, ptr [0x432a]
 0000:016E  a12643         mov    ax, word ptr [0x4326]
@@ -132,7 +132,7 @@ L_0000_014C:
 0000:0182  b80000         mov    ax, 0
 0000:0185  52             push   dx
 0000:0186  50             push   ax
-0000:0187  9a06002909     lcall  f_0929_0006
+0000:0187  9a06002909     lcall  tune_hook?
 0000:018C  83c404         add    sp, 4
 0000:018F  9a4101b80a     lcall  f_0AB8_0141
 0000:0194  8be5           mov    sp, bp
@@ -141,7 +141,7 @@ L_0000_014C:
 
 ;================ segment 0019 ================
 
-f_0019_0008 proc  ; 0019:0008  callers: f_021C_0002
+setup_armies proc  ; 0019:0008  callers: new_game
 0019:0008  55             push   bp
 0019:0009  8bec           mov    bp, sp
 0019:000B  57             push   di
@@ -158,7 +158,7 @@ L_0019_0010:
 0019:001F  d1e0           shl    ax, 1
 0019:0021  d1e0           shl    ax, 1
 0019:0023  8bd8           mov    bx, ax
-0019:0025  8b875044       mov    ax, word ptr [bx + 0x4450]
+0019:0025  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 0019:0029  50             push   ax
 0019:002A  8bc6           mov    ax, si
 0019:002C  8bd0           mov    dx, ax
@@ -168,25 +168,25 @@ L_0019_0010:
 0019:0034  d1e0           shl    ax, 1
 0019:0036  8bd8           mov    bx, ax
 0019:0038  58             pop    ax
-0019:0039  89874043       mov    word ptr [bx + 0x4340], ax
-0019:003D  89874243       mov    word ptr [bx + 0x4342], ax
-0019:0041  c78744430f00   mov    word ptr [bx + 0x4344], 0xf
-0019:0047  c78746430000   mov    word ptr [bx + 0x4346], 0
-0019:004D  c78748430000   mov    word ptr [bx + 0x4348], 0
+0019:0039  89874043       mov    word ptr [bx + 0x4340], ax   ; army.at
+0019:003D  89874243       mov    word ptr [bx + 0x4342], ax   ; army.base
+0019:0041  c78744430f00   mov    word ptr [bx + 0x4344], 0xf   ; army.soldiers
+0019:0047  c78746430000   mov    word ptr [bx + 0x4346], 0   ; army.knights
+0019:004D  c78748430000   mov    word ptr [bx + 0x4348], 0   ; army.catapults
 0019:0053  bf0500         mov    di, 5
 0019:0056  83fe01         cmp    si, 1
 0019:0059  7509           jne    0x64
 0019:005B  bf0a00         mov    di, 0xa
 0019:005E  c7064e430000   mov    word ptr [0x434e], 0
 L_0019_0064:
-0019:0064  8b874043       mov    ax, word ptr [bx + 0x4340]
+0019:0064  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0019:0068  8bd0           mov    dx, ax
 0019:006A  d1e0           shl    ax, 1
 0019:006C  d1e0           shl    ax, 1
 0019:006E  03c2           add    ax, dx
 0019:0070  d1e0           shl    ax, 1
 0019:0072  8bd8           mov    bx, ax
-0019:0074  89bf8a43       mov    word ptr [bx + 0x438a], di
+0019:0074  89bf8a43       mov    word ptr [bx + 0x438a], di   ; army.soldiers
 0019:0078  46             inc    si
 0019:0079  eb95           jmp    0x10
 L_0019_007B:
@@ -196,7 +196,7 @@ L_0019_007B:
 0019:007F  5d             pop    bp
 0019:0080  cb             retf   
 
-f_0019_0081 proc  ; 0019:0081  callers: f_021C_0002
+setup_garrisons proc  ; 0019:0081  callers: new_game
 0019:0081  55             push   bp
 0019:0082  8bec           mov    bp, sp
 0019:0084  57             push   di
@@ -212,8 +212,8 @@ L_0019_0089:
 0019:0096  03c2           add    ax, dx
 0019:0098  d1e0           shl    ax, 1
 0019:009A  8bd8           mov    bx, ax
-0019:009C  89b78643       mov    word ptr [bx + 0x4386], si
-0019:00A0  89b78843       mov    word ptr [bx + 0x4388], si
+0019:009C  89b78643       mov    word ptr [bx + 0x4386], si   ; army.at
+0019:00A0  89b78843       mov    word ptr [bx + 0x4388], si   ; army.base
 0019:00A4  8bc6           mov    ax, si
 0019:00A6  8bd0           mov    dx, ax
 0019:00A8  b103           mov    cl, 3
@@ -222,11 +222,11 @@ L_0019_0089:
 0019:00AE  d1e0           shl    ax, 1
 0019:00B0  03c2           add    ax, dx
 0019:00B2  8bf8           mov    di, ax
-0019:00B4  8a855036       mov    al, byte ptr [di + 0x3650]
+0019:00B4  8a855036       mov    al, byte ptr [di + 0x3650]   ; terr.vassals
 0019:00B8  98             cwde   
-0019:00B9  89878a43       mov    word ptr [bx + 0x438a], ax
-0019:00BD  c7878c430000   mov    word ptr [bx + 0x438c], 0
-0019:00C3  c7878e430000   mov    word ptr [bx + 0x438e], 0
+0019:00B9  89878a43       mov    word ptr [bx + 0x438a], ax   ; army.soldiers
+0019:00BD  c7878c430000   mov    word ptr [bx + 0x438c], 0   ; army.knights
+0019:00C3  c7878e430000   mov    word ptr [bx + 0x438e], 0   ; army.catapults
 0019:00C9  46             inc    si
 0019:00CA  ebbd           jmp    0x89
 L_0019_00CC:
@@ -236,7 +236,7 @@ L_0019_00CC:
 0019:00D0  5d             pop    bp
 0019:00D1  cb             retf   
 
-f_0019_00D2 proc  ; 0019:00D2  callers: f_0079_010E, f_0079_0A73
+army_empty proc  ; 0019:00D2  callers: battle_auto, battle_shown
 0019:00D2  55             push   bp
 0019:00D3  8bec           mov    bp, sp
 0019:00D5  c45e06         les    bx, ptr [bp + 6]
@@ -254,7 +254,7 @@ L_0019_00ED:
 0019:00EF  5d             pop    bp
 0019:00F0  cb             retf   
 
-f_0019_00F1 proc  ; 0019:00F1  callers: f_01A5_000D, f_04BA_03EF
+army_move_to proc  ; 0019:00F1  callers: ai_do_order, send_army
 0019:00F1  55             push   bp
 0019:00F2  8bec           mov    bp, sp
 0019:00F4  57             push   di
@@ -269,7 +269,7 @@ f_0019_00F1 proc  ; 0019:00F1  callers: f_01A5_000D, f_04BA_03EF
 0019:0106  d1e0           shl    ax, 1
 0019:0108  d1e0           shl    ax, 1
 0019:010A  8bd8           mov    bx, ax
-0019:010C  89bf5244       mov    word ptr [bx + 0x4452], di
+0019:010C  89bf5244       mov    word ptr [bx + 0x4452], di   ; side.at
 0019:0110  8bc6           mov    ax, si
 0019:0112  8bd0           mov    dx, ax
 0019:0114  d1e0           shl    ax, 1
@@ -277,16 +277,16 @@ f_0019_00F1 proc  ; 0019:00F1  callers: f_01A5_000D, f_04BA_03EF
 0019:0118  03c2           add    ax, dx
 0019:011A  d1e0           shl    ax, 1
 0019:011C  8bd8           mov    bx, ax
-0019:011E  8b874043       mov    ax, word ptr [bx + 0x4340]
-0019:0122  89874243       mov    word ptr [bx + 0x4342], ax
-0019:0126  89bf4043       mov    word ptr [bx + 0x4340], di
+0019:011E  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
+0019:0122  89874243       mov    word ptr [bx + 0x4342], ax   ; army.base
+0019:0126  89bf4043       mov    word ptr [bx + 0x4340], di   ; army.at
 0019:012A  5e             pop    si
 0019:012B  5f             pop    di
 0019:012C  8be5           mov    sp, bp
 0019:012E  5d             pop    bp
 0019:012F  cb             retf   
 
-f_0019_0130 proc  ; 0019:0130  callers: f_0019_016E, f_0019_01A5, f_01A5_0352, f_02D3_029E, f_04BA_03EF
+army_go_home proc  ; 0019:0130  callers: ai_do_order, apply_result, joust_round, send_home_armies_at, send_others_home
 0019:0130  55             push   bp
 0019:0131  8bec           mov    bp, sp
 0019:0133  57             push   di
@@ -300,7 +300,7 @@ f_0019_0130 proc  ; 0019:0130  callers: f_0019_016E, f_0019_01A5, f_01A5_0352, f
 0019:0142  d1e0           shl    ax, 1
 0019:0144  d1e0           shl    ax, 1
 0019:0146  8bd8           mov    bx, ax
-0019:0148  8b875044       mov    ax, word ptr [bx + 0x4450]
+0019:0148  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 0019:014C  50             push   ax
 0019:014D  8bc6           mov    ax, si
 0019:014F  8bd0           mov    dx, ax
@@ -310,16 +310,16 @@ f_0019_0130 proc  ; 0019:0130  callers: f_0019_016E, f_0019_01A5, f_01A5_0352, f
 0019:0157  d1e0           shl    ax, 1
 0019:0159  8bf8           mov    di, ax
 0019:015B  58             pop    ax
-0019:015C  89854043       mov    word ptr [di + 0x4340], ax
-0019:0160  89854243       mov    word ptr [di + 0x4342], ax
-0019:0164  89875244       mov    word ptr [bx + 0x4452], ax
+0019:015C  89854043       mov    word ptr [di + 0x4340], ax   ; army.at
+0019:0160  89854243       mov    word ptr [di + 0x4342], ax   ; army.base
+0019:0164  89875244       mov    word ptr [bx + 0x4452], ax   ; side.at
 0019:0168  5e             pop    si
 0019:0169  5f             pop    di
 0019:016A  8be5           mov    sp, bp
 0019:016C  5d             pop    bp
 0019:016D  cb             retf   
 
-f_0019_016E proc  ; 0019:016E  callers: f_01A5_0352
+send_others_home proc  ; 0019:016E  callers: apply_result
 0019:016E  55             push   bp
 0019:016F  8bec           mov    bp, sp
 0019:0171  56             push   si
@@ -334,13 +334,13 @@ L_0019_0175:
 0019:0182  03c2           add    ax, dx
 0019:0184  d1e0           shl    ax, 1
 0019:0186  8bd8           mov    bx, ax
-0019:0188  8b874043       mov    ax, word ptr [bx + 0x4340]
+0019:0188  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0019:018C  3b4606         cmp    ax, word ptr [bp + 6]
 0019:018F  750c           jne    0x19d
 0019:0191  3b7608         cmp    si, word ptr [bp + 8]
 0019:0194  7407           je     0x19d
 0019:0196  56             push   si
-0019:0197  9a30011900     lcall  f_0019_0130
+0019:0197  9a30011900     lcall  army_go_home
 0019:019C  59             pop    cx
 L_0019_019D:
 0019:019D  46             inc    si
@@ -351,7 +351,7 @@ L_0019_01A0:
 0019:01A3  5d             pop    bp
 0019:01A4  cb             retf   
 
-f_0019_01A5 proc  ; 0019:01A5  callers: f_01A5_0352, f_07F9_009C
+send_home_armies_at proc  ; 0019:01A5  callers: apply_result, monthly_event
 0019:01A5  55             push   bp
 0019:01A6  8bec           mov    bp, sp
 0019:01A8  56             push   si
@@ -366,11 +366,11 @@ L_0019_01AC:
 0019:01B9  03c2           add    ax, dx
 0019:01BB  d1e0           shl    ax, 1
 0019:01BD  8bd8           mov    bx, ax
-0019:01BF  8b874043       mov    ax, word ptr [bx + 0x4340]
+0019:01BF  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0019:01C3  3b4606         cmp    ax, word ptr [bp + 6]
 0019:01C6  7507           jne    0x1cf
 0019:01C8  56             push   si
-0019:01C9  9a30011900     lcall  f_0019_0130
+0019:01C9  9a30011900     lcall  army_go_home
 0019:01CE  59             pop    cx
 L_0019_01CF:
 0019:01CF  46             inc    si
@@ -381,7 +381,7 @@ L_0019_01D2:
 0019:01D5  5d             pop    bp
 0019:01D6  cb             retf   
 
-f_0019_01D7 proc  ; 0019:01D7  callers: f_0079_010E, f_01A5_0352, f_01A5_05D3
+army_settle proc  ; 0019:01D7  callers: apply_result, battle_shown, seek_conquest
 0019:01D7  55             push   bp
 0019:01D8  8bec           mov    bp, sp
 0019:01DA  8b4606         mov    ax, word ptr [bp + 6]
@@ -391,7 +391,7 @@ f_0019_01D7 proc  ; 0019:01D7  callers: f_0079_010E, f_01A5_0352, f_01A5_05D3
 0019:01E3  03c2           add    ax, dx
 0019:01E5  d1e0           shl    ax, 1
 0019:01E7  8bd8           mov    bx, ax
-0019:01E9  8b874243       mov    ax, word ptr [bx + 0x4342]
+0019:01E9  8b874243       mov    ax, word ptr [bx + 0x4342]   ; army.base
 0019:01ED  8bd0           mov    dx, ax
 0019:01EF  b103           mov    cl, 3
 0019:01F1  d3e0           shl    ax, cl
@@ -399,7 +399,7 @@ f_0019_01D7 proc  ; 0019:01D7  callers: f_0079_010E, f_01A5_0352, f_01A5_05D3
 0019:01F5  d1e0           shl    ax, 1
 0019:01F7  03c2           add    ax, dx
 0019:01F9  8bd8           mov    bx, ax
-0019:01FB  8a874e36       mov    al, byte ptr [bx + 0x364e]
+0019:01FB  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 0019:01FF  98             cwde   
 0019:0200  3b4606         cmp    ax, word ptr [bp + 6]
 0019:0203  751c           jne    0x221
@@ -410,8 +410,8 @@ f_0019_01D7 proc  ; 0019:01D7  callers: f_0079_010E, f_01A5_0352, f_01A5_05D3
 0019:020E  03c2           add    ax, dx
 0019:0210  d1e0           shl    ax, 1
 0019:0212  8bd8           mov    bx, ax
-0019:0214  8b874443       mov    ax, word ptr [bx + 0x4344]
-0019:0218  03874643       add    ax, word ptr [bx + 0x4346]
+0019:0214  8b874443       mov    ax, word ptr [bx + 0x4344]   ; army.soldiers
+0019:0218  03874643       add    ax, word ptr [bx + 0x4346]   ; army.knights
 0019:021C  3d0000         cmp    ax, 0
 0019:021F  7f2a           jg     0x24b
 L_0019_0221:
@@ -423,7 +423,7 @@ L_0019_0221:
 0019:022C  d1e0           shl    ax, 1
 0019:022E  d1e0           shl    ax, 1
 0019:0230  8bd8           mov    bx, ax
-0019:0232  8b875044       mov    ax, word ptr [bx + 0x4450]
+0019:0232  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 0019:0236  50             push   ax
 0019:0237  8b4606         mov    ax, word ptr [bp + 6]
 0019:023A  8bd0           mov    dx, ax
@@ -433,7 +433,7 @@ L_0019_0221:
 0019:0242  d1e0           shl    ax, 1
 0019:0244  8bd8           mov    bx, ax
 0019:0246  58             pop    ax
-0019:0247  89874243       mov    word ptr [bx + 0x4342], ax
+0019:0247  89874243       mov    word ptr [bx + 0x4342], ax   ; army.base
 L_0019_024B:
 0019:024B  8b4606         mov    ax, word ptr [bp + 6]
 0019:024E  8bd0           mov    dx, ax
@@ -442,8 +442,8 @@ L_0019_024B:
 0019:0254  03c2           add    ax, dx
 0019:0256  d1e0           shl    ax, 1
 0019:0258  8bd8           mov    bx, ax
-0019:025A  8b874243       mov    ax, word ptr [bx + 0x4342]
-0019:025E  89874043       mov    word ptr [bx + 0x4340], ax
+0019:025A  8b874243       mov    ax, word ptr [bx + 0x4342]   ; army.base
+0019:025E  89874043       mov    word ptr [bx + 0x4340], ax   ; army.at
 0019:0262  50             push   ax
 0019:0263  8b4606         mov    ax, word ptr [bp + 6]
 0019:0266  8bd0           mov    dx, ax
@@ -454,12 +454,12 @@ L_0019_024B:
 0019:0270  d1e0           shl    ax, 1
 0019:0272  8bd8           mov    bx, ax
 0019:0274  58             pop    ax
-0019:0275  89875244       mov    word ptr [bx + 0x4452], ax
+0019:0275  89875244       mov    word ptr [bx + 0x4452], ax   ; side.at
 0019:0279  8be5           mov    sp, bp
 0019:027B  5d             pop    bp
 0019:027C  cb             retf   
 
-f_0019_027D proc  ; 0019:027D  callers: f_0079_010E, f_0079_0A73, f_01A5_00C2, f_01A5_0352
+army_merge proc  ; 0019:027D  callers: apply_result, attack, battle_auto, battle_shown
 0019:027D  55             push   bp
 0019:027E  8bec           mov    bp, sp
 0019:0280  c45e06         les    bx, ptr [bp + 6]
@@ -485,7 +485,7 @@ f_0019_027D proc  ; 0019:027D  callers: f_0079_010E, f_0079_0A73, f_01A5_00C2, f
 
 ;================ segment 0045 ================
 
-f_0045_0001 proc  ; 0045:0001  callers: f_0045_017C, f_0045_024A
+path_copy proc  ; 0045:0001  callers: ai_find_target, ai_search
 0045:0001  55             push   bp
 0045:0002  8bec           mov    bp, sp
 0045:0004  57             push   di
@@ -513,7 +513,7 @@ L_0045_002A:
 0045:002E  5d             pop    bp
 0045:002F  cb             retf   
 
-f_0045_0030 proc  ; 0045:0030  callers: f_0045_0046, f_0045_017C, f_01A5_00C2
+army_strength proc  ; 0045:0030  callers: ai_find_target, attack, target_value
 0045:0030  55             push   bp
 0045:0031  8bec           mov    bp, sp
 0045:0033  c45e06         les    bx, ptr [bp + 6]
@@ -525,7 +525,7 @@ f_0045_0030 proc  ; 0045:0030  callers: f_0045_0046, f_0045_017C, f_01A5_00C2
 0045:0044  5d             pop    bp
 0045:0045  cb             retf   
 
-f_0045_0046 proc  ; 0045:0046  callers: f_0045_024A
+target_value proc  ; 0045:0046  callers: ai_search
 0045:0046  55             push   bp
 0045:0047  8bec           mov    bp, sp
 0045:0049  83c4f8         add    sp, -8
@@ -540,7 +540,7 @@ f_0045_0046 proc  ; 0045:0046  callers: f_0045_024A
 0045:005C  d1e0           shl    ax, 1
 0045:005E  03c2           add    ax, dx
 0045:0060  8bd8           mov    bx, ax
-0045:0062  8a874e36       mov    al, byte ptr [bx + 0x364e]
+0045:0062  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 0045:0066  98             cwde   
 0045:0067  8946fe         mov    word ptr [bp - 2], ax
 0045:006A  8b4608         mov    ax, word ptr [bp + 8]
@@ -570,7 +570,7 @@ L_0045_008E:
 0045:009C  8b46fe         mov    ax, word ptr [bp - 2]
 0045:009F  d1e0           shl    ax, 1
 0045:00A1  03d8           add    bx, ax
-0045:00A3  8b87e432       mov    ax, word ptr [bx + 0x32e4]
+0045:00A3  8b87e432       mov    ax, word ptr [bx + 0x32e4]   ; enmity+0
 0045:00A7  8946fc         mov    word ptr [bp - 4], ax
 0045:00AA  3d0000         cmp    ax, 0
 0045:00AD  7f06           jg     0xb5
@@ -586,7 +586,7 @@ L_0045_00B5:
 0045:00C0  d1e0           shl    ax, 1
 0045:00C2  054043         add    ax, 0x4340
 0045:00C5  50             push   ax
-0045:00C6  9a30004500     lcall  f_0045_0030
+0045:00C6  9a30004500     lcall  army_strength
 0045:00CB  83c404         add    sp, 4
 0045:00CE  8946fa         mov    word ptr [bp - 6], ax
 0045:00D1  1e             push   ds
@@ -598,7 +598,7 @@ L_0045_00B5:
 0045:00DD  d1e0           shl    ax, 1
 0045:00DF  058643         add    ax, 0x4386
 0045:00E2  50             push   ax
-0045:00E3  9a30004500     lcall  f_0045_0030
+0045:00E3  9a30004500     lcall  army_strength
 0045:00E8  83c404         add    sp, 4
 0045:00EB  8946f8         mov    word ptr [bp - 8], ax
 0045:00EE  8b46fe         mov    ax, word ptr [bp - 2]
@@ -608,7 +608,7 @@ L_0045_00B5:
 0045:00F7  03c2           add    ax, dx
 0045:00F9  d1e0           shl    ax, 1
 0045:00FB  8bd8           mov    bx, ax
-0045:00FD  8b874043       mov    ax, word ptr [bx + 0x4340]
+0045:00FD  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0045:0101  3b4608         cmp    ax, word ptr [bp + 8]
 0045:0104  7515           jne    0x11b
 0045:0106  1e             push   ds
@@ -616,7 +616,7 @@ L_0045_00B5:
 0045:010B  8cda           mov    dx, ds
 0045:010D  8bc3           mov    ax, bx
 0045:010F  50             push   ax
-0045:0110  9a30004500     lcall  f_0045_0030
+0045:0110  9a30004500     lcall  army_strength
 0045:0115  83c404         add    sp, 4
 0045:0118  0146f8         add    word ptr [bp - 8], ax
 L_0045_011B:
@@ -628,7 +628,7 @@ L_0045_011B:
 0045:0126  d1e0           shl    ax, 1
 0045:0128  03c2           add    ax, dx
 0045:012A  8bd8           mov    bx, ax
-0045:012C  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+0045:012C  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 0045:0131  7438           je     0x16b
 0045:0133  8bc6           mov    ax, si
 0045:0135  8bd0           mov    dx, ax
@@ -637,7 +637,7 @@ L_0045_011B:
 0045:013B  03c2           add    ax, dx
 0045:013D  d1e0           shl    ax, 1
 0045:013F  8bd8           mov    bx, ax
-0045:0141  83bf484300     cmp    word ptr [bx + 0x4348], 0
+0045:0141  83bf484300     cmp    word ptr [bx + 0x4348], 0   ; army.catapults
 0045:0146  741e           je     0x166
 0045:0148  8b46f8         mov    ax, word ptr [bp - 8]
 0045:014B  b90200         mov    cx, 2
@@ -668,7 +668,7 @@ L_0045_0174:
 0045:017A  5d             pop    bp
 0045:017B  cb             retf   
 
-f_0045_017C proc  ; 0045:017C  callers: f_04BA_0485
+ai_find_target proc  ; 0045:017C  callers: ai_choose_order
 0045:017C  55             push   bp
 0045:017D  8bec           mov    bp, sp
 0045:017F  83c4f6         add    sp, -0xa
@@ -684,7 +684,7 @@ f_0045_017C proc  ; 0045:017C  callers: f_04BA_0485
 0045:0192  d1e0           shl    ax, 1
 0045:0194  054043         add    ax, 0x4340
 0045:0197  50             push   ax
-0045:0198  9a30004500     lcall  f_0045_0030
+0045:0198  9a30004500     lcall  army_strength
 0045:019D  83c404         add    sp, 4
 0045:01A0  85c0           test   ax, ax
 0045:01A2  7508           jne    0x1ac
@@ -732,7 +732,7 @@ L_0045_01E7:
 0045:01F1  d1e0           shl    ax, 1
 0045:01F3  d1e0           shl    ax, 1
 0045:01F5  8bd8           mov    bx, ax
-0045:01F7  8b875244       mov    ax, word ptr [bx + 0x4452]
+0045:01F7  8b875244       mov    ax, word ptr [bx + 0x4452]   ; side.at
 0045:01FB  8946f6         mov    word ptr [bp - 0xa], ax
 0045:01FE  33c0           xor    ax, ax
 0045:0200  c70640410000   mov    word ptr [0x4140], 0
@@ -742,9 +742,9 @@ L_0045_01E7:
 0045:020D  50             push   ax
 0045:020E  33c0           xor    ax, ax
 0045:0210  50             push   ax
-0045:0211  ffb75244       push   word ptr [bx + 0x4452]
+0045:0211  ffb75244       push   word ptr [bx + 0x4452]   ; side.at
 0045:0215  56             push   si
-0045:0216  9a4a024500     lcall  f_0045_024A
+0045:0216  9a4a024500     lcall  ai_search
 0045:021B  83c40a         add    sp, 0xa
 0045:021E  a13e41         mov    ax, word ptr [0x413e]
 0045:0221  3d0000         cmp    ax, 0
@@ -756,7 +756,7 @@ L_0045_01E7:
 0045:0232  1e             push   ds
 0045:0233  b84241         mov    ax, 0x4142
 0045:0236  50             push   ax
-0045:0237  9a01004500     lcall  f_0045_0001
+0045:0237  9a01004500     lcall  path_copy
 0045:023C  83c408         add    sp, 8
 0045:023F  b80100         mov    ax, 1
 0045:0242  e961ff         jmp    0x1a6
@@ -764,7 +764,7 @@ L_0045_0245:
 0045:0245  33c0           xor    ax, ax
 0045:0247  e95cff         jmp    0x1a6
 
-f_0045_024A proc  ; 0045:024A  callers: f_0045_017C, f_0045_024A
+ai_search proc  ; 0045:024A  callers: ai_find_target, ai_search
 0045:024A  55             push   bp
 0045:024B  8bec           mov    bp, sp
 0045:024D  83c4f2         add    sp, -0xe
@@ -785,7 +785,7 @@ L_0045_0260:
 0045:0264  50             push   ax
 0045:0265  ff760e         push   word ptr [bp + 0xe]
 0045:0268  ff760c         push   word ptr [bp + 0xc]
-0045:026B  9a01004500     lcall  f_0045_0001
+0045:026B  9a01004500     lcall  path_copy
 0045:0270  83c408         add    sp, 8
 0045:0273  8b5e08         mov    bx, word ptr [bp + 8]
 0045:0276  d1e3           shl    bx, 1
@@ -805,7 +805,7 @@ L_0045_0288:
 0045:0295  03c2           add    ax, dx
 0045:0297  8bd8           mov    bx, ax
 0045:0299  03de           add    bx, si
-0045:029B  8a875236       mov    al, byte ptr [bx + 0x3652]
+0045:029B  8a875236       mov    al, byte ptr [bx + 0x3652]   ; terr.nb
 0045:029F  98             cwde   
 0045:02A0  8946f4         mov    word ptr [bp - 0xc], ax
 0045:02A3  85c0           test   ax, ax
@@ -826,7 +826,7 @@ L_0045_02B8:
 0045:02C3  d1e0           shl    ax, 1
 0045:02C5  03c2           add    ax, dx
 0045:02C7  8bd8           mov    bx, ax
-0045:02C9  8a874e36       mov    al, byte ptr [bx + 0x364e]
+0045:02C9  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 0045:02CD  98             cwde   
 0045:02CE  3b4606         cmp    ax, word ptr [bp + 6]
 0045:02D1  7442           je     0x315
@@ -834,7 +834,7 @@ L_0045_02B8:
 0045:02D9  ff760a         push   word ptr [bp + 0xa]
 0045:02DC  ff76f4         push   word ptr [bp - 0xc]
 0045:02DF  ff7606         push   word ptr [bp + 6]
-0045:02E2  9a46004500     lcall  f_0045_0046
+0045:02E2  9a46004500     lcall  target_value
 0045:02E7  83c406         add    sp, 6
 0045:02EA  8946f2         mov    word ptr [bp - 0xe], ax
 0045:02ED  3dffff         cmp    ax, 0xffff
@@ -850,7 +850,7 @@ L_0045_02B8:
 0045:0306  16             push   ss
 0045:0307  8d46f6         lea    ax, [bp - 0xa]
 0045:030A  50             push   ax
-0045:030B  9a01004500     lcall  f_0045_0001
+0045:030B  9a01004500     lcall  path_copy
 0045:0310  83c408         add    sp, 8
 L_0045_0313:
 0045:0313  eb24           jmp    0x339
@@ -868,7 +868,7 @@ L_0045_0315:
 0045:032A  50             push   ax
 0045:032B  ff76f4         push   word ptr [bp - 0xc]
 0045:032E  ff7606         push   word ptr [bp + 6]
-0045:0331  9a4a024500     lcall  f_0045_024A
+0045:0331  9a4a024500     lcall  ai_search
 0045:0336  83c40a         add    sp, 0xa
 L_0045_0339:
 0045:0339  46             inc    si
@@ -878,14 +878,14 @@ L_0045_033D:
 
 ;================ segment 0079 ================
 
-f_0079_0000 proc  ; 0079:0000  callers: f_0079_010E
+show_armies proc  ; 0079:0000  callers: battle_shown
 0079:0000  55             push   bp
 0079:0001  8bec           mov    bp, sp
 0079:0003  83c4f6         add    sp, -0xa
 0079:0006  57             push   di
 0079:0007  56             push   si
 0079:0008  8b160a45       mov    dx, word ptr [0x450a]
-0079:000C  a10845         mov    ax, word ptr [0x4508]
+0079:000C  a10845         mov    ax, word ptr [0x4508]   ; lib_chars
 0079:000F  054000         add    ax, 0x40
 0079:0012  8956fe         mov    word ptr [bp - 2], dx
 0079:0015  8946fc         mov    word ptr [bp - 4], ax
@@ -893,7 +893,7 @@ f_0079_0000 proc  ; 0079:0000  callers: f_0079_010E
 0079:001A  8bd8           mov    bx, ax
 0079:001C  268b07         mov    ax, word ptr es:[bx]
 0079:001F  8946fa         mov    word ptr [bp - 6], ax
-0079:0022  c41e0845       les    bx, ptr [0x4508]
+0079:0022  c41e0845       les    bx, ptr [0x4508]   ; lib_chars
 0079:0026  268b477c       mov    ax, word ptr es:[bx + 0x7c]
 0079:002A  c45efc         les    bx, ptr [bp - 4]
 0079:002D  268907         mov    word ptr es:[bx], ax
@@ -906,7 +906,7 @@ f_0079_0000 proc  ; 0079:0000  callers: f_0079_010E
 0079:0042  50             push   ax
 0079:0043  ff368927       push   word ptr [0x2789]
 0079:0047  ff368727       push   word ptr [0x2787]
-0079:004B  9a0600f809     lcall  f_09F8_0006
+0079:004B  9a0600f809     lcall  sprintf
 0079:0050  83c40c         add    sp, 0xc
 0079:0053  c45e06         les    bx, ptr [bp + 6]
 0079:0056  26ff7706       push   word ptr es:[bx + 6]
@@ -917,7 +917,7 @@ f_0079_0000 proc  ; 0079:0000  callers: f_0079_010E
 0079:0065  50             push   ax
 0079:0066  ff368d27       push   word ptr [0x278d]
 0079:006A  ff368b27       push   word ptr [0x278b]
-0079:006E  9a0600f809     lcall  f_09F8_0006
+0079:006E  9a0600f809     lcall  sprintf
 0079:0073  83c40c         add    sp, 0xc
 0079:0076  c45e06         les    bx, ptr [bp + 6]
 0079:0079  26ff7708       push   word ptr es:[bx + 8]
@@ -928,7 +928,7 @@ f_0079_0000 proc  ; 0079:0000  callers: f_0079_010E
 0079:0088  50             push   ax
 0079:0089  ff369127       push   word ptr [0x2791]
 0079:008D  ff368f27       push   word ptr [0x278f]
-0079:0091  9a0600f809     lcall  f_09F8_0006
+0079:0091  9a0600f809     lcall  sprintf
 0079:0096  83c40c         add    sp, 0xc
 0079:0099  83ec0e         sub    sp, 0xe
 0079:009C  8bc4           mov    ax, sp
@@ -940,7 +940,7 @@ f_0079_0000 proc  ; 0079:0000  callers: f_0079_010E
 0079:00A9  b90600         mov    cx, 6
 0079:00AC  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0079:00AE  a4             movsb  byte ptr es:[di], byte ptr [si]
-0079:00AF  9af3020a07     lcall  f_070A_02F3
+0079:00AF  9af3020a07     lcall  dialog
 0079:00B4  83c40e         add    sp, 0xe
 0079:00B7  c45efc         les    bx, ptr [bp - 4]
 0079:00BA  8b46fa         mov    ax, word ptr [bp - 6]
@@ -951,7 +951,7 @@ f_0079_0000 proc  ; 0079:0000  callers: f_0079_010E
 0079:00C4  5d             pop    bp
 0079:00C5  cb             retf   
 
-f_0079_00C6 proc  ; 0079:00C6  callers: f_01A5_00C2, f_0637_07BC, f_0637_0A3A
+battle proc  ; 0079:00C6  callers: attack, siege_by_player, siege_of_player
 0079:00C6  55             push   bp
 0079:00C7  8bec           mov    bp, sp
 0079:00C9  83c4fe         add    sp, -2
@@ -961,17 +961,17 @@ f_0079_00C6 proc  ; 0079:00C6  callers: f_01A5_00C2, f_0637_07BC, f_0637_0A3A
 0079:00D5  ff760a         push   word ptr [bp + 0xa]
 0079:00D8  ff7608         push   word ptr [bp + 8]
 0079:00DB  ff7606         push   word ptr [bp + 6]
-0079:00DE  9a0e017900     lcall  f_0079_010E
+0079:00DE  9a0e017900     lcall  battle_shown
 0079:00E3  83c408         add    sp, 8
 0079:00E6  8946fe         mov    word ptr [bp - 2], ax
-0079:00E9  9ab2042304     lcall  f_0423_04B2
+0079:00E9  9ab2042304     lcall  redraw_map
 0079:00EE  eb17           jmp    0x107
 L_0079_00F0:
 0079:00F0  ff760c         push   word ptr [bp + 0xc]
 0079:00F3  ff760a         push   word ptr [bp + 0xa]
 0079:00F6  ff7608         push   word ptr [bp + 8]
 0079:00F9  ff7606         push   word ptr [bp + 6]
-0079:00FC  9a730a7900     lcall  f_0079_0A73
+0079:00FC  9a730a7900     lcall  battle_auto
 0079:0101  83c408         add    sp, 8
 0079:0104  8946fe         mov    word ptr [bp - 2], ax
 L_0079_0107:
@@ -980,7 +980,7 @@ L_0079_0107:
 0079:010C  5d             pop    bp
 0079:010D  cb             retf   
 
-f_0079_010E proc  ; 0079:010E  callers: f_0079_00C6
+battle_shown proc  ; 0079:010E  callers: battle
 0079:010E  55             push   bp
 0079:010F  8bec           mov    bp, sp
 0079:0111  83c4b5         add    sp, -0x4b
@@ -993,13 +993,13 @@ f_0079_010E proc  ; 0079:010E  callers: f_0079_00C6
 0079:011F  03c2           add    ax, dx
 0079:0121  d1e0           shl    ax, 1
 0079:0123  8bd8           mov    bx, ax
-0079:0125  8b878a43       mov    ax, word ptr [bx + 0x438a]
-0079:0129  03878c43       add    ax, word ptr [bx + 0x438c]
+0079:0125  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
+0079:0129  03878c43       add    ax, word ptr [bx + 0x438c]   ; army.knights
 0079:012D  3d0000         cmp    ax, 0
 0079:0130  7f4c           jg     0x17e
-0079:0132  9ab2042304     lcall  f_0423_04B2
+0079:0132  9ab2042304     lcall  redraw_map
 0079:0137  8b4606         mov    ax, word ptr [bp + 6]
-0079:013A  3b060c45       cmp    ax, word ptr [0x450c]
+0079:013A  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 0079:013E  7525           jne    0x165
 0079:0140  83ec0e         sub    sp, 0xe
 0079:0143  57             push   di
@@ -1016,13 +1016,13 @@ f_0079_010E proc  ; 0079:010E  callers: f_0079_00C6
 0079:015A  a4             movsb  byte ptr es:[di], byte ptr [si]
 0079:015B  5e             pop    si
 0079:015C  5f             pop    di
-0079:015D  9af3020a07     lcall  f_070A_02F3
+0079:015D  9af3020a07     lcall  dialog
 0079:0162  83c40e         add    sp, 0xe
 L_0079_0165:
 0079:0165  ff360c00       push   word ptr [0xc]
 0079:0169  b89c00         mov    ax, 0x9c   ; "y of %s"
 0079:016C  50             push   ax
-0079:016D  9ae00d0a07     lcall  f_070A_0DE0
+0079:016D  9ae00d0a07     lcall  play_tune
 0079:0172  83c404         add    sp, 4
 0079:0175  b80400         mov    ax, 4
 L_0079_0178:
@@ -1036,9 +1036,9 @@ L_0079_017E:
 0079:0183  7403           je     0x188
 0079:0185  e94001         jmp    0x2c8
 L_0079_0188:
-0079:0188  9ab2042304     lcall  f_0423_04B2
+0079:0188  9ab2042304     lcall  redraw_map
 0079:018D  8b4606         mov    ax, word ptr [bp + 6]
-0079:0190  3b060c45       cmp    ax, word ptr [0x450c]
+0079:0190  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 0079:0194  7403           je     0x199
 0079:0196  e99e00         jmp    0x237
 L_0079_0199:
@@ -1049,7 +1049,7 @@ L_0079_0199:
 0079:01A2  03c2           add    ax, dx
 0079:01A4  d1e0           shl    ax, 1
 0079:01A6  8bd8           mov    bx, ax
-0079:01A8  8b874043       mov    ax, word ptr [bx + 0x4340]
+0079:01A8  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0079:01AC  3b460a         cmp    ax, word ptr [bp + 0xa]
 0079:01AF  7530           jne    0x1e1
 0079:01B1  8b4608         mov    ax, word ptr [bp + 8]
@@ -1060,14 +1060,14 @@ L_0079_0199:
 0079:01BC  d1e0           shl    ax, 1
 0079:01BE  d1e0           shl    ax, 1
 0079:01C0  8bd8           mov    bx, ax
-0079:01C2  ffb74644       push   word ptr [bx + 0x4446]
-0079:01C6  ffb74444       push   word ptr [bx + 0x4444]
+0079:01C2  ffb74644       push   word ptr [bx + 0x4446]   ; side+2
+0079:01C6  ffb74444       push   word ptr [bx + 0x4444]   ; side.name
 0079:01CA  1e             push   ds
 0079:01CB  b88100         mov    ax, 0x81   ; "You engage the campaign army of %s"
 0079:01CE  50             push   ax
 0079:01CF  ff364912       push   word ptr [0x1249]
 0079:01D3  ff364712       push   word ptr [0x1247]
-0079:01D7  9a0600f809     lcall  f_09F8_0006
+0079:01D7  9a0600f809     lcall  sprintf
 0079:01DC  83c40c         add    sp, 0xc
 0079:01DF  eb2e           jmp    0x20f
 L_0079_01E1:
@@ -1079,14 +1079,14 @@ L_0079_01E1:
 0079:01EC  d1e0           shl    ax, 1
 0079:01EE  d1e0           shl    ax, 1
 0079:01F0  8bd8           mov    bx, ax
-0079:01F2  ffb74644       push   word ptr [bx + 0x4446]
-0079:01F6  ffb74444       push   word ptr [bx + 0x4444]
+0079:01F2  ffb74644       push   word ptr [bx + 0x4446]   ; side+2
+0079:01F6  ffb74444       push   word ptr [bx + 0x4444]   ; side.name
 0079:01FA  1e             push   ds
 0079:01FB  b8a400         mov    ax, 0xa4   ; "You engage the garrison army of %s"
 0079:01FE  50             push   ax
 0079:01FF  ff364912       push   word ptr [0x1249]
 0079:0203  ff364712       push   word ptr [0x1247]
-0079:0207  9a0600f809     lcall  f_09F8_0006
+0079:0207  9a0600f809     lcall  sprintf
 0079:020C  83c40c         add    sp, 0xc
 L_0079_020F:
 0079:020F  83ec0e         sub    sp, 0xe
@@ -1104,7 +1104,7 @@ L_0079_020F:
 0079:0229  a4             movsb  byte ptr es:[di], byte ptr [si]
 0079:022A  5e             pop    si
 0079:022B  5f             pop    di
-0079:022C  9af3020a07     lcall  f_070A_02F3
+0079:022C  9af3020a07     lcall  dialog
 0079:0231  83c40e         add    sp, 0xe
 0079:0234  e98100         jmp    0x2b8
 L_0079_0237:
@@ -1116,14 +1116,14 @@ L_0079_0237:
 0079:0242  d1e0           shl    ax, 1
 0079:0244  d1e0           shl    ax, 1
 0079:0246  8bd8           mov    bx, ax
-0079:0248  ffb74644       push   word ptr [bx + 0x4446]
-0079:024C  ffb74444       push   word ptr [bx + 0x4444]
+0079:0248  ffb74644       push   word ptr [bx + 0x4446]   ; side+2
+0079:024C  ffb74444       push   word ptr [bx + 0x4444]   ; side.name
 0079:0250  1e             push   ds
 0079:0251  b8c700         mov    ax, 0xc7   ; "Your army is attacked by %s."
 0079:0254  50             push   ax
 0079:0255  ff36c612       push   word ptr [0x12c6]
 0079:0259  ff36c412       push   word ptr [0x12c4]
-0079:025D  9a0600f809     lcall  f_09F8_0006
+0079:025D  9a0600f809     lcall  sprintf
 0079:0262  83c40c         add    sp, 0xc
 0079:0265  8b460a         mov    ax, word ptr [bp + 0xa]
 0079:0268  8bd0           mov    dx, ax
@@ -1140,7 +1140,7 @@ L_0079_0237:
 0079:0282  50             push   ax
 0079:0283  ff36ca12       push   word ptr [0x12ca]
 0079:0287  ff36c812       push   word ptr [0x12c8]
-0079:028B  9a0600f809     lcall  f_09F8_0006
+0079:028B  9a0600f809     lcall  sprintf
 0079:0290  83c40c         add    sp, 0xc
 0079:0293  83ec0e         sub    sp, 0xe
 0079:0296  57             push   di
@@ -1157,19 +1157,19 @@ L_0079_0237:
 0079:02AD  a4             movsb  byte ptr es:[di], byte ptr [si]
 0079:02AE  5e             pop    si
 0079:02AF  5f             pop    di
-0079:02B0  9af3020a07     lcall  f_070A_02F3
+0079:02B0  9af3020a07     lcall  dialog
 0079:02B5  83c40e         add    sp, 0xe
 L_0079_02B8:
 0079:02B8  ff360a00       push   word ptr [0xa]
 0079:02BC  b89c00         mov    ax, 0x9c   ; "y of %s"
 0079:02BF  50             push   ax
-0079:02C0  9ae00d0a07     lcall  f_070A_0DE0
+0079:02C0  9ae00d0a07     lcall  play_tune
 0079:02C5  83c404         add    sp, 4
 L_0079_02C8:
 0079:02C8  c7060e450000   mov    word ptr [0x450e], 0
 0079:02CE  33c0           xor    ax, ax
 0079:02D0  50             push   ax
-0079:02D1  9a0f00ef08     lcall  f_08EF_000F
+0079:02D1  9a0f00ef08     lcall  clear_screen
 0079:02D6  59             pop    cx
 0079:02D7  83ec0e         sub    sp, 0xe
 0079:02DA  57             push   di
@@ -1186,7 +1186,7 @@ L_0079_02C8:
 0079:02F1  a4             movsb  byte ptr es:[di], byte ptr [si]
 0079:02F2  5e             pop    si
 0079:02F3  5f             pop    di
-0079:02F4  9af3020a07     lcall  f_070A_02F3
+0079:02F4  9af3020a07     lcall  dialog
 0079:02F9  83c40e         add    sp, 0xe
 0079:02FC  c746fc0400     mov    word ptr [bp - 4], 4
 0079:0301  8b460a         mov    ax, word ptr [bp + 0xa]
@@ -1207,7 +1207,7 @@ L_0079_02C8:
 0079:0324  054043         add    ax, 0x4340
 0079:0327  8c5eb7         mov    word ptr [bp - 0x49], ds
 0079:032A  8946b5         mov    word ptr [bp - 0x4b], ax
-0079:032D  a10c45         mov    ax, word ptr [0x450c]
+0079:032D  a10c45         mov    ax, word ptr [0x450c]   ; player
 0079:0330  3b4608         cmp    ax, word ptr [bp + 8]
 0079:0333  7563           jne    0x398
 0079:0335  8b4606         mov    ax, word ptr [bp + 6]
@@ -1228,17 +1228,17 @@ L_0079_02C8:
 0079:0358  058643         add    ax, 0x4386
 0079:035B  8c5eb7         mov    word ptr [bp - 0x49], ds
 0079:035E  8946b5         mov    word ptr [bp - 0x4b], ax
-0079:0361  a10c45         mov    ax, word ptr [0x450c]
+0079:0361  a10c45         mov    ax, word ptr [0x450c]   ; player
 0079:0364  8bd0           mov    dx, ax
 0079:0366  d1e0           shl    ax, 1
 0079:0368  d1e0           shl    ax, 1
 0079:036A  03c2           add    ax, dx
 0079:036C  d1e0           shl    ax, 1
 0079:036E  8bd8           mov    bx, ax
-0079:0370  8b874043       mov    ax, word ptr [bx + 0x4340]
+0079:0370  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0079:0374  3b460a         cmp    ax, word ptr [bp + 0xa]
 0079:0377  751a           jne    0x393
-0079:0379  a10c45         mov    ax, word ptr [0x450c]
+0079:0379  a10c45         mov    ax, word ptr [0x450c]   ; player
 0079:037C  8bd0           mov    dx, ax
 0079:037E  b103           mov    cl, 3
 0079:0380  d3e0           shl    ax, cl
@@ -1246,7 +1246,7 @@ L_0079_02C8:
 0079:0384  d1e0           shl    ax, 1
 0079:0386  d1e0           shl    ax, 1
 0079:0388  8bd8           mov    bx, ax
-0079:038A  8b875044       mov    ax, word ptr [bx + 0x4450]
+0079:038A  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 0079:038E  3b460a         cmp    ax, word ptr [bp + 0xa]
 0079:0391  7505           jne    0x398
 L_0079_0393:
@@ -1257,7 +1257,7 @@ L_0079_0398:
 0079:03A1  ff76b5         push   word ptr [bp - 0x4b]
 0079:03A4  ff76bb         push   word ptr [bp - 0x45]
 0079:03A7  ff76b9         push   word ptr [bp - 0x47]
-0079:03AA  9a00007900     lcall  f_0079_0000
+0079:03AA  9a00007900     lcall  show_armies
 0079:03AF  83c408         add    sp, 8
 0079:03B2  c606ba27fe     mov    byte ptr [0x27ba], 0xfe
 0079:03B7  b80100         mov    ax, 1
@@ -1265,7 +1265,7 @@ L_0079_0398:
 0079:03BF  8946f6         mov    word ptr [bp - 0xa], ax
 0079:03C2  8946f8         mov    word ptr [bp - 8], ax
 0079:03C5  c606ba2700     mov    byte ptr [0x27ba], 0
-0079:03CA  9a1b090a07     lcall  f_070A_091B
+0079:03CA  9a1b090a07     lcall  flush_keys
 0079:03CF  a07627         mov    al, byte ptr [0x2776]
 0079:03D2  98             cwde   
 0079:03D3  050400         add    ax, 4
@@ -1283,22 +1283,22 @@ L_0079_0398:
 0079:03F2  ff76f0         push   word ptr [bp - 0x10]
 0079:03F5  ff76ee         push   word ptr [bp - 0x12]
 0079:03F8  ff76f2         push   word ptr [bp - 0xe]
-0079:03FB  9a0700a108     lcall  f_08A1_0007
+0079:03FB  9a0700a108     lcall  xor_rect_ff
 0079:0400  83c408         add    sp, 8
 0079:0403  b80b00         mov    ax, 0xb
 0079:0406  50             push   ax
 0079:0407  ff76f0         push   word ptr [bp - 0x10]
 0079:040A  ff76ee         push   word ptr [bp - 0x12]
 0079:040D  ff76f2         push   word ptr [bp - 0xe]
-0079:0410  9a0f004009     lcall  f_0940_000F
+0079:0410  9a0f004009     lcall  xor_rect_aa
 0079:0415  83c408         add    sp, 8
 0079:0418  be0300         mov    si, 3
 0079:041B  bf4b00         mov    di, 0x4b   ; " %4d      Knights  <>@%4d>"
 0079:041E  c746fe1e00     mov    word ptr [bp - 2], 0x1e
-0079:0423  c41e1045       les    bx, ptr [0x4510]
+0079:0423  c41e1045       les    bx, ptr [0x4510]   ; font
 0079:0427  268b876801     mov    ax, word ptr es:[bx + 0x168]
 0079:042C  d1e0           shl    ax, 1
-0079:042E  03061045       add    ax, word ptr [0x4510]
+0079:042E  03061045       add    ax, word ptr [0x4510]   ; font
 0079:0432  8b161245       mov    dx, word ptr [0x4512]
 0079:0436  8956e0         mov    word ptr [bp - 0x20], dx
 0079:0439  8946de         mov    word ptr [bp - 0x22], ax
@@ -1354,9 +1354,9 @@ L_0079_04B9:
 0079:04C5  ff760a         push   word ptr [bp + 0xa]
 0079:04C8  ff7608         push   word ptr [bp + 8]
 0079:04CB  ff7606         push   word ptr [bp + 6]
-0079:04CE  9a9e0b7900     lcall  f_0079_0B9E
+0079:04CE  9a9e0b7900     lcall  battle_round
 0079:04D3  83c40c         add    sp, 0xc
-0079:04D6  ff364c41       push   word ptr [0x414c]
+0079:04D6  ff364c41       push   word ptr [0x414c]   ; dmg_b
 0079:04DA  1e             push   ds
 0079:04DB  8b460a         mov    ax, word ptr [bp + 0xa]
 0079:04DE  8bd0           mov    dx, ax
@@ -1366,9 +1366,9 @@ L_0079_04B9:
 0079:04E6  d1e0           shl    ax, 1
 0079:04E8  058643         add    ax, 0x4386
 0079:04EB  50             push   ax
-0079:04EC  9a930d7900     lcall  f_0079_0D93
+0079:04EC  9a930d7900     lcall  take_losses
 0079:04F1  83c406         add    sp, 6
-0079:04F4  ff364e41       push   word ptr [0x414e]
+0079:04F4  ff364e41       push   word ptr [0x414e]   ; dmg_a
 0079:04F8  1e             push   ds
 0079:04F9  8b4606         mov    ax, word ptr [bp + 6]
 0079:04FC  8bd0           mov    dx, ax
@@ -1378,7 +1378,7 @@ L_0079_04B9:
 0079:0504  d1e0           shl    ax, 1
 0079:0506  054043         add    ax, 0x4340
 0079:0509  50             push   ax
-0079:050A  9a930d7900     lcall  f_0079_0D93
+0079:050A  9a930d7900     lcall  take_losses
 0079:050F  83c406         add    sp, 6
 0079:0512  c746fa1c00     mov    word ptr [bp - 6], 0x1c
 L_0079_0517:
@@ -1386,7 +1386,7 @@ L_0079_0517:
 0079:051B  7503           jne    0x520
 0079:051D  e9ba03         jmp    0x8da
 L_0079_0520:
-0079:0520  9aab070a07     lcall  f_070A_07AB
+0079:0520  9aab070a07     lcall  get_key
 0079:0525  8846bd         mov    byte ptr [bp - 0x43], al
 0079:0528  84c0           test   al, al
 0079:052A  7503           jne    0x52f
@@ -1414,7 +1414,7 @@ L_0079_0532:
 0079:0555  8bc1           mov    ax, cx
 0079:0557  50             push   ax
 0079:0558  ff76f2         push   word ptr [bp - 0xe]
-0079:055B  9a0f004009     lcall  f_0940_000F
+0079:055B  9a0f004009     lcall  xor_rect_aa
 0079:0560  83c408         add    sp, 8
 0079:0563  8b46f8         mov    ax, word ptr [bp - 8]
 0079:0566  8946f4         mov    word ptr [bp - 0xc], ax
@@ -1423,7 +1423,7 @@ L_0079_0532:
 0079:056D  ff76f0         push   word ptr [bp - 0x10]
 0079:0570  ff76ee         push   word ptr [bp - 0x12]
 0079:0573  ff76f2         push   word ptr [bp - 0xe]
-0079:0576  9a0f004009     lcall  f_0940_000F
+0079:0576  9a0f004009     lcall  xor_rect_aa
 0079:057B  83c408         add    sp, 8
 L_0079_057E:
 0079:057E  eb32           jmp    0x5b2
@@ -1462,7 +1462,7 @@ L_0079_05B2:
 0079:05C1  ff76f0         push   word ptr [bp - 0x10]
 0079:05C4  ff76ee         push   word ptr [bp - 0x12]
 0079:05C7  ff76f2         push   word ptr [bp - 0xe]
-0079:05CA  9a0700a108     lcall  f_08A1_0007
+0079:05CA  9a0700a108     lcall  xor_rect_ff
 0079:05CF  83c408         add    sp, 8
 0079:05D2  a07727         mov    al, byte ptr [0x2777]
 0079:05D5  2ae4           sub    ah, ah
@@ -1481,7 +1481,7 @@ L_0079_05B2:
 0079:05EF  ff76f0         push   word ptr [bp - 0x10]
 0079:05F2  ff76ee         push   word ptr [bp - 0x12]
 0079:05F5  ff76f2         push   word ptr [bp - 0xe]
-0079:05F8  9a0700a108     lcall  f_08A1_0007
+0079:05F8  9a0700a108     lcall  xor_rect_ff
 0079:05FD  83c408         add    sp, 8
 L_0079_0600:
 0079:0600  8b56c0         mov    dx, word ptr [bp - 0x40]
@@ -1508,31 +1508,31 @@ L_0079_0615:
 L_0079_063A:
 0079:063A  b80400         mov    ax, 4
 0079:063D  50             push   ax
-0079:063E  9a0d000a07     lcall  f_070A_000D
+0079:063E  9a0d000a07     lcall  random
 0079:0643  59             pop    cx
 0079:0644  8bd8           mov    bx, ax
 0079:0646  81c3a000       add    bx, 0xa0
 0079:064A  d1e3           shl    bx, 1
-0079:064C  031e1045       add    bx, word ptr [0x4510]
+0079:064C  031e1045       add    bx, word ptr [0x4510]   ; font
 0079:0650  8e061245       mov    es, word ptr [0x4512]
 0079:0654  268b07         mov    ax, word ptr es:[bx]
 0079:0657  d1e0           shl    ax, 1
-0079:0659  03061045       add    ax, word ptr [0x4510]
+0079:0659  03061045       add    ax, word ptr [0x4510]   ; font
 0079:065D  8b161245       mov    dx, word ptr [0x4512]
 0079:0661  8956d8         mov    word ptr [bp - 0x28], dx
 0079:0664  8946d6         mov    word ptr [bp - 0x2a], ax
 0079:0667  b80400         mov    ax, 4
 0079:066A  50             push   ax
-0079:066B  9a0d000a07     lcall  f_070A_000D
+0079:066B  9a0d000a07     lcall  random
 0079:0670  59             pop    cx
 0079:0671  8bd8           mov    bx, ax
 0079:0673  81c3aa00       add    bx, 0xaa
 0079:0677  d1e3           shl    bx, 1
-0079:0679  031e1045       add    bx, word ptr [0x4510]
+0079:0679  031e1045       add    bx, word ptr [0x4510]   ; font
 0079:067D  8e061245       mov    es, word ptr [0x4512]
 0079:0681  268b07         mov    ax, word ptr es:[bx]
 0079:0684  d1e0           shl    ax, 1
-0079:0686  03061045       add    ax, word ptr [0x4510]
+0079:0686  03061045       add    ax, word ptr [0x4510]   ; font
 0079:068A  8b161245       mov    dx, word ptr [0x4512]
 0079:068E  8956d4         mov    word ptr [bp - 0x2c], dx
 0079:0691  8946d2         mov    word ptr [bp - 0x2e], ax
@@ -1554,7 +1554,7 @@ L_0079_069C:
 0079:06B9  8a871600       mov    al, byte ptr [bx + 0x16]
 0079:06BD  2ae4           sub    ah, ah
 0079:06BF  50             push   ax
-0079:06C0  9a00006b09     lcall  f_096B_0000
+0079:06C0  9a00006b09     lcall  or_sprite
 0079:06C5  83c408         add    sp, 8
 0079:06C8  eb33           jmp    0x6fd
 L_0079_06CA:
@@ -1577,7 +1577,7 @@ L_0079_06CA:
 0079:06EE  8a871600       mov    al, byte ptr [bx + 0x16]
 0079:06F2  2ae4           sub    ah, ah
 0079:06F4  50             push   ax
-0079:06F5  9a02005909     lcall  f_0959_0002
+0079:06F5  9a02005909     lcall  fill_rect
 0079:06FA  83c40a         add    sp, 0xa
 L_0079_06FD:
 0079:06FD  c45eb9         les    bx, ptr [bp - 0x47]
@@ -1594,7 +1594,7 @@ L_0079_06FD:
 0079:071A  8a871c00       mov    al, byte ptr [bx + 0x1c]
 0079:071E  2ae4           sub    ah, ah
 0079:0720  50             push   ax
-0079:0721  9a00006b09     lcall  f_096B_0000
+0079:0721  9a00006b09     lcall  or_sprite
 0079:0726  83c408         add    sp, 8
 0079:0729  eb33           jmp    0x75e
 L_0079_072B:
@@ -1617,7 +1617,7 @@ L_0079_072B:
 0079:074F  8a871c00       mov    al, byte ptr [bx + 0x1c]
 0079:0753  2ae4           sub    ah, ah
 0079:0755  50             push   ax
-0079:0756  9a02005909     lcall  f_0959_0002
+0079:0756  9a02005909     lcall  fill_rect
 0079:075B  83c40a         add    sp, 0xa
 L_0079_075E:
 0079:075E  33c0           xor    ax, ax
@@ -1634,7 +1634,7 @@ L_0079_075E:
 0079:0774  8a872200       mov    al, byte ptr [bx + 0x22]
 0079:0778  2ae4           sub    ah, ah
 0079:077A  50             push   ax
-0079:077B  9a02005909     lcall  f_0959_0002
+0079:077B  9a02005909     lcall  fill_rect
 0079:0780  83c40a         add    sp, 0xa
 0079:0783  c45eb5         les    bx, ptr [bp - 0x4b]
 0079:0786  268b4704       mov    ax, word ptr es:[bx + 4]
@@ -1651,7 +1651,7 @@ L_0079_075E:
 0079:07A2  8a872200       mov    al, byte ptr [bx + 0x22]
 0079:07A6  2ae4           sub    ah, ah
 0079:07A8  50             push   ax
-0079:07A9  9a00006b09     lcall  f_096B_0000
+0079:07A9  9a00006b09     lcall  or_sprite
 0079:07AE  83c408         add    sp, 8
 0079:07B1  ff76d8         push   word ptr [bp - 0x28]
 0079:07B4  ff76d6         push   word ptr [bp - 0x2a]
@@ -1663,7 +1663,7 @@ L_0079_075E:
 0079:07C2  8a872200       mov    al, byte ptr [bx + 0x22]
 0079:07C6  2ae4           sub    ah, ah
 0079:07C8  50             push   ax
-0079:07C9  9a00006b09     lcall  f_096B_0000
+0079:07C9  9a00006b09     lcall  or_sprite
 0079:07CE  83c408         add    sp, 8
 0079:07D1  eb57           jmp    0x82a
 L_0079_07D3:
@@ -1684,7 +1684,7 @@ L_0079_07D3:
 0079:07F8  8a872200       mov    al, byte ptr [bx + 0x22]
 0079:07FC  2ae4           sub    ah, ah
 0079:07FE  50             push   ax
-0079:07FF  9a0c007d09     lcall  f_097D_000C
+0079:07FF  9a0c007d09     lcall  xor_sprite_w
 0079:0804  83c408         add    sp, 8
 L_0079_0807:
 0079:0807  ff76c8         push   word ptr [bp - 0x38]
@@ -1698,7 +1698,7 @@ L_0079_0807:
 0079:081B  8a872200       mov    al, byte ptr [bx + 0x22]
 0079:081F  2ae4           sub    ah, ah
 0079:0821  50             push   ax
-0079:0822  9a00006b09     lcall  f_096B_0000
+0079:0822  9a00006b09     lcall  or_sprite
 0079:0827  83c408         add    sp, 8
 L_0079_082A:
 0079:082A  c45eb9         les    bx, ptr [bp - 0x47]
@@ -1717,7 +1717,7 @@ L_0079_082A:
 0079:084D  2ae4           sub    ah, ah
 0079:084F  050800         add    ax, 8
 0079:0852  50             push   ax
-0079:0853  9a00006b09     lcall  f_096B_0000
+0079:0853  9a00006b09     lcall  or_sprite
 0079:0858  83c408         add    sp, 8
 0079:085B  ff76d4         push   word ptr [bp - 0x2c]
 0079:085E  ff76d2         push   word ptr [bp - 0x2e]
@@ -1729,7 +1729,7 @@ L_0079_082A:
 0079:086C  8a872800       mov    al, byte ptr [bx + 0x28]
 0079:0870  2ae4           sub    ah, ah
 0079:0872  50             push   ax
-0079:0873  9a00006b09     lcall  f_096B_0000
+0079:0873  9a00006b09     lcall  or_sprite
 0079:0878  83c408         add    sp, 8
 0079:087B  eb5a           jmp    0x8d7
 L_0079_087D:
@@ -1751,7 +1751,7 @@ L_0079_087D:
 0079:08A6  2ae4           sub    ah, ah
 0079:08A8  050800         add    ax, 8
 0079:08AB  50             push   ax
-0079:08AC  9a0c007d09     lcall  f_097D_000C
+0079:08AC  9a0c007d09     lcall  xor_sprite_w
 0079:08B1  83c408         add    sp, 8
 L_0079_08B4:
 0079:08B4  ff76c4         push   word ptr [bp - 0x3c]
@@ -1765,7 +1765,7 @@ L_0079_08B4:
 0079:08C8  8a872800       mov    al, byte ptr [bx + 0x28]
 0079:08CC  2ae4           sub    ah, ah
 0079:08CE  50             push   ax
-0079:08CF  9a00006b09     lcall  f_096B_0000
+0079:08CF  9a00006b09     lcall  or_sprite
 0079:08D4  83c408         add    sp, 8
 L_0079_08D7:
 0079:08D7  e93dfc         jmp    0x517
@@ -1787,7 +1787,7 @@ L_0079_0906:
 0079:0909  ff76b5         push   word ptr [bp - 0x4b]
 0079:090C  ff76bb         push   word ptr [bp - 0x45]
 0079:090F  ff76b9         push   word ptr [bp - 0x47]
-0079:0912  9a00007900     lcall  f_0079_0000
+0079:0912  9a00007900     lcall  show_armies
 0079:0917  83c408         add    sp, 8
 0079:091A  8b46f4         mov    ax, word ptr [bp - 0xc]
 0079:091D  3d0400         cmp    ax, 4
@@ -1801,12 +1801,12 @@ L_0079_0906:
 0079:0932  d1e0           shl    ax, 1
 0079:0934  03c2           add    ax, dx
 0079:0936  8bd8           mov    bx, ax
-0079:0938  8a874e36       mov    al, byte ptr [bx + 0x364e]
+0079:0938  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 0079:093C  98             cwde   
-0079:093D  3b060c45       cmp    ax, word ptr [0x450c]
+0079:093D  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 0079:0941  753e           jne    0x981
 0079:0943  1e             push   ds
-0079:0944  a10c45         mov    ax, word ptr [0x450c]
+0079:0944  a10c45         mov    ax, word ptr [0x450c]   ; player
 0079:0947  8bd0           mov    dx, ax
 0079:0949  d1e0           shl    ax, 1
 0079:094B  d1e0           shl    ax, 1
@@ -1823,10 +1823,10 @@ L_0079_0906:
 0079:0961  d1e0           shl    ax, 1
 0079:0963  058643         add    ax, 0x4386
 0079:0966  50             push   ax
-0079:0967  9a7d021900     lcall  f_0019_027D
+0079:0967  9a7d021900     lcall  army_merge
 0079:096C  83c408         add    sp, 8
-0079:096F  ff360c45       push   word ptr [0x450c]
-0079:0973  9ad7011900     lcall  f_0019_01D7
+0079:096F  ff360c45       push   word ptr [0x450c]   ; player
+0079:0973  9ad7011900     lcall  army_settle
 0079:0978  59             pop    cx
 0079:0979  c746ec0400     mov    word ptr [bp - 0x14], 4
 0079:097E  e9c900         jmp    0xa4a
@@ -1843,7 +1843,7 @@ L_0079_0989:
 0079:0995  d1e0           shl    ax, 1
 0079:0997  058643         add    ax, 0x4386
 0079:099A  50             push   ax
-0079:099B  9ad2001900     lcall  f_0019_00D2
+0079:099B  9ad2001900     lcall  army_empty
 0079:09A0  83c404         add    sp, 4
 0079:09A3  85c0           test   ax, ax
 0079:09A5  742b           je     0x9d2
@@ -1856,7 +1856,7 @@ L_0079_0989:
 0079:09B3  d1e0           shl    ax, 1
 0079:09B5  054043         add    ax, 0x4340
 0079:09B8  50             push   ax
-0079:09B9  9ad2001900     lcall  f_0019_00D2
+0079:09B9  9ad2001900     lcall  army_empty
 0079:09BE  83c404         add    sp, 4
 0079:09C1  85c0           test   ax, ax
 0079:09C3  740d           je     0x9d2
@@ -1873,12 +1873,12 @@ L_0079_09D2:
 0079:09DE  d1e0           shl    ax, 1
 0079:09E0  058643         add    ax, 0x4386
 0079:09E3  50             push   ax
-0079:09E4  9ad2001900     lcall  f_0019_00D2
+0079:09E4  9ad2001900     lcall  army_empty
 0079:09E9  83c404         add    sp, 4
 0079:09EC  85c0           test   ax, ax
 0079:09EE  7419           je     0xa09
 0079:09F0  c746eafdff     mov    word ptr [bp - 0x16], 0xfffd
-0079:09F5  a10c45         mov    ax, word ptr [0x450c]
+0079:09F5  a10c45         mov    ax, word ptr [0x450c]   ; player
 0079:09F8  3b4608         cmp    ax, word ptr [bp + 8]
 0079:09FB  7405           je     0xa02
 0079:09FD  c746ea0300     mov    word ptr [bp - 0x16], 3
@@ -1895,12 +1895,12 @@ L_0079_0A09:
 0079:0A15  d1e0           shl    ax, 1
 0079:0A17  054043         add    ax, 0x4340
 0079:0A1A  50             push   ax
-0079:0A1B  9ad2001900     lcall  f_0019_00D2
+0079:0A1B  9ad2001900     lcall  army_empty
 0079:0A20  83c404         add    sp, 4
 0079:0A23  85c0           test   ax, ax
 0079:0A25  7419           je     0xa40
 0079:0A27  c746ea0300     mov    word ptr [bp - 0x16], 3
-0079:0A2C  a10c45         mov    ax, word ptr [0x450c]
+0079:0A2C  a10c45         mov    ax, word ptr [0x450c]   ; player
 0079:0A2F  3b4608         cmp    ax, word ptr [bp + 8]
 0079:0A32  7405           je     0xa39
 0079:0A34  c746eafdff     mov    word ptr [bp - 0x16], 0xfffd
@@ -1914,21 +1914,21 @@ L_0079_0A40:
 0079:0A47  e96ffa         jmp    0x4b9
 L_0079_0A4A:
 0079:0A4A  ff76ea         push   word ptr [bp - 0x16]
-0079:0A4D  9ac70e0a07     lcall  f_070A_0EC7
+0079:0A4D  9ac70e0a07     lcall  morale_add
 0079:0A52  59             pop    cx
 0079:0A53  b81b00         mov    ax, 0x1b
 0079:0A56  50             push   ax
-0079:0A57  9ab2080a07     lcall  f_070A_08B2
+0079:0A57  9ab2080a07     lcall  wait_ticks
 0079:0A5C  59             pop    cx
 0079:0A5D  ff360c00       push   word ptr [0xc]
 0079:0A61  b89c00         mov    ax, 0x9c   ; "y of %s"
 0079:0A64  50             push   ax
-0079:0A65  9ae00d0a07     lcall  f_070A_0DE0
+0079:0A65  9ae00d0a07     lcall  play_tune
 0079:0A6A  83c404         add    sp, 4
 0079:0A6D  8b46ec         mov    ax, word ptr [bp - 0x14]
 0079:0A70  e905f7         jmp    0x178
 
-f_0079_0A73 proc  ; 0079:0A73  callers: f_0079_00C6
+battle_auto proc  ; 0079:0A73  callers: battle
 0079:0A73  55             push   bp
 0079:0A74  8bec           mov    bp, sp
 0079:0A76  8b4608         mov    ax, word ptr [bp + 8]
@@ -1938,7 +1938,7 @@ f_0079_0A73 proc  ; 0079:0A73  callers: f_0079_00C6
 0079:0A7F  03c2           add    ax, dx
 0079:0A81  d1e0           shl    ax, 1
 0079:0A83  8bd8           mov    bx, ax
-0079:0A85  8b874043       mov    ax, word ptr [bx + 0x4340]
+0079:0A85  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0079:0A89  3b460a         cmp    ax, word ptr [bp + 0xa]
 0079:0A8C  7524           jne    0xab2
 0079:0A8E  1e             push   ds
@@ -1955,7 +1955,7 @@ f_0079_0A73 proc  ; 0079:0A73  callers: f_0079_00C6
 0079:0AA5  8cda           mov    dx, ds
 0079:0AA7  8bc3           mov    ax, bx
 0079:0AA9  50             push   ax
-0079:0AAA  9a7d021900     lcall  f_0019_027D
+0079:0AAA  9a7d021900     lcall  army_merge
 0079:0AAF  83c408         add    sp, 8
 L_0079_0AB2:
 0079:0AB2  33c0           xor    ax, ax
@@ -1966,9 +1966,9 @@ L_0079_0AB2:
 0079:0ABC  ff760a         push   word ptr [bp + 0xa]
 0079:0ABF  ff7608         push   word ptr [bp + 8]
 0079:0AC2  ff7606         push   word ptr [bp + 6]
-0079:0AC5  9a9e0b7900     lcall  f_0079_0B9E
+0079:0AC5  9a9e0b7900     lcall  battle_round
 0079:0ACA  83c40c         add    sp, 0xc
-0079:0ACD  ff364c41       push   word ptr [0x414c]
+0079:0ACD  ff364c41       push   word ptr [0x414c]   ; dmg_b
 0079:0AD1  1e             push   ds
 0079:0AD2  8b460a         mov    ax, word ptr [bp + 0xa]
 0079:0AD5  8bd0           mov    dx, ax
@@ -1978,9 +1978,9 @@ L_0079_0AB2:
 0079:0ADD  d1e0           shl    ax, 1
 0079:0ADF  058643         add    ax, 0x4386
 0079:0AE2  50             push   ax
-0079:0AE3  9a930d7900     lcall  f_0079_0D93
+0079:0AE3  9a930d7900     lcall  take_losses
 0079:0AE8  83c406         add    sp, 6
-0079:0AEB  ff364e41       push   word ptr [0x414e]
+0079:0AEB  ff364e41       push   word ptr [0x414e]   ; dmg_a
 0079:0AEF  1e             push   ds
 0079:0AF0  8b4606         mov    ax, word ptr [bp + 6]
 0079:0AF3  8bd0           mov    dx, ax
@@ -1990,7 +1990,7 @@ L_0079_0AB2:
 0079:0AFB  d1e0           shl    ax, 1
 0079:0AFD  054043         add    ax, 0x4340
 0079:0B00  50             push   ax
-0079:0B01  9a930d7900     lcall  f_0079_0D93
+0079:0B01  9a930d7900     lcall  take_losses
 0079:0B06  83c406         add    sp, 6
 0079:0B09  1e             push   ds
 0079:0B0A  8b460a         mov    ax, word ptr [bp + 0xa]
@@ -2001,7 +2001,7 @@ L_0079_0AB2:
 0079:0B15  d1e0           shl    ax, 1
 0079:0B17  058643         add    ax, 0x4386
 0079:0B1A  50             push   ax
-0079:0B1B  9ad2001900     lcall  f_0019_00D2
+0079:0B1B  9ad2001900     lcall  army_empty
 0079:0B20  83c404         add    sp, 4
 0079:0B23  85c0           test   ax, ax
 0079:0B25  7425           je     0xb4c
@@ -2014,7 +2014,7 @@ L_0079_0AB2:
 0079:0B33  d1e0           shl    ax, 1
 0079:0B35  054043         add    ax, 0x4340
 0079:0B38  50             push   ax
-0079:0B39  9ad2001900     lcall  f_0019_00D2
+0079:0B39  9ad2001900     lcall  army_empty
 0079:0B3E  83c404         add    sp, 4
 0079:0B41  85c0           test   ax, ax
 0079:0B43  7407           je     0xb4c
@@ -2033,7 +2033,7 @@ L_0079_0B4C:
 0079:0B58  d1e0           shl    ax, 1
 0079:0B5A  058643         add    ax, 0x4386
 0079:0B5D  50             push   ax
-0079:0B5E  9ad2001900     lcall  f_0019_00D2
+0079:0B5E  9ad2001900     lcall  army_empty
 0079:0B63  83c404         add    sp, 4
 0079:0B66  85c0           test   ax, ax
 0079:0B68  7405           je     0xb6f
@@ -2049,7 +2049,7 @@ L_0079_0B6F:
 0079:0B7B  d1e0           shl    ax, 1
 0079:0B7D  054043         add    ax, 0x4340
 0079:0B80  50             push   ax
-0079:0B81  9ad2001900     lcall  f_0019_00D2
+0079:0B81  9ad2001900     lcall  army_empty
 0079:0B86  83c404         add    sp, 4
 0079:0B89  85c0           test   ax, ax
 0079:0B8B  7405           je     0xb92
@@ -2063,7 +2063,7 @@ L_0079_0B92:
 L_0079_0B9C:
 0079:0B9C  ebaa           jmp    0xb48
 
-f_0079_0B9E proc  ; 0079:0B9E  callers: f_0079_010E, f_0079_0A73
+battle_round proc  ; 0079:0B9E  callers: battle_auto, battle_shown
 0079:0B9E  55             push   bp
 0079:0B9F  8bec           mov    bp, sp
 0079:0BA1  57             push   di
@@ -2084,9 +2084,9 @@ f_0079_0B9E proc  ; 0079:0B9E  callers: f_0079_010E, f_0079_0A73
 0079:0BC1  d1e0           shl    ax, 1
 0079:0BC3  058643         add    ax, 0x4386
 0079:0BC6  50             push   ax
-0079:0BC7  9a000d7900     lcall  f_0079_0D00
+0079:0BC7  9a000d7900     lcall  army_damage
 0079:0BCC  83c406         add    sp, 6
-0079:0BCF  a34e41         mov    word ptr [0x414e], ax
+0079:0BCF  a34e41         mov    word ptr [0x414e], ax   ; dmg_a
 0079:0BD2  e9d900         jmp    0xcae
 L_0079_0BD5:
 0079:0BD5  ff760e         push   word ptr [bp + 0xe]
@@ -2099,9 +2099,9 @@ L_0079_0BD5:
 0079:0BE3  d1e0           shl    ax, 1
 0079:0BE5  054043         add    ax, 0x4340
 0079:0BE8  50             push   ax
-0079:0BE9  9a000d7900     lcall  f_0079_0D00
+0079:0BE9  9a000d7900     lcall  army_damage
 0079:0BEE  83c406         add    sp, 6
-0079:0BF1  a34c41         mov    word ptr [0x414c], ax
+0079:0BF1  a34c41         mov    word ptr [0x414c], ax   ; dmg_b
 0079:0BF4  ff760e         push   word ptr [bp + 0xe]
 0079:0BF7  1e             push   ds
 0079:0BF8  8b460a         mov    ax, word ptr [bp + 0xa]
@@ -2112,9 +2112,9 @@ L_0079_0BD5:
 0079:0C03  d1e0           shl    ax, 1
 0079:0C05  058643         add    ax, 0x4386
 0079:0C08  50             push   ax
-0079:0C09  9a000d7900     lcall  f_0079_0D00
+0079:0C09  9a000d7900     lcall  army_damage
 0079:0C0E  83c406         add    sp, 6
-0079:0C11  a34e41         mov    word ptr [0x414e], ax
+0079:0C11  a34e41         mov    word ptr [0x414e], ax   ; dmg_a
 0079:0C14  8b460e         mov    ax, word ptr [bp + 0xe]
 0079:0C17  3d0400         cmp    ax, 4
 0079:0C1A  754a           jne    0xc66
@@ -2126,11 +2126,11 @@ L_0079_0BD5:
 0079:0C26  d1e0           shl    ax, 1
 0079:0C28  d1e0           shl    ax, 1
 0079:0C2A  8bd8           mov    bx, ax
-0079:0C2C  ffb75844       push   word ptr [bx + 0x4458]
-0079:0C30  ff364c41       push   word ptr [0x414c]
-0079:0C34  9a7d0d7900     lcall  f_0079_0D7D
+0079:0C2C  ffb75844       push   word ptr [bx + 0x4458]   ; side.lead
+0079:0C30  ff364c41       push   word ptr [0x414c]   ; dmg_b
+0079:0C34  9a7d0d7900     lcall  percent_of_lead
 0079:0C39  83c404         add    sp, 4
-0079:0C3C  29064c41       sub    word ptr [0x414c], ax
+0079:0C3C  29064c41       sub    word ptr [0x414c], ax   ; dmg_b
 0079:0C40  8bc6           mov    ax, si
 0079:0C42  8bd0           mov    dx, ax
 0079:0C44  b103           mov    cl, 3
@@ -2139,11 +2139,11 @@ L_0079_0BD5:
 0079:0C4A  d1e0           shl    ax, 1
 0079:0C4C  d1e0           shl    ax, 1
 0079:0C4E  8bd8           mov    bx, ax
-0079:0C50  ffb75844       push   word ptr [bx + 0x4458]
-0079:0C54  ff364e41       push   word ptr [0x414e]
-0079:0C58  9a7d0d7900     lcall  f_0079_0D7D
+0079:0C50  ffb75844       push   word ptr [bx + 0x4458]   ; side.lead
+0079:0C54  ff364e41       push   word ptr [0x414e]   ; dmg_a
+0079:0C58  9a7d0d7900     lcall  percent_of_lead
 0079:0C5D  83c404         add    sp, 4
-0079:0C60  29064e41       sub    word ptr [0x414e], ax
+0079:0C60  29064e41       sub    word ptr [0x414e], ax   ; dmg_a
 0079:0C64  eb48           jmp    0xcae
 L_0079_0C66:
 0079:0C66  8bc6           mov    ax, si
@@ -2154,11 +2154,11 @@ L_0079_0C66:
 0079:0C70  d1e0           shl    ax, 1
 0079:0C72  d1e0           shl    ax, 1
 0079:0C74  8bd8           mov    bx, ax
-0079:0C76  ffb75844       push   word ptr [bx + 0x4458]
-0079:0C7A  ff364c41       push   word ptr [0x414c]
-0079:0C7E  9a7d0d7900     lcall  f_0079_0D7D
+0079:0C76  ffb75844       push   word ptr [bx + 0x4458]   ; side.lead
+0079:0C7A  ff364c41       push   word ptr [0x414c]   ; dmg_b
+0079:0C7E  9a7d0d7900     lcall  percent_of_lead
 0079:0C83  83c404         add    sp, 4
-0079:0C86  01064c41       add    word ptr [0x414c], ax
+0079:0C86  01064c41       add    word ptr [0x414c], ax   ; dmg_b
 0079:0C8A  8bc7           mov    ax, di
 0079:0C8C  8bd0           mov    dx, ax
 0079:0C8E  b103           mov    cl, 3
@@ -2167,38 +2167,38 @@ L_0079_0C66:
 0079:0C94  d1e0           shl    ax, 1
 0079:0C96  d1e0           shl    ax, 1
 0079:0C98  8bd8           mov    bx, ax
-0079:0C9A  ffb75844       push   word ptr [bx + 0x4458]
-0079:0C9E  ff364e41       push   word ptr [0x414e]
-0079:0CA2  9a7d0d7900     lcall  f_0079_0D7D
+0079:0C9A  ffb75844       push   word ptr [bx + 0x4458]   ; side.lead
+0079:0C9E  ff364e41       push   word ptr [0x414e]   ; dmg_a
+0079:0CA2  9a7d0d7900     lcall  percent_of_lead
 0079:0CA7  83c404         add    sp, 4
-0079:0CAA  01064e41       add    word ptr [0x414e], ax
+0079:0CAA  01064e41       add    word ptr [0x414e], ax   ; dmg_a
 L_0079_0CAE:
 0079:0CAE  b80300         mov    ax, 3
 0079:0CB1  50             push   ax
-0079:0CB2  9a0d000a07     lcall  f_070A_000D
+0079:0CB2  9a0d000a07     lcall  random
 0079:0CB7  59             pop    cx
-0079:0CB8  01064c41       add    word ptr [0x414c], ax
+0079:0CB8  01064c41       add    word ptr [0x414c], ax   ; dmg_b
 0079:0CBC  8b460c         mov    ax, word ptr [bp + 0xc]
-0079:0CBF  f72e4c41       imul   word ptr [0x414c]
+0079:0CBF  f72e4c41       imul   word ptr [0x414c]   ; dmg_b
 0079:0CC3  053200         add    ax, 0x32
 0079:0CC6  b96400         mov    cx, 0x64
 0079:0CC9  99             cdq    
 0079:0CCA  f7f9           idiv   cx
-0079:0CCC  29064c41       sub    word ptr [0x414c], ax
-0079:0CD0  a14c41         mov    ax, word ptr [0x414c]
+0079:0CCC  29064c41       sub    word ptr [0x414c], ax   ; dmg_b
+0079:0CD0  a14c41         mov    ax, word ptr [0x414c]   ; dmg_b
 0079:0CD3  3d0000         cmp    ax, 0
 0079:0CD6  7d06           jge    0xcde
-0079:0CD8  c7064c410000   mov    word ptr [0x414c], 0
+0079:0CD8  c7064c410000   mov    word ptr [0x414c], 0   ; dmg_b
 L_0079_0CDE:
 0079:0CDE  b80300         mov    ax, 3
 0079:0CE1  50             push   ax
-0079:0CE2  9a0d000a07     lcall  f_070A_000D
+0079:0CE2  9a0d000a07     lcall  random
 0079:0CE7  59             pop    cx
-0079:0CE8  01064e41       add    word ptr [0x414e], ax
-0079:0CEC  a14e41         mov    ax, word ptr [0x414e]
+0079:0CE8  01064e41       add    word ptr [0x414e], ax   ; dmg_a
+0079:0CEC  a14e41         mov    ax, word ptr [0x414e]   ; dmg_a
 0079:0CEF  3d0000         cmp    ax, 0
 0079:0CF2  7d06           jge    0xcfa
-0079:0CF4  c7064e410000   mov    word ptr [0x414e], 0
+0079:0CF4  c7064e410000   mov    word ptr [0x414e], 0   ; dmg_a
 L_0079_0CFA:
 0079:0CFA  5e             pop    si
 0079:0CFB  5f             pop    di
@@ -2206,7 +2206,7 @@ L_0079_0CFA:
 0079:0CFE  5d             pop    bp
 0079:0CFF  cb             retf   
 
-f_0079_0D00 proc  ; 0079:0D00  callers: f_0079_0B9E
+army_damage proc  ; 0079:0D00  callers: battle_round
 0079:0D00  55             push   bp
 0079:0D01  8bec           mov    bp, sp
 0079:0D03  83c4fe         add    sp, -2
@@ -2254,7 +2254,7 @@ L_0079_0D49:
 0079:0D67  268b4708       mov    ax, word ptr es:[bx + 8]
 0079:0D6B  40             inc    ax
 0079:0D6C  50             push   ax
-0079:0D6D  9a0d000a07     lcall  f_070A_000D
+0079:0D6D  9a0d000a07     lcall  random
 0079:0D72  59             pop    cx
 0079:0D73  03f0           add    si, ax
 L_0079_0D75:
@@ -2265,7 +2265,7 @@ L_0079_0D75:
 0079:0D7B  5d             pop    bp
 0079:0D7C  cb             retf   
 
-f_0079_0D7D proc  ; 0079:0D7D  callers: f_0079_0B9E
+percent_of_lead proc  ; 0079:0D7D  callers: battle_round
 0079:0D7D  55             push   bp
 0079:0D7E  8bec           mov    bp, sp
 0079:0D80  8b4606         mov    ax, word ptr [bp + 6]
@@ -2278,7 +2278,7 @@ f_0079_0D7D proc  ; 0079:0D7D  callers: f_0079_0B9E
 0079:0D91  5d             pop    bp
 0079:0D92  cb             retf   
 
-f_0079_0D93 proc  ; 0079:0D93  callers: f_0079_010E, f_0079_0A73
+take_losses proc  ; 0079:0D93  callers: battle_auto, battle_shown
 0079:0D93  55             push   bp
 0079:0D94  8bec           mov    bp, sp
 0079:0D96  56             push   si
@@ -2309,20 +2309,20 @@ L_0079_0DC3:
 
 ;================ segment 0155 ================
 
-f_0155_0008 proc  ; 0155:0008  callers: f_01A5_05D3
+transfer_forces proc  ; 0155:0008  callers: seek_conquest
 0155:0008  55             push   bp
 0155:0009  8bec           mov    bp, sp
 0155:000B  83c4e8         add    sp, -0x18
 0155:000E  57             push   di
 0155:000F  56             push   si
-0155:0010  a10c45         mov    ax, word ptr [0x450c]
+0155:0010  a10c45         mov    ax, word ptr [0x450c]   ; player
 0155:0013  8bd0           mov    dx, ax
 0155:0015  d1e0           shl    ax, 1
 0155:0017  d1e0           shl    ax, 1
 0155:0019  03c2           add    ax, dx
 0155:001B  d1e0           shl    ax, 1
 0155:001D  8bd8           mov    bx, ax
-0155:001F  8b874043       mov    ax, word ptr [bx + 0x4340]
+0155:001F  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0155:0023  8946fe         mov    word ptr [bp - 2], ax
 0155:0026  8bd0           mov    dx, ax
 0155:0028  d1e0           shl    ax, 1
@@ -2330,19 +2330,19 @@ f_0155_0008 proc  ; 0155:0008  callers: f_01A5_05D3
 0155:002C  03c2           add    ax, dx
 0155:002E  d1e0           shl    ax, 1
 0155:0030  8bf8           mov    di, ax
-0155:0032  8b858a43       mov    ax, word ptr [di + 0x438a]
+0155:0032  8b858a43       mov    ax, word ptr [di + 0x438a]   ; army.soldiers
 0155:0036  8946f8         mov    word ptr [bp - 8], ax
-0155:0039  8b858c43       mov    ax, word ptr [di + 0x438c]
+0155:0039  8b858c43       mov    ax, word ptr [di + 0x438c]   ; army.knights
 0155:003D  8946fa         mov    word ptr [bp - 6], ax
-0155:0040  8b858e43       mov    ax, word ptr [di + 0x438e]
+0155:0040  8b858e43       mov    ax, word ptr [di + 0x438e]   ; army.catapults
 0155:0044  8946fc         mov    word ptr [bp - 4], ax
-0155:0047  8b874443       mov    ax, word ptr [bx + 0x4344]
+0155:0047  8b874443       mov    ax, word ptr [bx + 0x4344]   ; army.soldiers
 0155:004B  8946f0         mov    word ptr [bp - 0x10], ax
-0155:004E  8b874643       mov    ax, word ptr [bx + 0x4346]
+0155:004E  8b874643       mov    ax, word ptr [bx + 0x4346]   ; army.knights
 0155:0052  8946f2         mov    word ptr [bp - 0xe], ax
-0155:0055  8b874843       mov    ax, word ptr [bx + 0x4348]
+0155:0055  8b874843       mov    ax, word ptr [bx + 0x4348]   ; army.catapults
 0155:0059  8946f4         mov    word ptr [bp - 0xc], ax
-0155:005C  a10c45         mov    ax, word ptr [0x450c]
+0155:005C  a10c45         mov    ax, word ptr [0x450c]   ; player
 0155:005F  8bd0           mov    dx, ax
 0155:0061  b103           mov    cl, 3
 0155:0063  d3e0           shl    ax, cl
@@ -2350,7 +2350,7 @@ f_0155_0008 proc  ; 0155:0008  callers: f_01A5_05D3
 0155:0067  d1e0           shl    ax, 1
 0155:0069  d1e0           shl    ax, 1
 0155:006B  8bf8           mov    di, ax
-0155:006D  8b855044       mov    ax, word ptr [di + 0x4450]
+0155:006D  8b855044       mov    ax, word ptr [di + 0x4450]   ; side.home
 0155:0071  3b46fe         cmp    ax, word ptr [bp - 2]
 0155:0074  7510           jne    0x86
 0155:0076  8b16322b       mov    dx, word ptr [0x2b32]
@@ -2367,7 +2367,7 @@ L_0155_0086:
 0155:0091  d1e0           shl    ax, 1
 0155:0093  03c2           add    ax, dx
 0155:0095  8bd8           mov    bx, ax
-0155:0097  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+0155:0097  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 0155:009C  7410           je     0xae
 0155:009E  8b164f2b       mov    dx, word ptr [0x2b4f]
 0155:00A2  a14d2b         mov    ax, word ptr [0x2b4d]
@@ -2381,7 +2381,7 @@ L_0155_00AE:
 0155:00B9  a3892b         mov    word ptr [0x2b89], ax
 L_0155_00BC:
 0155:00BC  8b160a45       mov    dx, word ptr [0x450a]
-0155:00C0  a10845         mov    ax, word ptr [0x4508]
+0155:00C0  a10845         mov    ax, word ptr [0x4508]   ; lib_chars
 0155:00C3  054000         add    ax, 0x40
 0155:00C6  8956ec         mov    word ptr [bp - 0x14], dx
 0155:00C9  8946ea         mov    word ptr [bp - 0x16], ax
@@ -2389,7 +2389,7 @@ L_0155_00BC:
 0155:00CE  8bd8           mov    bx, ax
 0155:00D0  268b07         mov    ax, word ptr es:[bx]
 0155:00D3  8946e8         mov    word ptr [bp - 0x18], ax
-0155:00D6  c41e0845       les    bx, ptr [0x4508]
+0155:00D6  c41e0845       les    bx, ptr [0x4508]   ; lib_chars
 0155:00DA  268b477c       mov    ax, word ptr es:[bx + 0x7c]
 0155:00DE  c47eea         les    di, ptr [bp - 0x16]
 0155:00E1  268905         mov    word ptr es:[di], ax
@@ -2415,7 +2415,7 @@ L_0155_00FA:
 L_0155_0117:
 0155:0117  b8fa00         mov    ax, 0xfa   ; " green fields of %s."
 0155:011A  50             push   ax
-0155:011B  9a0500f308     lcall  f_08F3_0005
+0155:011B  9a0500f308     lcall  speaker_tone
 0155:0120  59             pop    cx
 L_0155_0121:
 0155:0121  eb1e           jmp    0x141
@@ -2431,7 +2431,7 @@ L_0155_0123:
 L_0155_0137:
 0155:0137  b8fa00         mov    ax, 0xfa   ; " green fields of %s."
 0155:013A  50             push   ax
-0155:013B  9a0500f308     lcall  f_08F3_0005
+0155:013B  9a0500f308     lcall  speaker_tone
 0155:0140  59             pop    cx
 L_0155_0141:
 0155:0141  ff76f0         push   word ptr [bp - 0x10]
@@ -2441,7 +2441,7 @@ L_0155_0141:
 0155:014B  50             push   ax
 0155:014C  ff368f2b       push   word ptr [0x2b8f]
 0155:0150  ff368d2b       push   word ptr [0x2b8d]
-0155:0154  9a0600f809     lcall  f_09F8_0006
+0155:0154  9a0600f809     lcall  sprintf
 0155:0159  83c40c         add    sp, 0xc
 0155:015C  ff76f2         push   word ptr [bp - 0xe]
 0155:015F  ff76fa         push   word ptr [bp - 6]
@@ -2450,7 +2450,7 @@ L_0155_0141:
 0155:0166  50             push   ax
 0155:0167  ff36932b       push   word ptr [0x2b93]
 0155:016B  ff36912b       push   word ptr [0x2b91]
-0155:016F  9a0600f809     lcall  f_09F8_0006
+0155:016F  9a0600f809     lcall  sprintf
 0155:0174  83c40c         add    sp, 0xc
 0155:0177  ff76f4         push   word ptr [bp - 0xc]
 0155:017A  ff76fc         push   word ptr [bp - 4]
@@ -2459,11 +2459,11 @@ L_0155_0141:
 0155:0181  50             push   ax
 0155:0182  ff36972b       push   word ptr [0x2b97]
 0155:0186  ff36952b       push   word ptr [0x2b95]
-0155:018A  9a0600f809     lcall  f_09F8_0006
+0155:018A  9a0600f809     lcall  sprintf
 0155:018F  83c40c         add    sp, 0xc
 0155:0192  8bc6           mov    ax, si
 0155:0194  a2ae2b         mov    byte ptr [0x2bae], al
-0155:0197  9a0800ac08     lcall  f_08AC_0008
+0155:0197  9a0800ac08     lcall  speaker_off
 0155:019C  83ec0e         sub    sp, 0xe
 0155:019F  8bc4           mov    ax, sp
 0155:01A1  8cd2           mov    dx, ss
@@ -2474,7 +2474,7 @@ L_0155_0141:
 0155:01AC  b90600         mov    cx, 6
 0155:01AF  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0155:01B1  a4             movsb  byte ptr es:[di], byte ptr [si]
-0155:01B2  9af3020a07     lcall  f_070A_02F3
+0155:01B2  9af3020a07     lcall  dialog
 0155:01B7  83c40e         add    sp, 0xe
 0155:01BA  8bf0           mov    si, ax
 0155:01BC  c606ab2bfe     mov    byte ptr [0x2bab], 0xfe
@@ -2488,12 +2488,12 @@ L_0155_01C4:
 0155:01CF  d1e0           shl    ax, 1
 0155:01D1  8bd8           mov    bx, ax
 0155:01D3  8b46f8         mov    ax, word ptr [bp - 8]
-0155:01D6  89878a43       mov    word ptr [bx + 0x438a], ax
+0155:01D6  89878a43       mov    word ptr [bx + 0x438a], ax   ; army.soldiers
 0155:01DA  8b46fa         mov    ax, word ptr [bp - 6]
-0155:01DD  89878c43       mov    word ptr [bx + 0x438c], ax
+0155:01DD  89878c43       mov    word ptr [bx + 0x438c], ax   ; army.knights
 0155:01E1  8b46fc         mov    ax, word ptr [bp - 4]
-0155:01E4  89878e43       mov    word ptr [bx + 0x438e], ax
-0155:01E8  a10c45         mov    ax, word ptr [0x450c]
+0155:01E4  89878e43       mov    word ptr [bx + 0x438e], ax   ; army.catapults
+0155:01E8  a10c45         mov    ax, word ptr [0x450c]   ; player
 0155:01EB  8bd0           mov    dx, ax
 0155:01ED  d1e0           shl    ax, 1
 0155:01EF  d1e0           shl    ax, 1
@@ -2501,11 +2501,11 @@ L_0155_01C4:
 0155:01F3  d1e0           shl    ax, 1
 0155:01F5  8bf8           mov    di, ax
 0155:01F7  8b46f0         mov    ax, word ptr [bp - 0x10]
-0155:01FA  89854443       mov    word ptr [di + 0x4344], ax
+0155:01FA  89854443       mov    word ptr [di + 0x4344], ax   ; army.soldiers
 0155:01FE  8b46f2         mov    ax, word ptr [bp - 0xe]
-0155:0201  89854643       mov    word ptr [di + 0x4346], ax
+0155:0201  89854643       mov    word ptr [di + 0x4346], ax   ; army.knights
 0155:0205  8b46f4         mov    ax, word ptr [bp - 0xc]
-0155:0208  89854843       mov    word ptr [di + 0x4348], ax
+0155:0208  89854843       mov    word ptr [di + 0x4348], ax   ; army.catapults
 0155:020C  c45eea         les    bx, ptr [bp - 0x16]
 0155:020F  8b46e8         mov    ax, word ptr [bp - 0x18]
 0155:0212  268907         mov    word ptr es:[bx], ax
@@ -2517,7 +2517,7 @@ L_0155_01C4:
 
 ;================ segment 0176 ================
 
-f_0176_000B proc  ; 0176:000B  callers: f_082C_0180
+buy_army proc  ; 0176:000B  callers: orders_menu
 0176:000B  55             push   bp
 0176:000C  8bec           mov    bp, sp
 0176:000E  83c4dc         add    sp, -0x24
@@ -2525,7 +2525,7 @@ f_0176_000B proc  ; 0176:000B  callers: f_082C_0180
 0176:0012  56             push   si
 0176:0013  c746fa0000     mov    word ptr [bp - 6], 0
 0176:0018  8b160a45       mov    dx, word ptr [0x450a]
-0176:001C  a10845         mov    ax, word ptr [0x4508]
+0176:001C  a10845         mov    ax, word ptr [0x4508]   ; lib_chars
 0176:001F  054000         add    ax, 0x40
 0176:0022  8956e0         mov    word ptr [bp - 0x20], dx
 0176:0025  8946de         mov    word ptr [bp - 0x22], ax
@@ -2533,11 +2533,11 @@ f_0176_000B proc  ; 0176:000B  callers: f_082C_0180
 0176:002A  8bd8           mov    bx, ax
 0176:002C  268b07         mov    ax, word ptr es:[bx]
 0176:002F  8946dc         mov    word ptr [bp - 0x24], ax
-0176:0032  c41e0845       les    bx, ptr [0x4508]
+0176:0032  c41e0845       les    bx, ptr [0x4508]   ; lib_chars
 0176:0036  268b477c       mov    ax, word ptr es:[bx + 0x7c]
 0176:003A  c47ede         les    di, ptr [bp - 0x22]
 0176:003D  268905         mov    word ptr es:[di], ax
-0176:0040  a10c45         mov    ax, word ptr [0x450c]
+0176:0040  a10c45         mov    ax, word ptr [0x450c]   ; player
 0176:0043  8bd0           mov    dx, ax
 0176:0045  b103           mov    cl, 3
 0176:0047  d3e0           shl    ax, cl
@@ -2545,7 +2545,7 @@ f_0176_000B proc  ; 0176:000B  callers: f_082C_0180
 0176:004B  d1e0           shl    ax, 1
 0176:004D  d1e0           shl    ax, 1
 0176:004F  8bd8           mov    bx, ax
-0176:0051  8b875044       mov    ax, word ptr [bx + 0x4450]
+0176:0051  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 0176:0055  8946fc         mov    word ptr [bp - 4], ax
 0176:0058  8bd0           mov    dx, ax
 0176:005A  d1e0           shl    ax, 1
@@ -2553,19 +2553,19 @@ f_0176_000B proc  ; 0176:000B  callers: f_082C_0180
 0176:005E  03c2           add    ax, dx
 0176:0060  d1e0           shl    ax, 1
 0176:0062  8bf8           mov    di, ax
-0176:0064  8b858a43       mov    ax, word ptr [di + 0x438a]
+0176:0064  8b858a43       mov    ax, word ptr [di + 0x438a]   ; army.soldiers
 0176:0068  8946e6         mov    word ptr [bp - 0x1a], ax
 0176:006B  8946f2         mov    word ptr [bp - 0xe], ax
-0176:006E  8b858c43       mov    ax, word ptr [di + 0x438c]
+0176:006E  8b858c43       mov    ax, word ptr [di + 0x438c]   ; army.knights
 0176:0072  8946e8         mov    word ptr [bp - 0x18], ax
 0176:0075  8946f4         mov    word ptr [bp - 0xc], ax
-0176:0078  8b858e43       mov    ax, word ptr [di + 0x438e]
+0176:0078  8b858e43       mov    ax, word ptr [di + 0x438e]   ; army.catapults
 0176:007C  8946ea         mov    word ptr [bp - 0x16], ax
 0176:007F  8946f6         mov    word ptr [bp - 0xa], ax
 0176:0082  33c0           xor    ax, ax
 0176:0084  c746ec0000     mov    word ptr [bp - 0x14], 0
 0176:0089  8946f8         mov    word ptr [bp - 8], ax
-0176:008C  9ab2042304     lcall  f_0423_04B2
+0176:008C  9ab2042304     lcall  redraw_map
 0176:0091  c606512a00     mov    byte ptr [0x2a51], 0
 0176:0096  be0200         mov    si, 2
 0176:0099  c70614450000   mov    word ptr [0x4514], 0
@@ -2587,7 +2587,7 @@ L_0176_00C3:
 0176:00C3  7f03           jg     0xc8
 0176:00C5  e91701         jmp    0x1df
 L_0176_00C8:
-0176:00C8  a10c45         mov    ax, word ptr [0x450c]
+0176:00C8  a10c45         mov    ax, word ptr [0x450c]   ; player
 0176:00CB  8bd0           mov    dx, ax
 0176:00CD  b103           mov    cl, 3
 0176:00CF  d3e0           shl    ax, cl
@@ -2598,7 +2598,7 @@ L_0176_00C8:
 0176:00D9  8bfe           mov    di, si
 0176:00DB  d1e7           shl    di, 1
 0176:00DD  8b855401       mov    ax, word ptr [di + 0x154]
-0176:00E1  3b875e44       cmp    ax, word ptr [bx + 0x445e]
+0176:00E1  3b875e44       cmp    ax, word ptr [bx + 0x445e]   ; side.gold
 0176:00E5  7e03           jle    0xea
 0176:00E7  e9e900         jmp    0x1d3
 L_0176_00EA:
@@ -2606,8 +2606,8 @@ L_0176_00EA:
 0176:00ED  7403           je     0xf2
 0176:00EF  e9b800         jmp    0x1aa
 L_0176_00F2:
-0176:00F2  ffb75244       push   word ptr [bx + 0x4452]
-0176:00F6  9a3b062304     lcall  f_0423_063B
+0176:00F2  ffb75244       push   word ptr [bx + 0x4452]   ; side.at
+0176:00F6  9a3b062304     lcall  choose_territory
 0176:00FB  59             pop    cx
 0176:00FC  8946fe         mov    word ptr [bp - 2], ax
 0176:00FF  8bd0           mov    dx, ax
@@ -2617,13 +2617,13 @@ L_0176_00F2:
 0176:0107  d1e0           shl    ax, 1
 0176:0109  03c2           add    ax, dx
 0176:010B  8bd8           mov    bx, ax
-0176:010D  8a874e36       mov    al, byte ptr [bx + 0x364e]
+0176:010D  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 0176:0111  98             cwde   
-0176:0112  3b060c45       cmp    ax, word ptr [0x450c]
+0176:0112  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 0176:0116  7566           jne    0x17e
-0176:0118  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+0176:0118  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 0176:011D  753d           jne    0x15c
-0176:011F  c6874f3623     mov    byte ptr [bx + 0x364f], 0x23
+0176:011F  c6874f3623     mov    byte ptr [bx + 0x364f], 0x23   ; terr.castle
 0176:0124  8b46fe         mov    ax, word ptr [bp - 2]
 0176:0127  8bd0           mov    dx, ax
 0176:0129  d1e0           shl    ax, 1
@@ -2631,12 +2631,12 @@ L_0176_00F2:
 0176:012D  03c2           add    ax, dx
 0176:012F  d1e0           shl    ax, 1
 0176:0131  8bf8           mov    di, ax
-0176:0133  83858a430a     add    word ptr [di + 0x438a], 0xa
+0176:0133  83858a430a     add    word ptr [di + 0x438a], 0xa   ; army.soldiers
 0176:0138  8bde           mov    bx, si
 0176:013A  d1e3           shl    bx, 1
 0176:013C  8b875401       mov    ax, word ptr [bx + 0x154]
 0176:0140  50             push   ax
-0176:0141  a10c45         mov    ax, word ptr [0x450c]
+0176:0141  a10c45         mov    ax, word ptr [0x450c]   ; player
 0176:0144  8bd0           mov    dx, ax
 0176:0146  b103           mov    cl, 3
 0176:0148  d3e0           shl    ax, cl
@@ -2645,7 +2645,7 @@ L_0176_00F2:
 0176:014E  d1e0           shl    ax, 1
 0176:0150  8bf8           mov    di, ax
 0176:0152  58             pop    ax
-0176:0153  29855e44       sub    word ptr [di + 0x445e], ax
+0176:0153  29855e44       sub    word ptr [di + 0x445e], ax   ; side.gold
 0176:0157  ff46fa         inc    word ptr [bp - 6]
 0176:015A  eb20           jmp    0x17c
 L_0176_015C:
@@ -2661,7 +2661,7 @@ L_0176_015C:
 0176:0170  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0176:0172  a4             movsb  byte ptr es:[di], byte ptr [si]
 0176:0173  5e             pop    si
-0176:0174  9af3020a07     lcall  f_070A_02F3
+0176:0174  9af3020a07     lcall  dialog
 0176:0179  83c40e         add    sp, 0xe
 L_0176_017C:
 0176:017C  eb20           jmp    0x19e
@@ -2678,10 +2678,10 @@ L_0176_017E:
 0176:0192  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0176:0194  a4             movsb  byte ptr es:[di], byte ptr [si]
 0176:0195  5e             pop    si
-0176:0196  9af3020a07     lcall  f_070A_02F3
+0176:0196  9af3020a07     lcall  dialog
 0176:019B  83c40e         add    sp, 0xe
 L_0176_019E:
-0176:019E  9ab2042304     lcall  f_0423_04B2
+0176:019E  9ab2042304     lcall  redraw_map
 0176:01A3  c606512a00     mov    byte ptr [0x2a51], 0
 0176:01A8  eb27           jmp    0x1d1
 L_0176_01AA:
@@ -2689,7 +2689,7 @@ L_0176_01AA:
 0176:01AC  d1e3           shl    bx, 1
 0176:01AE  8b875401       mov    ax, word ptr [bx + 0x154]
 0176:01B2  50             push   ax
-0176:01B3  a10c45         mov    ax, word ptr [0x450c]
+0176:01B3  a10c45         mov    ax, word ptr [0x450c]   ; player
 0176:01B6  8bd0           mov    dx, ax
 0176:01B8  b103           mov    cl, 3
 0176:01BA  d3e0           shl    ax, cl
@@ -2698,7 +2698,7 @@ L_0176_01AA:
 0176:01C0  d1e0           shl    ax, 1
 0176:01C2  8bf8           mov    di, ax
 0176:01C4  58             pop    ax
-0176:01C5  29855e44       sub    word ptr [di + 0x445e], ax
+0176:01C5  29855e44       sub    word ptr [di + 0x445e], ax   ; side.gold
 0176:01C9  8bfb           mov    di, bx
 0176:01CB  ff43e2         inc    word ptr [bp + di - 0x1e]
 0176:01CE  ff46fa         inc    word ptr [bp - 6]
@@ -2707,7 +2707,7 @@ L_0176_01D1:
 L_0176_01D3:
 0176:01D3  b8fa00         mov    ax, 0xfa   ; " green fields of %s."
 0176:01D6  50             push   ax
-0176:01D7  9a0500f308     lcall  f_08F3_0005
+0176:01D7  9a0500f308     lcall  speaker_tone
 0176:01DC  59             pop    cx
 L_0176_01DD:
 0176:01DD  eb39           jmp    0x218
@@ -2721,7 +2721,7 @@ L_0176_01DF:
 0176:01EE  ff4efa         dec    word ptr [bp - 6]
 0176:01F1  8b855401       mov    ax, word ptr [di + 0x154]
 0176:01F5  50             push   ax
-0176:01F6  a10c45         mov    ax, word ptr [0x450c]
+0176:01F6  a10c45         mov    ax, word ptr [0x450c]   ; player
 0176:01F9  8bd0           mov    dx, ax
 0176:01FB  b103           mov    cl, 3
 0176:01FD  d3e0           shl    ax, cl
@@ -2730,15 +2730,15 @@ L_0176_01DF:
 0176:0203  d1e0           shl    ax, 1
 0176:0205  8bd8           mov    bx, ax
 0176:0207  58             pop    ax
-0176:0208  01875e44       add    word ptr [bx + 0x445e], ax
+0176:0208  01875e44       add    word ptr [bx + 0x445e], ax   ; side.gold
 0176:020C  eb0a           jmp    0x218
 L_0176_020E:
 0176:020E  b8fa00         mov    ax, 0xfa   ; " green fields of %s."
 0176:0211  50             push   ax
-0176:0212  9a0500f308     lcall  f_08F3_0005
+0176:0212  9a0500f308     lcall  speaker_tone
 0176:0217  59             pop    cx
 L_0176_0218:
-0176:0218  a10c45         mov    ax, word ptr [0x450c]
+0176:0218  a10c45         mov    ax, word ptr [0x450c]   ; player
 0176:021B  8bd0           mov    dx, ax
 0176:021D  b103           mov    cl, 3
 0176:021F  d3e0           shl    ax, cl
@@ -2746,13 +2746,13 @@ L_0176_0218:
 0176:0223  d1e0           shl    ax, 1
 0176:0225  d1e0           shl    ax, 1
 0176:0227  8bd8           mov    bx, ax
-0176:0229  ffb75e44       push   word ptr [bx + 0x445e]
+0176:0229  ffb75e44       push   word ptr [bx + 0x445e]   ; side.gold
 0176:022D  1e             push   ds
 0176:022E  b86001         mov    ax, 0x160   ; "You have %4d>gold pieces"
 0176:0231  50             push   ax
 0176:0232  ff36052a       push   word ptr [0x2a05]
 0176:0236  ff36032a       push   word ptr [0x2a03]
-0176:023A  9a0600f809     lcall  f_09F8_0006
+0176:023A  9a0600f809     lcall  sprintf
 0176:023F  83c40a         add    sp, 0xa
 0176:0242  ff76e6         push   word ptr [bp - 0x1a]
 0176:0245  1e             push   ds
@@ -2760,7 +2760,7 @@ L_0176_0218:
 0176:0249  50             push   ax
 0176:024A  ff360d2a       push   word ptr [0x2a0d]
 0176:024E  ff360b2a       push   word ptr [0x2a0b]
-0176:0252  9a0600f809     lcall  f_09F8_0006
+0176:0252  9a0600f809     lcall  sprintf
 0176:0257  83c40a         add    sp, 0xa
 0176:025A  ff76e8         push   word ptr [bp - 0x18]
 0176:025D  1e             push   ds
@@ -2768,7 +2768,7 @@ L_0176_0218:
 0176:0261  50             push   ax
 0176:0262  ff36112a       push   word ptr [0x2a11]
 0176:0266  ff360f2a       push   word ptr [0x2a0f]
-0176:026A  9a0600f809     lcall  f_09F8_0006
+0176:026A  9a0600f809     lcall  sprintf
 0176:026F  83c40a         add    sp, 0xa
 0176:0272  ff76ea         push   word ptr [bp - 0x16]
 0176:0275  1e             push   ds
@@ -2776,11 +2776,11 @@ L_0176_0218:
 0176:0279  50             push   ax
 0176:027A  ff36152a       push   word ptr [0x2a15]
 0176:027E  ff36132a       push   word ptr [0x2a13]
-0176:0282  9a0600f809     lcall  f_09F8_0006
+0176:0282  9a0600f809     lcall  sprintf
 0176:0287  83c40a         add    sp, 0xa
 0176:028A  8bc6           mov    ax, si
 0176:028C  a2542a         mov    byte ptr [0x2a54], al
-0176:028F  9a0800ac08     lcall  f_08AC_0008
+0176:028F  9a0800ac08     lcall  speaker_off
 0176:0294  83ec0e         sub    sp, 0xe
 0176:0297  8bc4           mov    ax, sp
 0176:0299  8cd2           mov    dx, ss
@@ -2791,7 +2791,7 @@ L_0176_0218:
 0176:02A4  b90600         mov    cx, 6
 0176:02A7  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0176:02A9  a4             movsb  byte ptr es:[di], byte ptr [si]
-0176:02AA  9af3020a07     lcall  f_070A_02F3
+0176:02AA  9af3020a07     lcall  dialog
 0176:02AF  83c40e         add    sp, 0xe
 0176:02B2  8bf0           mov    si, ax
 0176:02B4  46             inc    si
@@ -2806,11 +2806,11 @@ L_0176_02BD:
 0176:02C8  d1e0           shl    ax, 1
 0176:02CA  8bd8           mov    bx, ax
 0176:02CC  8b46e6         mov    ax, word ptr [bp - 0x1a]
-0176:02CF  89878a43       mov    word ptr [bx + 0x438a], ax
+0176:02CF  89878a43       mov    word ptr [bx + 0x438a], ax   ; army.soldiers
 0176:02D3  8b46e8         mov    ax, word ptr [bp - 0x18]
-0176:02D6  89878c43       mov    word ptr [bx + 0x438c], ax
+0176:02D6  89878c43       mov    word ptr [bx + 0x438c], ax   ; army.knights
 0176:02DA  8b46ea         mov    ax, word ptr [bp - 0x16]
-0176:02DD  89878e43       mov    word ptr [bx + 0x438e], ax
+0176:02DD  89878e43       mov    word ptr [bx + 0x438e], ax   ; army.catapults
 0176:02E1  c47ede         les    di, ptr [bp - 0x22]
 0176:02E4  8b46dc         mov    ax, word ptr [bp - 0x24]
 0176:02E7  268905         mov    word ptr es:[di], ax
@@ -2829,14 +2829,14 @@ L_0176_02F9:
 
 ;================ segment 01A5 ================
 
-f_01A5_000D proc  ; 01A5:000D  callers: f_01A5_05D3
+send_army proc  ; 01A5:000D  callers: seek_conquest
 01A5:000D  55             push   bp
 01A5:000E  8bec           mov    bp, sp
 01A5:0010  83c4fa         add    sp, -6
 01A5:0013  56             push   si
 01A5:0014  ff7606         push   word ptr [bp + 6]
-01A5:0017  ff360c45       push   word ptr [0x450c]
-01A5:001B  9af1001900     lcall  f_0019_00F1
+01A5:0017  ff360c45       push   word ptr [0x450c]   ; player
+01A5:001B  9af1001900     lcall  army_move_to
 01A5:0020  83c404         add    sp, 4
 01A5:0023  8b4606         mov    ax, word ptr [bp + 6]
 01A5:0026  8bd0           mov    dx, ax
@@ -2846,18 +2846,18 @@ f_01A5_000D proc  ; 01A5:000D  callers: f_01A5_05D3
 01A5:002E  d1e0           shl    ax, 1
 01A5:0030  03c2           add    ax, dx
 01A5:0032  8bd8           mov    bx, ax
-01A5:0034  8a874e36       mov    al, byte ptr [bx + 0x364e]
+01A5:0034  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 01A5:0038  98             cwde   
 01A5:0039  8946fc         mov    word ptr [bp - 4], ax
-01A5:003C  833e164500     cmp    word ptr [0x4516], 0
+01A5:003C  833e164500     cmp    word ptr [0x4516], 0   ; robin_4D
 01A5:0041  7424           je     0x67
 01A5:0043  ff7606         push   word ptr [bp + 6]
 01A5:0046  50             push   ax
-01A5:0047  9a6e00fd06     lcall  f_06FD_006E
+01A5:0047  9a6e00fd06     lcall  robin_men
 01A5:004C  83c404         add    sp, 4
 01A5:004F  8946fa         mov    word ptr [bp - 6], ax
 01A5:0052  50             push   ax
-01A5:0053  a10c45         mov    ax, word ptr [0x450c]
+01A5:0053  a10c45         mov    ax, word ptr [0x450c]   ; player
 01A5:0056  8bd0           mov    dx, ax
 01A5:0058  d1e0           shl    ax, 1
 01A5:005A  d1e0           shl    ax, 1
@@ -2865,22 +2865,22 @@ f_01A5_000D proc  ; 01A5:000D  callers: f_01A5_05D3
 01A5:005E  d1e0           shl    ax, 1
 01A5:0060  8bd8           mov    bx, ax
 01A5:0062  58             pop    ax
-01A5:0063  01874443       add    word ptr [bx + 0x4344], ax
+01A5:0063  01874443       add    word ptr [bx + 0x4344], ax   ; army.soldiers
 L_01A5_0067:
 01A5:0067  ff7606         push   word ptr [bp + 6]
 01A5:006A  ff76fc         push   word ptr [bp - 4]
-01A5:006D  ff360c45       push   word ptr [0x450c]
-01A5:0071  9ac200a501     lcall  f_01A5_00C2
+01A5:006D  ff360c45       push   word ptr [0x450c]   ; player
+01A5:0071  9ac200a501     lcall  attack
 01A5:0076  83c406         add    sp, 6
 01A5:0079  8946fe         mov    word ptr [bp - 2], ax
-01A5:007C  833e164500     cmp    word ptr [0x4516], 0
+01A5:007C  833e164500     cmp    word ptr [0x4516], 0   ; robin_4D
 01A5:0081  7431           je     0xb4
 01A5:0083  8b46fa         mov    ax, word ptr [bp - 6]
 01A5:0086  b90200         mov    cx, 2
 01A5:0089  99             cdq    
 01A5:008A  f7f9           idiv   cx
 01A5:008C  50             push   ax
-01A5:008D  a10c45         mov    ax, word ptr [0x450c]
+01A5:008D  a10c45         mov    ax, word ptr [0x450c]   ; player
 01A5:0090  8bd0           mov    dx, ax
 01A5:0092  d1e0           shl    ax, 1
 01A5:0094  d1e0           shl    ax, 1
@@ -2888,22 +2888,22 @@ L_01A5_0067:
 01A5:0098  d1e0           shl    ax, 1
 01A5:009A  8bd8           mov    bx, ax
 01A5:009C  58             pop    ax
-01A5:009D  8bb74443       mov    si, word ptr [bx + 0x4344]
+01A5:009D  8bb74443       mov    si, word ptr [bx + 0x4344]   ; army.soldiers
 01A5:00A1  2bf0           sub    si, ax
-01A5:00A3  89b74443       mov    word ptr [bx + 0x4344], si
+01A5:00A3  89b74443       mov    word ptr [bx + 0x4344], si   ; army.soldiers
 01A5:00A7  8bc6           mov    ax, si
 01A5:00A9  3d0500         cmp    ax, 5
 01A5:00AC  7d06           jge    0xb4
-01A5:00AE  c78744430500   mov    word ptr [bx + 0x4344], 5
+01A5:00AE  c78744430500   mov    word ptr [bx + 0x4344], 5   ; army.soldiers
 L_01A5_00B4:
-01A5:00B4  c70616450000   mov    word ptr [0x4516], 0
+01A5:00B4  c70616450000   mov    word ptr [0x4516], 0   ; robin_4D
 01A5:00BA  8b46fe         mov    ax, word ptr [bp - 2]
 01A5:00BD  5e             pop    si
 01A5:00BE  8be5           mov    sp, bp
 01A5:00C0  5d             pop    bp
 01A5:00C1  cb             retf   
 
-f_01A5_00C2 proc  ; 01A5:00C2  callers: f_01A5_000D, f_04BA_03EF
+attack proc  ; 01A5:00C2  callers: ai_do_order, send_army
 01A5:00C2  55             push   bp
 01A5:00C3  8bec           mov    bp, sp
 01A5:00C5  83c4fa         add    sp, -6
@@ -2920,7 +2920,7 @@ f_01A5_00C2 proc  ; 01A5:00C2  callers: f_01A5_000D, f_04BA_03EF
 01A5:00DB  d1e0           shl    ax, 1
 01A5:00DD  054043         add    ax, 0x4340
 01A5:00E0  50             push   ax
-01A5:00E1  9a30004500     lcall  f_0045_0030
+01A5:00E1  9a30004500     lcall  army_strength
 01A5:00E6  83c404         add    sp, 4
 01A5:00E9  85c0           test   ax, ax
 01A5:00EB  7522           jne    0x10f
@@ -2932,7 +2932,7 @@ f_01A5_00C2 proc  ; 01A5:00C2  callers: f_01A5_000D, f_04BA_03EF
 01A5:00F7  d1e0           shl    ax, 1
 01A5:00F9  03c2           add    ax, dx
 01A5:00FB  8bd8           mov    bx, ax
-01A5:00FD  8a874e36       mov    al, byte ptr [bx + 0x364e]
+01A5:00FD  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 01A5:0101  98             cwde   
 01A5:0102  3bc6           cmp    ax, si
 01A5:0104  7409           je     0x10f
@@ -2945,13 +2945,13 @@ L_01A5_0109:
 01A5:010E  cb             retf   
 L_01A5_010F:
 01A5:010F  c746fc0000     mov    word ptr [bp - 4], 0
-01A5:0114  3b360c45       cmp    si, word ptr [0x450c]
+01A5:0114  3b360c45       cmp    si, word ptr [0x450c]   ; player
 01A5:0118  7507           jne    0x121
 01A5:011A  c746fc0100     mov    word ptr [bp - 4], 1
 01A5:011F  eb3e           jmp    0x15f
 L_01A5_0121:
 01A5:0121  8b4608         mov    ax, word ptr [bp + 8]
-01A5:0124  3b060c45       cmp    ax, word ptr [0x450c]
+01A5:0124  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 01A5:0128  7535           jne    0x15f
 01A5:012A  8bc7           mov    ax, di
 01A5:012C  8bd0           mov    dx, ax
@@ -2961,9 +2961,9 @@ L_01A5_0121:
 01A5:0134  d1e0           shl    ax, 1
 01A5:0136  03c2           add    ax, dx
 01A5:0138  8bd8           mov    bx, ax
-01A5:013A  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+01A5:013A  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 01A5:013F  7519           jne    0x15a
-01A5:0141  a10c45         mov    ax, word ptr [0x450c]
+01A5:0141  a10c45         mov    ax, word ptr [0x450c]   ; player
 01A5:0144  8bd0           mov    dx, ax
 01A5:0146  b103           mov    cl, 3
 01A5:0148  d3e0           shl    ax, cl
@@ -2971,16 +2971,16 @@ L_01A5_0121:
 01A5:014C  d1e0           shl    ax, 1
 01A5:014E  d1e0           shl    ax, 1
 01A5:0150  8bd8           mov    bx, ax
-01A5:0152  8b875244       mov    ax, word ptr [bx + 0x4452]
+01A5:0152  8b875244       mov    ax, word ptr [bx + 0x4452]   ; side.at
 01A5:0156  3bc7           cmp    ax, di
 01A5:0158  7505           jne    0x15f
 L_01A5_015A:
 01A5:015A  c746fc0100     mov    word ptr [bp - 4], 1
 L_01A5_015F:
-01A5:015F  3b360c45       cmp    si, word ptr [0x450c]
+01A5:015F  3b360c45       cmp    si, word ptr [0x450c]   ; player
 01A5:0163  7513           jne    0x178
 01A5:0165  57             push   di
-01A5:0166  9a3a02a501     lcall  f_01A5_023A
+01A5:0166  9a3a02a501     lcall  ask_passage
 01A5:016B  59             pop    cx
 01A5:016C  85c0           test   ax, ax
 01A5:016E  7408           je     0x178
@@ -2995,14 +2995,14 @@ L_01A5_0178:
 01A5:0182  d1e0           shl    ax, 1
 01A5:0184  03c2           add    ax, dx
 01A5:0186  8bd8           mov    bx, ax
-01A5:0188  8a874e36       mov    al, byte ptr [bx + 0x364e]
+01A5:0188  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 01A5:018C  98             cwde   
 01A5:018D  3bc6           cmp    ax, si
 01A5:018F  7508           jne    0x199
 01A5:0191  c746fe0100     mov    word ptr [bp - 2], 1
 01A5:0196  e98b00         jmp    0x224
 L_01A5_0199:
-01A5:0199  80bf4e36ff     cmp    byte ptr [bx + 0x364e], 0xff
+01A5:0199  80bf4e36ff     cmp    byte ptr [bx + 0x364e], 0xff   ; terr.owner
 01A5:019E  7508           jne    0x1a8
 01A5:01A0  c746fe0200     mov    word ptr [bp - 2], 2
 01A5:01A5  e97c00         jmp    0x224
@@ -3014,7 +3014,7 @@ L_01A5_01A8:
 01A5:01B1  03c2           add    ax, dx
 01A5:01B3  d1e0           shl    ax, 1
 01A5:01B5  8bd8           mov    bx, ax
-01A5:01B7  8b874043       mov    ax, word ptr [bx + 0x4340]
+01A5:01B7  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 01A5:01BB  3bc7           cmp    ax, di
 01A5:01BD  7523           jne    0x1e2
 01A5:01BF  1e             push   ds
@@ -3031,7 +3031,7 @@ L_01A5_01A8:
 01A5:01D5  8cda           mov    dx, ds
 01A5:01D7  8bc3           mov    ax, bx
 01A5:01D9  50             push   ax
-01A5:01DA  9a7d021900     lcall  f_0019_027D
+01A5:01DA  9a7d021900     lcall  army_merge
 01A5:01DF  83c408         add    sp, 8
 L_01A5_01E2:
 01A5:01E2  8bc7           mov    ax, di
@@ -3042,13 +3042,13 @@ L_01A5_01E2:
 01A5:01EC  d1e0           shl    ax, 1
 01A5:01EE  03c2           add    ax, dx
 01A5:01F0  8bd8           mov    bx, ax
-01A5:01F2  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+01A5:01F2  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 01A5:01F7  7415           je     0x20e
 01A5:01F9  ff76fc         push   word ptr [bp - 4]
 01A5:01FC  57             push   di
 01A5:01FD  ff7608         push   word ptr [bp + 8]
 01A5:0200  56             push   si
-01A5:0201  9a16063706     lcall  f_0637_0616
+01A5:0201  9a16063706     lcall  siege
 01A5:0206  83c408         add    sp, 8
 01A5:0209  8946fe         mov    word ptr [bp - 2], ax
 01A5:020C  eb16           jmp    0x224
@@ -3059,7 +3059,7 @@ L_01A5_020E:
 01A5:0214  57             push   di
 01A5:0215  ff7608         push   word ptr [bp + 8]
 01A5:0218  56             push   si
-01A5:0219  9ac6007900     lcall  f_0079_00C6
+01A5:0219  9ac6007900     lcall  battle
 01A5:021E  83c40a         add    sp, 0xa
 01A5:0221  8946fe         mov    word ptr [bp - 2], ax
 L_01A5_0224:
@@ -3067,12 +3067,12 @@ L_01A5_0224:
 01A5:0227  57             push   di
 01A5:0228  ff7608         push   word ptr [bp + 8]
 01A5:022B  56             push   si
-01A5:022C  9a5203a501     lcall  f_01A5_0352
+01A5:022C  9a5203a501     lcall  apply_result
 01A5:0231  83c408         add    sp, 8
 01A5:0234  8b46fe         mov    ax, word ptr [bp - 2]
 01A5:0237  e9cffe         jmp    0x109
 
-f_01A5_023A proc  ; 01A5:023A  callers: f_01A5_00C2
+ask_passage proc  ; 01A5:023A  callers: attack
 01A5:023A  55             push   bp
 01A5:023B  8bec           mov    bp, sp
 01A5:023D  57             push   di
@@ -3085,7 +3085,7 @@ f_01A5_023A proc  ; 01A5:023A  callers: f_01A5_00C2
 01A5:024A  d1e0           shl    ax, 1
 01A5:024C  03c2           add    ax, dx
 01A5:024E  8bd8           mov    bx, ax
-01A5:0250  8a874e36       mov    al, byte ptr [bx + 0x364e]
+01A5:0250  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 01A5:0254  98             cwde   
 01A5:0255  8bf0           mov    si, ax
 01A5:0257  8bc6           mov    ax, si
@@ -3093,7 +3093,7 @@ f_01A5_023A proc  ; 01A5:023A  callers: f_01A5_00C2
 01A5:025C  7e03           jle    0x261
 01A5:025E  e9ed00         jmp    0x34e
 L_01A5_0261:
-01A5:0261  3b360c45       cmp    si, word ptr [0x450c]
+01A5:0261  3b360c45       cmp    si, word ptr [0x450c]   ; player
 01A5:0265  7503           jne    0x26a
 01A5:0267  e9e400         jmp    0x34e
 L_01A5_026A:
@@ -3104,15 +3104,15 @@ L_01A5_026A:
 01A5:0272  2bc2           sub    ax, dx
 01A5:0274  d1e0           shl    ax, 1
 01A5:0276  8bf8           mov    di, ax
-01A5:0278  a10c45         mov    ax, word ptr [0x450c]
+01A5:0278  a10c45         mov    ax, word ptr [0x450c]   ; player
 01A5:027B  d1e0           shl    ax, 1
 01A5:027D  03f8           add    di, ax
-01A5:027F  8b85e432       mov    ax, word ptr [di + 0x32e4]
+01A5:027F  8b85e432       mov    ax, word ptr [di + 0x32e4]   ; enmity+0
 01A5:0283  3d0000         cmp    ax, 0
 01A5:0286  7e03           jle    0x28b
 01A5:0288  e9c300         jmp    0x34e
 L_01A5_028B:
-01A5:028B  9ab2042304     lcall  f_0423_04B2
+01A5:028B  9ab2042304     lcall  redraw_map
 01A5:0290  b80300         mov    ax, 3
 01A5:0293  50             push   ax
 01A5:0294  b80900         mov    ax, 9
@@ -3125,8 +3125,8 @@ L_01A5_028B:
 01A5:02A2  d1e0           shl    ax, 1
 01A5:02A4  d1e0           shl    ax, 1
 01A5:02A6  8bd8           mov    bx, ax
-01A5:02A8  ffb74c44       push   word ptr [bx + 0x444c]
-01A5:02AC  9a650d0a07     lcall  f_070A_0D65
+01A5:02A8  ffb74c44       push   word ptr [bx + 0x444c]   ; side.portrait
+01A5:02AC  9a650d0a07     lcall  show_portrait
 01A5:02B1  83c406         add    sp, 6
 01A5:02B4  8bc6           mov    ax, si
 01A5:02B6  8bd0           mov    dx, ax
@@ -3136,8 +3136,8 @@ L_01A5_028B:
 01A5:02BE  d1e0           shl    ax, 1
 01A5:02C0  d1e0           shl    ax, 1
 01A5:02C2  8bd8           mov    bx, ax
-01A5:02C4  8b874444       mov    ax, word ptr [bx + 0x4444]
-01A5:02C8  8b974644       mov    dx, word ptr [bx + 0x4446]
+01A5:02C4  8b874444       mov    ax, word ptr [bx + 0x4444]   ; side.name
+01A5:02C8  8b974644       mov    dx, word ptr [bx + 0x4446]   ; side+2
 01A5:02CC  89168620       mov    word ptr [0x2086], dx
 01A5:02D0  a38420         mov    word ptr [0x2084], ax
 01A5:02D3  c606892001     mov    byte ptr [0x2089], 1
@@ -3153,7 +3153,7 @@ L_01A5_028B:
 01A5:02EC  f3a5           rep movsw word ptr es:[di], word ptr [si]
 01A5:02EE  a4             movsb  byte ptr es:[di], byte ptr [si]
 01A5:02EF  5e             pop    si
-01A5:02F0  9af3020a07     lcall  f_070A_02F3
+01A5:02F0  9af3020a07     lcall  dialog
 01A5:02F5  83c40e         add    sp, 0xe
 01A5:02F8  83ec0e         sub    sp, 0xe
 01A5:02FB  8bc4           mov    ax, sp
@@ -3167,7 +3167,7 @@ L_01A5_028B:
 01A5:030C  f3a5           rep movsw word ptr es:[di], word ptr [si]
 01A5:030E  a4             movsb  byte ptr es:[di], byte ptr [si]
 01A5:030F  5e             pop    si
-01A5:0310  9af3020a07     lcall  f_070A_02F3
+01A5:0310  9af3020a07     lcall  dialog
 01A5:0315  83c40e         add    sp, 0xe
 01A5:0318  3d0100         cmp    ax, 1
 01A5:031B  7509           jne    0x326
@@ -3181,23 +3181,23 @@ L_01A5_0320:
 L_01A5_0326:
 01A5:0326  b80500         mov    ax, 5
 01A5:0329  50             push   ax
-01A5:032A  ff360c45       push   word ptr [0x450c]
+01A5:032A  ff360c45       push   word ptr [0x450c]   ; player
 01A5:032E  b80200         mov    ax, 2
 01A5:0331  50             push   ax
-01A5:0332  9ab200bb02     lcall  f_02BB_00B2
+01A5:0332  9ab200bb02     lcall  enmity_add
 01A5:0337  83c406         add    sp, 6
 01A5:033A  b80500         mov    ax, 5
 01A5:033D  50             push   ax
-01A5:033E  ff360c45       push   word ptr [0x450c]
+01A5:033E  ff360c45       push   word ptr [0x450c]   ; player
 01A5:0342  b80300         mov    ax, 3
 01A5:0345  50             push   ax
-01A5:0346  9ab200bb02     lcall  f_02BB_00B2
+01A5:0346  9ab200bb02     lcall  enmity_add
 01A5:034B  83c406         add    sp, 6
 L_01A5_034E:
 01A5:034E  33c0           xor    ax, ax
 01A5:0350  ebce           jmp    0x320
 
-f_01A5_0352 proc  ; 01A5:0352  callers: f_01A5_00C2
+apply_result proc  ; 01A5:0352  callers: attack
 01A5:0352  55             push   bp
 01A5:0353  8bec           mov    bp, sp
 01A5:0355  57             push   di
@@ -3211,12 +3211,12 @@ L_01A5_0363:
 L_01A5_0366:
 01A5:0366  ff760a         push   word ptr [bp + 0xa]
 01A5:0369  56             push   si
-01A5:036A  9a58072304     lcall  f_0423_0758
+01A5:036A  9a58072304     lcall  set_owner
 01A5:036F  83c404         add    sp, 4
 01A5:0372  e9d101         jmp    0x546
 L_01A5_0375:
 01A5:0375  56             push   si
-01A5:0376  9ad7011900     lcall  f_0019_01D7
+01A5:0376  9ad7011900     lcall  army_settle
 01A5:037B  59             pop    cx
 01A5:037C  e9c701         jmp    0x546
 L_01A5_037F:
@@ -3224,9 +3224,9 @@ L_01A5_037F:
 01A5:0382  50             push   ax
 01A5:0383  56             push   si
 01A5:0384  57             push   di
-01A5:0385  9ab200bb02     lcall  f_02BB_00B2
+01A5:0385  9ab200bb02     lcall  enmity_add
 01A5:038A  83c406         add    sp, 6
-01A5:038D  a10c45         mov    ax, word ptr [0x450c]
+01A5:038D  a10c45         mov    ax, word ptr [0x450c]   ; player
 01A5:0390  8bd0           mov    dx, ax
 01A5:0392  b103           mov    cl, 3
 01A5:0394  d3e0           shl    ax, cl
@@ -3234,12 +3234,12 @@ L_01A5_037F:
 01A5:0398  d1e0           shl    ax, 1
 01A5:039A  d1e0           shl    ax, 1
 01A5:039C  8bd8           mov    bx, ax
-01A5:039E  8b875044       mov    ax, word ptr [bx + 0x4450]
+01A5:039E  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 01A5:03A2  3b460a         cmp    ax, word ptr [bp + 0xa]
 01A5:03A5  740c           je     0x3b3
 01A5:03A7  ff760a         push   word ptr [bp + 0xa]
 01A5:03AA  56             push   si
-01A5:03AB  9a58072304     lcall  f_0423_0758
+01A5:03AB  9a58072304     lcall  set_owner
 01A5:03B0  83c404         add    sp, 4
 L_01A5_03B3:
 01A5:03B3  8bc7           mov    ax, di
@@ -3250,12 +3250,12 @@ L_01A5_03B3:
 01A5:03BD  d1e0           shl    ax, 1
 01A5:03BF  d1e0           shl    ax, 1
 01A5:03C1  8bd8           mov    bx, ax
-01A5:03C3  8b875044       mov    ax, word ptr [bx + 0x4450]
+01A5:03C3  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 01A5:03C7  3b460a         cmp    ax, word ptr [bp + 0xa]
 01A5:03CA  7559           jne    0x425
 01A5:03CC  56             push   si
 01A5:03CD  57             push   di
-01A5:03CE  9ae402f103     lcall  f_03F1_02E4
+01A5:03CE  9ae402f103     lcall  side_falls
 01A5:03D3  83c404         add    sp, 4
 01A5:03D6  b8ffff         mov    ax, 0xffff
 01A5:03D9  50             push   ax
@@ -3267,7 +3267,7 @@ L_01A5_03B3:
 01A5:03E4  d1e0           shl    ax, 1
 01A5:03E6  8bd8           mov    bx, ax
 01A5:03E8  58             pop    ax
-01A5:03E9  c7874043ffff   mov    word ptr [bx + 0x4340], 0xffff
+01A5:03E9  c7874043ffff   mov    word ptr [bx + 0x4340], 0xffff   ; army.at
 01A5:03EF  50             push   ax
 01A5:03F0  8bc7           mov    ax, di
 01A5:03F2  8bd0           mov    dx, ax
@@ -3278,7 +3278,7 @@ L_01A5_03B3:
 01A5:03FC  d1e0           shl    ax, 1
 01A5:03FE  8bd8           mov    bx, ax
 01A5:0400  58             pop    ax
-01A5:0401  89875244       mov    word ptr [bx + 0x4452], ax
+01A5:0401  89875244       mov    word ptr [bx + 0x4452], ax   ; side.at
 01A5:0405  33c0           xor    ax, ax
 01A5:0407  50             push   ax
 01A5:0408  8bc7           mov    ax, di
@@ -3289,9 +3289,9 @@ L_01A5_03B3:
 01A5:0412  d1e0           shl    ax, 1
 01A5:0414  8bd8           mov    bx, ax
 01A5:0416  58             pop    ax
-01A5:0417  c78748430000   mov    word ptr [bx + 0x4348], 0
-01A5:041D  89874643       mov    word ptr [bx + 0x4346], ax
-01A5:0421  89874443       mov    word ptr [bx + 0x4344], ax
+01A5:0417  c78748430000   mov    word ptr [bx + 0x4348], 0   ; army.catapults
+01A5:041D  89874643       mov    word ptr [bx + 0x4346], ax   ; army.knights
+01A5:0421  89874443       mov    word ptr [bx + 0x4344], ax   ; army.soldiers
 L_01A5_0425:
 01A5:0425  8b460a         mov    ax, word ptr [bp + 0xa]
 01A5:0428  8bd0           mov    dx, ax
@@ -3300,15 +3300,15 @@ L_01A5_0425:
 01A5:042E  03c2           add    ax, dx
 01A5:0430  d1e0           shl    ax, 1
 01A5:0432  8bd8           mov    bx, ax
-01A5:0434  c7878e430000   mov    word ptr [bx + 0x438e], 0
+01A5:0434  c7878e430000   mov    word ptr [bx + 0x438e], 0   ; army.catapults
 01A5:043A  56             push   si
 01A5:043B  ff760a         push   word ptr [bp + 0xa]
-01A5:043E  9a6e011900     lcall  f_0019_016E
+01A5:043E  9a6e011900     lcall  send_others_home
 01A5:0443  83c404         add    sp, 4
 01A5:0446  e9fd00         jmp    0x546
 L_01A5_0449:
 01A5:0449  56             push   si
-01A5:044A  9ad7011900     lcall  f_0019_01D7
+01A5:044A  9ad7011900     lcall  army_settle
 01A5:044F  59             pop    cx
 01A5:0450  e9f300         jmp    0x546
 L_01A5_0453:
@@ -3318,7 +3318,7 @@ L_01A5_0456:
 01A5:0459  50             push   ax
 01A5:045A  56             push   si
 01A5:045B  57             push   di
-01A5:045C  9ab200bb02     lcall  f_02BB_00B2
+01A5:045C  9ab200bb02     lcall  enmity_add
 01A5:0461  83c406         add    sp, 6
 01A5:0464  8bc6           mov    ax, si
 01A5:0466  8bd0           mov    dx, ax
@@ -3327,9 +3327,9 @@ L_01A5_0456:
 01A5:046C  03c2           add    ax, dx
 01A5:046E  d1e0           shl    ax, 1
 01A5:0470  8bd8           mov    bx, ax
-01A5:0472  c78748430000   mov    word ptr [bx + 0x4348], 0
+01A5:0472  c78748430000   mov    word ptr [bx + 0x4348], 0   ; army.catapults
 01A5:0478  56             push   si
-01A5:0479  9a30011900     lcall  f_0019_0130
+01A5:0479  9a30011900     lcall  army_go_home
 01A5:047E  59             pop    cx
 01A5:047F  8bc7           mov    ax, di
 01A5:0481  8bd0           mov    dx, ax
@@ -3338,7 +3338,7 @@ L_01A5_0456:
 01A5:0487  03c2           add    ax, dx
 01A5:0489  d1e0           shl    ax, 1
 01A5:048B  8bd8           mov    bx, ax
-01A5:048D  8b874043       mov    ax, word ptr [bx + 0x4340]
+01A5:048D  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 01A5:0491  3b460a         cmp    ax, word ptr [bp + 0xa]
 01A5:0494  7524           jne    0x4ba
 01A5:0496  1e             push   ds
@@ -3355,7 +3355,7 @@ L_01A5_0456:
 01A5:04AC  d1e0           shl    ax, 1
 01A5:04AE  058643         add    ax, 0x4386
 01A5:04B1  50             push   ax
-01A5:04B2  9a7d021900     lcall  f_0019_027D
+01A5:04B2  9a7d021900     lcall  army_merge
 01A5:04B7  83c408         add    sp, 8
 L_01A5_04BA:
 01A5:04BA  e98900         jmp    0x546
@@ -3364,7 +3364,7 @@ L_01A5_04BD:
 01A5:04C0  50             push   ax
 01A5:04C1  56             push   si
 01A5:04C2  57             push   di
-01A5:04C3  9ab200bb02     lcall  f_02BB_00B2
+01A5:04C3  9ab200bb02     lcall  enmity_add
 01A5:04C8  83c406         add    sp, 6
 01A5:04CB  8bc6           mov    ax, si
 01A5:04CD  8bd0           mov    dx, ax
@@ -3373,7 +3373,7 @@ L_01A5_04BD:
 01A5:04D3  03c2           add    ax, dx
 01A5:04D5  d1e0           shl    ax, 1
 01A5:04D7  8bd8           mov    bx, ax
-01A5:04D9  c78748430000   mov    word ptr [bx + 0x4348], 0
+01A5:04D9  c78748430000   mov    word ptr [bx + 0x4348], 0   ; army.catapults
 01A5:04DF  8b460a         mov    ax, word ptr [bp + 0xa]
 01A5:04E2  8bd0           mov    dx, ax
 01A5:04E4  d1e0           shl    ax, 1
@@ -3381,9 +3381,9 @@ L_01A5_04BD:
 01A5:04E8  03c2           add    ax, dx
 01A5:04EA  d1e0           shl    ax, 1
 01A5:04EC  8bd8           mov    bx, ax
-01A5:04EE  c7878e430000   mov    word ptr [bx + 0x438e], 0
+01A5:04EE  c7878e430000   mov    word ptr [bx + 0x438e], 0   ; army.catapults
 01A5:04F4  ff760a         push   word ptr [bp + 0xa]
-01A5:04F7  9aa5011900     lcall  f_0019_01A5
+01A5:04F7  9aa5011900     lcall  send_home_armies_at
 01A5:04FC  59             pop    cx
 01A5:04FD  8bc7           mov    ax, di
 01A5:04FF  8bd0           mov    dx, ax
@@ -3393,13 +3393,13 @@ L_01A5_04BD:
 01A5:0507  d1e0           shl    ax, 1
 01A5:0509  d1e0           shl    ax, 1
 01A5:050B  8bd8           mov    bx, ax
-01A5:050D  8b875044       mov    ax, word ptr [bx + 0x4450]
+01A5:050D  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 01A5:0511  3b460a         cmp    ax, word ptr [bp + 0xa]
 01A5:0514  740f           je     0x525
 01A5:0516  ff760a         push   word ptr [bp + 0xa]
 01A5:0519  b8ffff         mov    ax, 0xffff
 01A5:051C  50             push   ax
-01A5:051D  9a58072304     lcall  f_0423_0758
+01A5:051D  9a58072304     lcall  set_owner
 01A5:0522  83c404         add    sp, 4
 L_01A5_0525:
 01A5:0525  eb1f           jmp    0x546
@@ -3417,13 +3417,13 @@ L_01A5_0546:
 01A5:054A  5d             pop    bp
 01A5:054B  cb             retf   
 
-f_01A5_054C proc  ; 01A5:054C  callers: f_01A5_05D3
+choose_destination proc  ; 01A5:054C  callers: seek_conquest
 01A5:054C  55             push   bp
 01A5:054D  8bec           mov    bp, sp
 01A5:054F  83c4fe         add    sp, -2
 01A5:0552  57             push   di
 01A5:0553  56             push   si
-01A5:0554  a10c45         mov    ax, word ptr [0x450c]
+01A5:0554  a10c45         mov    ax, word ptr [0x450c]   ; player
 01A5:0557  8bd0           mov    dx, ax
 01A5:0559  b103           mov    cl, 3
 01A5:055B  d3e0           shl    ax, cl
@@ -3431,20 +3431,20 @@ f_01A5_054C proc  ; 01A5:054C  callers: f_01A5_05D3
 01A5:055F  d1e0           shl    ax, 1
 01A5:0561  d1e0           shl    ax, 1
 01A5:0563  8bd8           mov    bx, ax
-01A5:0565  8bb75244       mov    si, word ptr [bx + 0x4452]
+01A5:0565  8bb75244       mov    si, word ptr [bx + 0x4452]   ; side.at
 L_01A5_0569:
 01A5:0569  b80100         mov    ax, 1
 01A5:056C  85c0           test   ax, ax
 01A5:056E  7461           je     0x5d1
 01A5:0570  56             push   si
-01A5:0571  9a3b062304     lcall  f_0423_063B
+01A5:0571  9a3b062304     lcall  choose_territory
 01A5:0576  59             pop    cx
 01A5:0577  8946fe         mov    word ptr [bp - 2], ax
 01A5:057A  85c0           test   ax, ax
 01A5:057C  750c           jne    0x58a
 01A5:057E  b80200         mov    ax, 2
 01A5:0581  50             push   ax
-01A5:0582  9a0000fd06     lcall  f_06FD_0000
+01A5:0582  9a0000fd06     lcall  see_robin
 01A5:0587  59             pop    cx
 01A5:0588  eb45           jmp    0x5cf
 L_01A5_058A:
@@ -3460,7 +3460,7 @@ L_01A5_0592:
 L_01A5_0598:
 01A5:0598  ff76fe         push   word ptr [bp - 2]
 01A5:059B  56             push   si
-01A5:059C  9af5002304     lcall  f_0423_00F5
+01A5:059C  9af5002304     lcall  is_neighbour
 01A5:05A1  83c404         add    sp, 4
 01A5:05A4  85c0           test   ax, ax
 01A5:05A6  7522           jne    0x5ca
@@ -3476,7 +3476,7 @@ L_01A5_0598:
 01A5:05BC  f3a5           rep movsw word ptr es:[di], word ptr [si]
 01A5:05BE  a4             movsb  byte ptr es:[di], byte ptr [si]
 01A5:05BF  5e             pop    si
-01A5:05C0  9af3020a07     lcall  f_070A_02F3
+01A5:05C0  9af3020a07     lcall  dialog
 01A5:05C5  83c40e         add    sp, 0xe
 01A5:05C8  eb05           jmp    0x5cf
 L_01A5_05CA:
@@ -3487,7 +3487,7 @@ L_01A5_05CF:
 L_01A5_05D1:
 01A5:05D1  ebbf           jmp    0x592
 
-f_01A5_05D3 proc  ; 01A5:05D3  callers: f_082C_0180
+seek_conquest proc  ; 01A5:05D3  callers: orders_menu
 01A5:05D3  55             push   bp
 01A5:05D4  8bec           mov    bp, sp
 01A5:05D6  83c4fe         add    sp, -2
@@ -3504,7 +3504,7 @@ L_01A5_05EA:
 01A5:05EF  7503           jne    0x5f4
 01A5:05F1  e97601         jmp    0x76a
 L_01A5_05F4:
-01A5:05F4  9ab2042304     lcall  f_0423_04B2
+01A5:05F4  9ab2042304     lcall  redraw_map
 01A5:05F9  83ec0e         sub    sp, 0xe
 01A5:05FC  57             push   di
 01A5:05FD  8bc4           mov    ax, sp
@@ -3520,19 +3520,19 @@ L_01A5_05F4:
 01A5:0613  a4             movsb  byte ptr es:[di], byte ptr [si]
 01A5:0614  5e             pop    si
 01A5:0615  5f             pop    di
-01A5:0616  9af3020a07     lcall  f_070A_02F3
+01A5:0616  9af3020a07     lcall  dialog
 01A5:061B  83c40e         add    sp, 0xe
 01A5:061E  e93701         jmp    0x758
 L_01A5_0621:
-01A5:0621  a10c45         mov    ax, word ptr [0x450c]
+01A5:0621  a10c45         mov    ax, word ptr [0x450c]   ; player
 01A5:0624  8bd0           mov    dx, ax
 01A5:0626  d1e0           shl    ax, 1
 01A5:0628  d1e0           shl    ax, 1
 01A5:062A  03c2           add    ax, dx
 01A5:062C  d1e0           shl    ax, 1
 01A5:062E  8bd8           mov    bx, ax
-01A5:0630  8b874443       mov    ax, word ptr [bx + 0x4344]
-01A5:0634  03874643       add    ax, word ptr [bx + 0x4346]
+01A5:0630  8b874443       mov    ax, word ptr [bx + 0x4344]   ; army.soldiers
+01A5:0634  03874643       add    ax, word ptr [bx + 0x4346]   ; army.knights
 01A5:0638  7528           jne    0x662
 01A5:063A  83ec0e         sub    sp, 0xe
 01A5:063D  57             push   di
@@ -3549,22 +3549,22 @@ L_01A5_0621:
 01A5:0654  a4             movsb  byte ptr es:[di], byte ptr [si]
 01A5:0655  5e             pop    si
 01A5:0656  5f             pop    di
-01A5:0657  9af3020a07     lcall  f_070A_02F3
+01A5:0657  9af3020a07     lcall  dialog
 01A5:065C  83c40e         add    sp, 0xe
 01A5:065F  e90501         jmp    0x767
 L_01A5_0662:
-01A5:0662  9a4c05a501     lcall  f_01A5_054C
+01A5:0662  9a4c05a501     lcall  choose_destination
 01A5:0667  8946fe         mov    word ptr [bp - 2], ax
 01A5:066A  85c0           test   ax, ax
 01A5:066C  750d           jne    0x67b
 01A5:066E  b80200         mov    ax, 2
 01A5:0671  50             push   ax
-01A5:0672  9a0000fd06     lcall  f_06FD_0000
+01A5:0672  9a0000fd06     lcall  see_robin
 01A5:0677  59             pop    cx
 01A5:0678  e9ec00         jmp    0x767
 L_01A5_067B:
 01A5:067B  ff76fe         push   word ptr [bp - 2]
-01A5:067E  a10c45         mov    ax, word ptr [0x450c]
+01A5:067E  a10c45         mov    ax, word ptr [0x450c]   ; player
 01A5:0681  8bd0           mov    dx, ax
 01A5:0683  b103           mov    cl, 3
 01A5:0685  d3e0           shl    ax, cl
@@ -3572,15 +3572,15 @@ L_01A5_067B:
 01A5:0689  d1e0           shl    ax, 1
 01A5:068B  d1e0           shl    ax, 1
 01A5:068D  8bd8           mov    bx, ax
-01A5:068F  ffb75244       push   word ptr [bx + 0x4452]
-01A5:0693  9af5002304     lcall  f_0423_00F5
+01A5:068F  ffb75244       push   word ptr [bx + 0x4452]   ; side.at
+01A5:0693  9af5002304     lcall  is_neighbour
 01A5:0698  83c404         add    sp, 4
 01A5:069B  85c0           test   ax, ax
 01A5:069D  7503           jne    0x6a2
 01A5:069F  e9c500         jmp    0x767
 L_01A5_06A2:
 01A5:06A2  ff76fe         push   word ptr [bp - 2]
-01A5:06A5  9a0d00a501     lcall  f_01A5_000D
+01A5:06A5  9a0d00a501     lcall  send_army
 01A5:06AA  59             pop    cx
 01A5:06AB  8bf0           mov    si, ax
 01A5:06AD  83fe01         cmp    si, 1
@@ -3595,13 +3595,13 @@ L_01A5_06BE:
 01A5:06BE  bf0100         mov    di, 1
 01A5:06C1  83fe06         cmp    si, 6
 01A5:06C4  750a           jne    0x6d0
-01A5:06C6  ff360c45       push   word ptr [0x450c]
-01A5:06CA  9ad7011900     lcall  f_0019_01D7
+01A5:06C6  ff360c45       push   word ptr [0x450c]   ; player
+01A5:06CA  9ad7011900     lcall  army_settle
 01A5:06CF  59             pop    cx
 L_01A5_06D0:
 01A5:06D0  e99400         jmp    0x767
 L_01A5_06D3:
-01A5:06D3  a10c45         mov    ax, word ptr [0x450c]
+01A5:06D3  a10c45         mov    ax, word ptr [0x450c]   ; player
 01A5:06D6  8bd0           mov    dx, ax
 01A5:06D8  b103           mov    cl, 3
 01A5:06DA  d3e0           shl    ax, cl
@@ -3609,7 +3609,7 @@ L_01A5_06D3:
 01A5:06DE  d1e0           shl    ax, 1
 01A5:06E0  d1e0           shl    ax, 1
 01A5:06E2  8bd8           mov    bx, ax
-01A5:06E4  8b875244       mov    ax, word ptr [bx + 0x4452]
+01A5:06E4  8b875244       mov    ax, word ptr [bx + 0x4452]   ; side.at
 01A5:06E8  8bd0           mov    dx, ax
 01A5:06EA  b103           mov    cl, 3
 01A5:06EC  d3e0           shl    ax, cl
@@ -3617,11 +3617,11 @@ L_01A5_06D3:
 01A5:06F0  d1e0           shl    ax, 1
 01A5:06F2  03c2           add    ax, dx
 01A5:06F4  8bd8           mov    bx, ax
-01A5:06F6  8a874e36       mov    al, byte ptr [bx + 0x364e]
+01A5:06F6  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 01A5:06FA  98             cwde   
-01A5:06FB  3b060c45       cmp    ax, word ptr [0x450c]
+01A5:06FB  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 01A5:06FF  7507           jne    0x708
-01A5:0701  9a08005501     lcall  f_0155_0008
+01A5:0701  9a08005501     lcall  transfer_forces
 01A5:0706  eb25           jmp    0x72d
 L_01A5_0708:
 01A5:0708  83ec0e         sub    sp, 0xe
@@ -3639,17 +3639,17 @@ L_01A5_0708:
 01A5:0722  a4             movsb  byte ptr es:[di], byte ptr [si]
 01A5:0723  5e             pop    si
 01A5:0724  5f             pop    di
-01A5:0725  9af3020a07     lcall  f_070A_02F3
+01A5:0725  9af3020a07     lcall  dialog
 01A5:072A  83c40e         add    sp, 0xe
 L_01A5_072D:
 01A5:072D  eb38           jmp    0x767
 L_01A5_072F:
-01A5:072F  9a59052304     lcall  f_0423_0559
+01A5:072F  9a59052304     lcall  read_map
 01A5:0734  eb31           jmp    0x767
 L_01A5_0736:
 01A5:0736  b80200         mov    ax, 2
 01A5:0739  50             push   ax
-01A5:073A  9a0000fd06     lcall  f_06FD_0000
+01A5:073A  9a0000fd06     lcall  see_robin
 01A5:073F  59             pop    cx
 01A5:0740  eb25           jmp    0x767
 L_01A5_0742:
@@ -3678,7 +3678,7 @@ L_01A5_076A:
 
 ;================ segment 021C ================
 
-f_021C_0002 proc  ; 021C:0002  callers: f_0000_0000
+new_game proc  ; 021C:0002  callers: main
 021C:0002  55             push   bp
 021C:0003  8bec           mov    bp, sp
 021C:0005  83c4f2         add    sp, -0xe
@@ -3688,13 +3688,13 @@ f_021C_0002 proc  ; 021C:0002  callers: f_0000_0000
 021C:000F  7503           jne    0x14
 021C:0011  e9f800         jmp    0x10c
 L_021C_0014:
-021C:0014  9a0300010a     lcall  f_0A01_0003
+021C:0014  9a0300010a     lcall  get_ticks
 021C:0019  8bf0           mov    si, ax
 021C:001B  81e6ff01       and    si, 0x1ff
 L_021C_001F:
 021C:001F  83fe00         cmp    si, 0
 021C:0022  7c08           jl     0x2c
-021C:0024  9a0900ff0a     lcall  f_0AFF_0009
+021C:0024  9a0900ff0a     lcall  ran_float
 021C:0029  4e             dec    si
 021C:002A  ebf3           jmp    0x1f
 L_021C_002C:
@@ -3702,7 +3702,7 @@ L_021C_002C:
 021C:0030  ff36b232       push   word ptr [0x32b2]
 021C:0034  b800a0         mov    ax, 0xa000
 021C:0037  50             push   ax
-021C:0038  9ae7000a07     lcall  f_070A_00E7
+021C:0038  9ae7000a07     lcall  far_alloc
 021C:003D  83c406         add    sp, 6
 021C:0040  8916e446       mov    word ptr [0x46e4], dx
 021C:0044  a3e246         mov    word ptr [0x46e2], ax
@@ -3714,14 +3714,14 @@ L_021C_004F:
 021C:0051  9a4101b80a     lcall  f_0AB8_0141
 L_021C_0056:
 021C:0056  8b160a45       mov    dx, word ptr [0x450a]
-021C:005A  a10845         mov    ax, word ptr [0x4508]
+021C:005A  a10845         mov    ax, word ptr [0x4508]   ; lib_chars
 021C:005D  89161245       mov    word ptr [0x4512], dx
-021C:0061  a31045         mov    word ptr [0x4510], ax
+021C:0061  a31045         mov    word ptr [0x4510], ax   ; font
 021C:0064  ff36b832       push   word ptr [0x32b8]
 021C:0068  ff36b632       push   word ptr [0x32b6]
 021C:006C  b8403f         mov    ax, 0x3f40
 021C:006F  50             push   ax
-021C:0070  9ae7000a07     lcall  f_070A_00E7
+021C:0070  9ae7000a07     lcall  far_alloc
 021C:0075  83c406         add    sp, 6
 021C:0078  8916e846       mov    word ptr [0x46e8], dx
 021C:007C  a3e646         mov    word ptr [0x46e6], ax
@@ -3733,14 +3733,14 @@ L_021C_0087:
 021C:0089  9a4101b80a     lcall  f_0AB8_0141
 L_021C_008E:
 021C:008E  8b16ec46       mov    dx, word ptr [0x46ec]
-021C:0092  a1ea46         mov    ax, word ptr [0x46ea]
+021C:0092  a1ea46         mov    ax, word ptr [0x46ea]   ; screen_buffer
 021C:0095  8916f046       mov    word ptr [0x46f0], dx
 021C:0099  a3ee46         mov    word ptr [0x46ee], ax
 021C:009C  ff36bc32       push   word ptr [0x32bc]
 021C:00A0  ff36ba32       push   word ptr [0x32ba]
 021C:00A4  b80048         mov    ax, 0x4800
 021C:00A7  50             push   ax
-021C:00A8  9ae7000a07     lcall  f_070A_00E7
+021C:00A8  9ae7000a07     lcall  far_alloc
 021C:00AD  83c406         add    sp, 6
 021C:00B0  8916f446       mov    word ptr [0x46f4], dx
 021C:00B4  a3f246         mov    word ptr [0x46f2], ax
@@ -3752,14 +3752,14 @@ L_021C_00BF:
 021C:00C1  9a4101b80a     lcall  f_0AB8_0141
 L_021C_00C6:
 021C:00C6  8b16f846       mov    dx, word ptr [0x46f8]
-021C:00CA  a1f646         mov    ax, word ptr [0x46f6]
+021C:00CA  a1f646         mov    ax, word ptr [0x46f6]   ; lib_joust1
 021C:00CD  8916fc46       mov    word ptr [0x46fc], dx
 021C:00D1  a3fa46         mov    word ptr [0x46fa], ax
 021C:00D4  ff36c032       push   word ptr [0x32c0]
 021C:00D8  ff36be32       push   word ptr [0x32be]
 021C:00DC  b800c0         mov    ax, 0xc000
 021C:00DF  50             push   ax
-021C:00E0  9ae7000a07     lcall  f_070A_00E7
+021C:00E0  9ae7000a07     lcall  far_alloc
 021C:00E5  83c406         add    sp, 6
 021C:00E8  89160047       mov    word ptr [0x4700], dx
 021C:00EC  a3fe46         mov    word ptr [0x46fe], ax
@@ -3771,22 +3771,22 @@ L_021C_00F7:
 021C:00F9  9a4101b80a     lcall  f_0AB8_0141
 L_021C_00FE:
 021C:00FE  8b160447       mov    dx, word ptr [0x4704]
-021C:0102  a10247         mov    ax, word ptr [0x4702]
-021C:0105  89160847       mov    word ptr [0x4708], dx
-021C:0109  a30647         mov    word ptr [0x4706], ax
+021C:0102  a10247         mov    ax, word ptr [0x4702]   ; lib_scene
+021C:0105  89160847       mov    word ptr [0x4708], dx   ; scene_items_seg
+021C:0109  a30647         mov    word ptr [0x4706], ax   ; scene_items
 L_021C_010C:
 021C:010C  b800a0         mov    ax, 0xa000
 021C:010F  50             push   ax
 021C:0110  ff360a45       push   word ptr [0x450a]
-021C:0114  ff360845       push   word ptr [0x4508]
+021C:0114  ff360845       push   word ptr [0x4508]   ; lib_chars
 021C:0118  1e             push   ds
 021C:0119  b8c232         mov    ax, 0x32c2   ; "A:PROTECT"
 021C:011C  50             push   ax
-021C:011D  9a5a010a07     lcall  f_070A_015A
+021C:011D  9a5a010a07     lcall  load_lib
 021C:0122  83c40a         add    sp, 0xa
 021C:0125  33c0           xor    ax, ax
 021C:0127  50             push   ax
-021C:0128  9a0f00ac08     lcall  f_08AC_000F
+021C:0128  9a0f00ac08     lcall  sound_init
 021C:012D  59             pop    cx
 021C:012E  85c0           test   ax, ax
 021C:0130  90             nop    
@@ -3794,44 +3794,44 @@ L_021C_010C:
 021C:0132  b800a0         mov    ax, 0xa000
 021C:0135  50             push   ax
 021C:0136  ff360a45       push   word ptr [0x450a]
-021C:013A  ff360845       push   word ptr [0x4508]
+021C:013A  ff360845       push   word ptr [0x4508]   ; lib_chars
 021C:013E  1e             push   ds
 021C:013F  b8cc32         mov    ax, 0x32cc   ; "DOCCHARS.LIB"
 021C:0142  50             push   ax
-021C:0143  9a5a010a07     lcall  f_070A_015A
+021C:0143  9a5a010a07     lcall  load_lib
 021C:0148  83c40a         add    sp, 0xa
 021C:014B  33c0           xor    ax, ax
 021C:014D  50             push   ax
-021C:014E  9a0f00ef08     lcall  f_08EF_000F
+021C:014E  9a0f00ef08     lcall  clear_screen
 021C:0153  59             pop    cx
 021C:0154  b800c0         mov    ax, 0xc000
 021C:0157  50             push   ax
 021C:0158  ff360447       push   word ptr [0x4704]
-021C:015C  ff360247       push   word ptr [0x4702]
+021C:015C  ff360247       push   word ptr [0x4702]   ; lib_scene
 021C:0160  1e             push   ds
 021C:0161  b8d932         mov    ax, 0x32d9   ; "TITLE.LIB"
 021C:0164  50             push   ax
-021C:0165  9a5a010a07     lcall  f_070A_015A
+021C:0165  9a5a010a07     lcall  load_lib
 021C:016A  83c40a         add    sp, 0xa
-021C:016D  c7060c450100   mov    word ptr [0x450c], 1
+021C:016D  c7060c450100   mov    word ptr [0x450c], 1   ; player
 021C:0173  ff360c00       push   word ptr [0xc]
 021C:0177  b89700         mov    ax, 0x97   ; "n army of %s"
 021C:017A  50             push   ax
-021C:017B  9ae00d0a07     lcall  f_070A_0DE0
+021C:017B  9ae00d0a07     lcall  play_tune
 021C:0180  83c404         add    sp, 4
 021C:0183  833e140000     cmp    word ptr [0x14], 0
 021C:0188  7503           jne    0x18d
 021C:018A  e94f03         jmp    0x4dc
 L_021C_018D:
-021C:018D  c706d8460000   mov    word ptr [0x46d8], 0
+021C:018D  c706d8460000   mov    word ptr [0x46d8], 0   ; no_wipe
 021C:0193  b80100         mov    ax, 1
 021C:0196  50             push   ax
 021C:0197  ff360447       push   word ptr [0x4704]
-021C:019B  ff360247       push   word ptr [0x4702]
-021C:019F  9ab1020a07     lcall  f_070A_02B1
+021C:019B  ff360247       push   word ptr [0x4702]   ; lib_scene
+021C:019F  9ab1020a07     lcall  show_lib_picture
 021C:01A4  83c406         add    sp, 6
-021C:01A7  9ab3010a07     lcall  f_070A_01B3
-021C:01AC  c706d8460100   mov    word ptr [0x46d8], 1
+021C:01A7  9ab3010a07     lcall  show_screen
+021C:01AC  c706d8460100   mov    word ptr [0x46d8], 1   ; no_wipe
 021C:01B2  83ec0e         sub    sp, 0xe
 021C:01B5  57             push   di
 021C:01B6  8bc4           mov    ax, sp
@@ -3847,19 +3847,19 @@ L_021C_018D:
 021C:01CC  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:01CD  5e             pop    si
 021C:01CE  5f             pop    di
-021C:01CF  9af3020a07     lcall  f_070A_02F3
+021C:01CF  9af3020a07     lcall  dialog
 021C:01D4  83c40e         add    sp, 0xe
 021C:01D7  b80100         mov    ax, 1
 021C:01DA  50             push   ax
 021C:01DB  ff360447       push   word ptr [0x4704]
-021C:01DF  ff360247       push   word ptr [0x4702]
-021C:01E3  9ab1020a07     lcall  f_070A_02B1
+021C:01DF  ff360247       push   word ptr [0x4702]   ; lib_scene
+021C:01E3  9ab1020a07     lcall  show_lib_picture
 021C:01E8  83c406         add    sp, 6
-021C:01EB  9ab3010a07     lcall  f_070A_01B3
+021C:01EB  9ab3010a07     lcall  show_screen
 021C:01F0  ff360800       push   word ptr [8]
 021C:01F4  b89700         mov    ax, 0x97   ; "n army of %s"
 021C:01F7  50             push   ax
-021C:01F8  9ae00d0a07     lcall  f_070A_0DE0
+021C:01F8  9ae00d0a07     lcall  play_tune
 021C:01FD  83c404         add    sp, 4
 021C:0200  83ec0e         sub    sp, 0xe
 021C:0203  57             push   di
@@ -3876,21 +3876,21 @@ L_021C_018D:
 021C:021A  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:021B  5e             pop    si
 021C:021C  5f             pop    di
-021C:021D  9af3020a07     lcall  f_070A_02F3
+021C:021D  9af3020a07     lcall  dialog
 021C:0222  83c40e         add    sp, 0xe
 021C:0225  b80200         mov    ax, 2
 021C:0228  50             push   ax
 021C:0229  ff360447       push   word ptr [0x4704]
-021C:022D  ff360247       push   word ptr [0x4702]
-021C:0231  9ab1020a07     lcall  f_070A_02B1
+021C:022D  ff360247       push   word ptr [0x4702]   ; lib_scene
+021C:0231  9ab1020a07     lcall  show_lib_picture
 021C:0236  83c406         add    sp, 6
-021C:0239  c706d8460000   mov    word ptr [0x46d8], 0
-021C:023F  9ab3010a07     lcall  f_070A_01B3
+021C:0239  c706d8460000   mov    word ptr [0x46d8], 0   ; no_wipe
+021C:023F  9ab3010a07     lcall  show_screen
 021C:0244  b82400         mov    ax, 0x24
 021C:0247  50             push   ax
-021C:0248  9ae9080a07     lcall  f_070A_08E9
+021C:0248  9ae9080a07     lcall  delay_ticks
 021C:024D  59             pop    cx
-021C:024E  9aab070a07     lcall  f_070A_07AB
+021C:024E  9aab070a07     lcall  get_key
 021C:0253  84c0           test   al, al
 021C:0255  7403           je     0x25a
 021C:0257  e97202         jmp    0x4cc
@@ -3901,7 +3901,7 @@ L_021C_025A:
 021C:0261  50             push   ax
 021C:0262  b83700         mov    ax, 0x37
 021C:0265  50             push   ax
-021C:0266  9a6f081c02     lcall  f_021C_086F
+021C:0266  9a6f081c02     lcall  title_twinkle
 021C:026B  83c406         add    sp, 6
 021C:026E  84c0           test   al, al
 021C:0270  7403           je     0x275
@@ -3913,7 +3913,7 @@ L_021C_0275:
 021C:027C  50             push   ax
 021C:027D  b81201         mov    ax, 0x112   ; "d   Soldiers <@@%4d>"
 021C:0280  50             push   ax
-021C:0281  9a6f081c02     lcall  f_021C_086F
+021C:0281  9a6f081c02     lcall  title_twinkle
 021C:0286  83c406         add    sp, 6
 021C:0289  84c0           test   al, al
 021C:028B  7403           je     0x290
@@ -3925,7 +3925,7 @@ L_021C_0290:
 021C:0297  50             push   ax
 021C:0298  b87500         mov    ax, 0x75   ; "pults@@%4d>"
 021C:029B  50             push   ax
-021C:029C  9a6f081c02     lcall  f_021C_086F
+021C:029C  9a6f081c02     lcall  title_twinkle
 021C:02A1  83c406         add    sp, 6
 021C:02A4  84c0           test   al, al
 021C:02A6  7403           je     0x2ab
@@ -3937,7 +3937,7 @@ L_021C_02AB:
 021C:02B2  50             push   ax
 021C:02B3  b8df00         mov    ax, 0xdf   ; " %s."
 021C:02B6  50             push   ax
-021C:02B7  9a6f081c02     lcall  f_021C_086F
+021C:02B7  9a6f081c02     lcall  title_twinkle
 021C:02BC  83c406         add    sp, 6
 021C:02BF  84c0           test   al, al
 021C:02C1  7403           je     0x2c6
@@ -3949,7 +3949,7 @@ L_021C_02C6:
 021C:02CD  50             push   ax
 021C:02CE  b87a00         mov    ax, 0x7a   ; "@@%4d>"
 021C:02D1  50             push   ax
-021C:02D2  9a6f081c02     lcall  f_021C_086F
+021C:02D2  9a6f081c02     lcall  title_twinkle
 021C:02D7  83c406         add    sp, 6
 021C:02DA  84c0           test   al, al
 021C:02DC  7403           je     0x2e1
@@ -3961,7 +3961,7 @@ L_021C_02E1:
 021C:02E8  50             push   ax
 021C:02E9  b8f700         mov    ax, 0xf7   ; "the green fields of %s."
 021C:02EC  50             push   ax
-021C:02ED  9a6f081c02     lcall  f_021C_086F
+021C:02ED  9a6f081c02     lcall  title_twinkle
 021C:02F2  83c406         add    sp, 6
 021C:02F5  84c0           test   al, al
 021C:02F7  7403           je     0x2fc
@@ -3970,25 +3970,25 @@ L_021C_02FC:
 021C:02FC  b80100         mov    ax, 1
 021C:02FF  50             push   ax
 021C:0300  ff360447       push   word ptr [0x4704]
-021C:0304  ff360247       push   word ptr [0x4702]
-021C:0308  9ab1020a07     lcall  f_070A_02B1
+021C:0304  ff360247       push   word ptr [0x4702]   ; lib_scene
+021C:0308  9ab1020a07     lcall  show_lib_picture
 021C:030D  83c406         add    sp, 6
-021C:0310  c41e0647       les    bx, ptr [0x4706]
+021C:0310  c41e0647       les    bx, ptr [0x4706]   ; scene_items
 021C:0314  268b4718       mov    ax, word ptr es:[bx + 0x18]
 021C:0318  d1e0           shl    ax, 1
-021C:031A  03060647       add    ax, word ptr [0x4706]
-021C:031E  8b160847       mov    dx, word ptr [0x4708]
+021C:031A  03060647       add    ax, word ptr [0x4706]   ; scene_items
+021C:031E  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 021C:0322  8956f4         mov    word ptr [bp - 0xc], dx
 021C:0325  8946f2         mov    word ptr [bp - 0xe], ax
-021C:0328  9ab3010a07     lcall  f_070A_01B3
-021C:032D  c706d8460100   mov    word ptr [0x46d8], 1
+021C:0328  9ab3010a07     lcall  show_screen
+021C:032D  c706d8460100   mov    word ptr [0x46d8], 1   ; no_wipe
 021C:0333  ff76f4         push   word ptr [bp - 0xc]
 021C:0336  ff76f2         push   word ptr [bp - 0xe]
 021C:0339  b80a00         mov    ax, 0xa
 021C:033C  50             push   ax
 021C:033D  b81c00         mov    ax, 0x1c
 021C:0340  50             push   ax
-021C:0341  9a04007109     lcall  f_0971_0004
+021C:0341  9a04007109     lcall  put_sprite_w
 021C:0346  83c408         add    sp, 8
 021C:0349  83ec0e         sub    sp, 0xe
 021C:034C  57             push   di
@@ -4005,7 +4005,7 @@ L_021C_02FC:
 021C:0363  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:0364  5e             pop    si
 021C:0365  5f             pop    di
-021C:0366  9af3020a07     lcall  f_070A_02F3
+021C:0366  9af3020a07     lcall  dialog
 021C:036B  83c40e         add    sp, 0xe
 021C:036E  b8ffff         mov    ax, 0xffff
 021C:0371  50             push   ax
@@ -4017,7 +4017,7 @@ L_021C_02FC:
 021C:037D  50             push   ax
 021C:037E  b81400         mov    ax, 0x14
 021C:0381  50             push   ax
-021C:0382  9a02005909     lcall  f_0959_0002
+021C:0382  9a02005909     lcall  fill_rect
 021C:0387  83c40a         add    sp, 0xa
 021C:038A  83ec0e         sub    sp, 0xe
 021C:038D  57             push   di
@@ -4034,7 +4034,7 @@ L_021C_02FC:
 021C:03A4  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:03A5  5e             pop    si
 021C:03A6  5f             pop    di
-021C:03A7  9af3020a07     lcall  f_070A_02F3
+021C:03A7  9af3020a07     lcall  dialog
 021C:03AC  83c40e         add    sp, 0xe
 021C:03AF  83ec0e         sub    sp, 0xe
 021C:03B2  57             push   di
@@ -4051,7 +4051,7 @@ L_021C_02FC:
 021C:03C9  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:03CA  5e             pop    si
 021C:03CB  5f             pop    di
-021C:03CC  9af3020a07     lcall  f_070A_02F3
+021C:03CC  9af3020a07     lcall  dialog
 021C:03D1  83c40e         add    sp, 0xe
 021C:03D4  83ec0e         sub    sp, 0xe
 021C:03D7  57             push   di
@@ -4068,7 +4068,7 @@ L_021C_02FC:
 021C:03EE  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:03EF  5e             pop    si
 021C:03F0  5f             pop    di
-021C:03F1  9af3020a07     lcall  f_070A_02F3
+021C:03F1  9af3020a07     lcall  dialog
 021C:03F6  83c40e         add    sp, 0xe
 021C:03F9  b8ffff         mov    ax, 0xffff
 021C:03FC  50             push   ax
@@ -4080,7 +4080,7 @@ L_021C_02FC:
 021C:0408  50             push   ax
 021C:0409  b81400         mov    ax, 0x14
 021C:040C  50             push   ax
-021C:040D  9a02005909     lcall  f_0959_0002
+021C:040D  9a02005909     lcall  fill_rect
 021C:0412  83c40a         add    sp, 0xa
 021C:0415  83ec0e         sub    sp, 0xe
 021C:0418  57             push   di
@@ -4097,7 +4097,7 @@ L_021C_02FC:
 021C:042F  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:0430  5e             pop    si
 021C:0431  5f             pop    di
-021C:0432  9af3020a07     lcall  f_070A_02F3
+021C:0432  9af3020a07     lcall  dialog
 021C:0437  83c40e         add    sp, 0xe
 021C:043A  83ec0e         sub    sp, 0xe
 021C:043D  57             push   di
@@ -4114,7 +4114,7 @@ L_021C_02FC:
 021C:0454  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:0455  5e             pop    si
 021C:0456  5f             pop    di
-021C:0457  9af3020a07     lcall  f_070A_02F3
+021C:0457  9af3020a07     lcall  dialog
 021C:045C  83c40e         add    sp, 0xe
 021C:045F  83ec0e         sub    sp, 0xe
 021C:0462  57             push   di
@@ -4131,57 +4131,57 @@ L_021C_02FC:
 021C:0479  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:047A  5e             pop    si
 021C:047B  5f             pop    di
-021C:047C  9af3020a07     lcall  f_070A_02F3
+021C:047C  9af3020a07     lcall  dialog
 021C:0481  83c40e         add    sp, 0xe
 021C:0484  b80400         mov    ax, 4
 021C:0487  50             push   ax
 021C:0488  ff360447       push   word ptr [0x4704]
-021C:048C  ff360247       push   word ptr [0x4702]
-021C:0490  9ab1020a07     lcall  f_070A_02B1
+021C:048C  ff360247       push   word ptr [0x4702]   ; lib_scene
+021C:0490  9ab1020a07     lcall  show_lib_picture
 021C:0495  83c406         add    sp, 6
-021C:0498  9ab3010a07     lcall  f_070A_01B3
+021C:0498  9ab3010a07     lcall  show_screen
 021C:049D  b86c00         mov    ax, 0x6c   ; "     Catapults@@%4d>"
 021C:04A0  50             push   ax
-021C:04A1  9ab2080a07     lcall  f_070A_08B2
+021C:04A1  9ab2080a07     lcall  wait_ticks
 021C:04A6  59             pop    cx
 021C:04A7  b80500         mov    ax, 5
 021C:04AA  50             push   ax
 021C:04AB  ff360447       push   word ptr [0x4704]
-021C:04AF  ff360247       push   word ptr [0x4702]
-021C:04B3  9ab1020a07     lcall  f_070A_02B1
+021C:04AF  ff360247       push   word ptr [0x4702]   ; lib_scene
+021C:04B3  9ab1020a07     lcall  show_lib_picture
 021C:04B8  83c406         add    sp, 6
-021C:04BB  9ab3010a07     lcall  f_070A_01B3
+021C:04BB  9ab3010a07     lcall  show_screen
 021C:04C0  b8b400         mov    ax, 0xb4   ; "arrison army of %s"
 021C:04C3  50             push   ax
-021C:04C4  9ab2080a07     lcall  f_070A_08B2
+021C:04C4  9ab2080a07     lcall  wait_ticks
 021C:04C9  59             pop    cx
 021C:04CA  eb10           jmp    0x4dc
 L_021C_04CC:
 021C:04CC  ff360c00       push   word ptr [0xc]
 021C:04D0  b89700         mov    ax, 0x97   ; "n army of %s"
 021C:04D3  50             push   ax
-021C:04D4  9ae00d0a07     lcall  f_070A_0DE0
+021C:04D4  9ae00d0a07     lcall  play_tune
 021C:04D9  83c404         add    sp, 4
 L_021C_04DC:
 021C:04DC  b80600         mov    ax, 6
 021C:04DF  50             push   ax
 021C:04E0  ff360447       push   word ptr [0x4704]
-021C:04E4  ff360247       push   word ptr [0x4702]
-021C:04E8  9ab1020a07     lcall  f_070A_02B1
+021C:04E4  ff360247       push   word ptr [0x4702]   ; lib_scene
+021C:04E8  9ab1020a07     lcall  show_lib_picture
 021C:04ED  83c406         add    sp, 6
 021C:04F0  b89700         mov    ax, 0x97   ; "n army of %s"
 021C:04F3  50             push   ax
-021C:04F4  9a2d0e0a07     lcall  f_070A_0E2D
+021C:04F4  9a2d0e0a07     lcall  wait_tune
 021C:04F9  59             pop    cx
-021C:04FA  c706d8460000   mov    word ptr [0x46d8], 0
-021C:0500  9ab3010a07     lcall  f_070A_01B3
+021C:04FA  c706d8460000   mov    word ptr [0x46d8], 0   ; no_wipe
+021C:0500  9ab3010a07     lcall  show_screen
 021C:0505  bfffff         mov    di, 0xffff
 021C:0508  8bf7           mov    si, di
 L_021C_050A:
 021C:050A  8bc6           mov    ax, si
 021C:050C  e9f500         jmp    0x604
 L_021C_050F:
-021C:050F  8b1e0c45       mov    bx, word ptr [0x450c]
+021C:050F  8b1e0c45       mov    bx, word ptr [0x450c]   ; player
 021C:0513  d1e3           shl    bx, 1
 021C:0515  d1e3           shl    bx, 1
 021C:0517  d1e3           shl    bx, 1
@@ -4189,11 +4189,11 @@ L_021C_050F:
 021C:051E  7408           je     0x528
 021C:0520  8a872832       mov    al, byte ptr [bx + 0x3228]
 021C:0524  98             cwde   
-021C:0525  a30c45         mov    word ptr [0x450c], ax
+021C:0525  a30c45         mov    word ptr [0x450c], ax   ; player
 L_021C_0528:
 021C:0528  e9eb00         jmp    0x616
 L_021C_052B:
-021C:052B  8b1e0c45       mov    bx, word ptr [0x450c]
+021C:052B  8b1e0c45       mov    bx, word ptr [0x450c]   ; player
 021C:052F  d1e3           shl    bx, 1
 021C:0531  d1e3           shl    bx, 1
 021C:0533  d1e3           shl    bx, 1
@@ -4201,11 +4201,11 @@ L_021C_052B:
 021C:053A  7408           je     0x544
 021C:053C  8a872932       mov    al, byte ptr [bx + 0x3229]
 021C:0540  98             cwde   
-021C:0541  a30c45         mov    word ptr [0x450c], ax
+021C:0541  a30c45         mov    word ptr [0x450c], ax   ; player
 L_021C_0544:
 021C:0544  e9cf00         jmp    0x616
 L_021C_0547:
-021C:0547  8b1e0c45       mov    bx, word ptr [0x450c]
+021C:0547  8b1e0c45       mov    bx, word ptr [0x450c]   ; player
 021C:054B  d1e3           shl    bx, 1
 021C:054D  d1e3           shl    bx, 1
 021C:054F  d1e3           shl    bx, 1
@@ -4213,11 +4213,11 @@ L_021C_0547:
 021C:0556  7408           je     0x560
 021C:0558  8a872a32       mov    al, byte ptr [bx + 0x322a]
 021C:055C  98             cwde   
-021C:055D  a30c45         mov    word ptr [0x450c], ax
+021C:055D  a30c45         mov    word ptr [0x450c], ax   ; player
 L_021C_0560:
 021C:0560  e9b300         jmp    0x616
 L_021C_0563:
-021C:0563  8b1e0c45       mov    bx, word ptr [0x450c]
+021C:0563  8b1e0c45       mov    bx, word ptr [0x450c]   ; player
 021C:0567  d1e3           shl    bx, 1
 021C:0569  d1e3           shl    bx, 1
 021C:056B  d1e3           shl    bx, 1
@@ -4225,11 +4225,11 @@ L_021C_0563:
 021C:0572  7408           je     0x57c
 021C:0574  8a872b32       mov    al, byte ptr [bx + 0x322b]
 021C:0578  98             cwde   
-021C:0579  a30c45         mov    word ptr [0x450c], ax
+021C:0579  a30c45         mov    word ptr [0x450c], ax   ; player
 L_021C_057C:
 021C:057C  e99700         jmp    0x616
 L_021C_057F:
-021C:057F  8b1e0c45       mov    bx, word ptr [0x450c]
+021C:057F  8b1e0c45       mov    bx, word ptr [0x450c]   ; player
 021C:0583  d1e3           shl    bx, 1
 021C:0585  d1e3           shl    bx, 1
 021C:0587  d1e3           shl    bx, 1
@@ -4237,11 +4237,11 @@ L_021C_057F:
 021C:058E  7408           je     0x598
 021C:0590  8a872c32       mov    al, byte ptr [bx + 0x322c]
 021C:0594  98             cwde   
-021C:0595  a30c45         mov    word ptr [0x450c], ax
+021C:0595  a30c45         mov    word ptr [0x450c], ax   ; player
 L_021C_0598:
 021C:0598  e97b00         jmp    0x616
 L_021C_059B:
-021C:059B  8b1e0c45       mov    bx, word ptr [0x450c]
+021C:059B  8b1e0c45       mov    bx, word ptr [0x450c]   ; player
 021C:059F  d1e3           shl    bx, 1
 021C:05A1  d1e3           shl    bx, 1
 021C:05A3  d1e3           shl    bx, 1
@@ -4249,11 +4249,11 @@ L_021C_059B:
 021C:05AA  7408           je     0x5b4
 021C:05AC  8a872d32       mov    al, byte ptr [bx + 0x322d]
 021C:05B0  98             cwde   
-021C:05B1  a30c45         mov    word ptr [0x450c], ax
+021C:05B1  a30c45         mov    word ptr [0x450c], ax   ; player
 L_021C_05B4:
 021C:05B4  eb60           jmp    0x616
 L_021C_05B6:
-021C:05B6  8b1e0c45       mov    bx, word ptr [0x450c]
+021C:05B6  8b1e0c45       mov    bx, word ptr [0x450c]   ; player
 021C:05BA  d1e3           shl    bx, 1
 021C:05BC  d1e3           shl    bx, 1
 021C:05BE  d1e3           shl    bx, 1
@@ -4261,11 +4261,11 @@ L_021C_05B6:
 021C:05C5  7408           je     0x5cf
 021C:05C7  8a872e32       mov    al, byte ptr [bx + 0x322e]
 021C:05CB  98             cwde   
-021C:05CC  a30c45         mov    word ptr [0x450c], ax
+021C:05CC  a30c45         mov    word ptr [0x450c], ax   ; player
 L_021C_05CF:
 021C:05CF  eb45           jmp    0x616
 L_021C_05D1:
-021C:05D1  8b1e0c45       mov    bx, word ptr [0x450c]
+021C:05D1  8b1e0c45       mov    bx, word ptr [0x450c]   ; player
 021C:05D5  d1e3           shl    bx, 1
 021C:05D7  d1e3           shl    bx, 1
 021C:05D9  d1e3           shl    bx, 1
@@ -4273,7 +4273,7 @@ L_021C_05D1:
 021C:05E0  7408           je     0x5ea
 021C:05E2  8a872f32       mov    al, byte ptr [bx + 0x322f]
 021C:05E6  98             cwde   
-021C:05E7  a30c45         mov    word ptr [0x450c], ax
+021C:05E7  a30c45         mov    word ptr [0x450c], ax   ; player
 L_021C_05EA:
 021C:05EA  eb2a           jmp    0x616
 L_021C_05EC:
@@ -4289,7 +4289,7 @@ L_021C_0604:
 L_021C_0614:
 021C:0614  ebd6           jmp    0x5ec
 L_021C_0616:
-021C:0616  3b3e0c45       cmp    di, word ptr [0x450c]
+021C:0616  3b3e0c45       cmp    di, word ptr [0x450c]   ; player
 021C:061A  7503           jne    0x61f
 021C:061C  e98100         jmp    0x6a0
 L_021C_061F:
@@ -4298,12 +4298,12 @@ L_021C_061F:
 021C:0624  8bdf           mov    bx, di
 021C:0626  83c307         add    bx, 7
 021C:0629  d1e3           shl    bx, 1
-021C:062B  031e0647       add    bx, word ptr [0x4706]
-021C:062F  8e060847       mov    es, word ptr [0x4708]
+021C:062B  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+021C:062F  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 021C:0633  268b07         mov    ax, word ptr es:[bx]
 021C:0636  d1e0           shl    ax, 1
-021C:0638  03060647       add    ax, word ptr [0x4706]
-021C:063C  8b160847       mov    dx, word ptr [0x4708]
+021C:0638  03060647       add    ax, word ptr [0x4706]   ; scene_items
+021C:063C  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 021C:0640  8956f4         mov    word ptr [bp - 0xc], dx
 021C:0643  8946f2         mov    word ptr [bp - 0xe], ax
 021C:0646  ff76f4         push   word ptr [bp - 0xc]
@@ -4312,19 +4312,19 @@ L_021C_061F:
 021C:064E  d1e3           shl    bx, 1
 021C:0650  ffb71e32       push   word ptr [bx + 0x321e]
 021C:0654  ffb71432       push   word ptr [bx + 0x3214]
-021C:0658  9a0800a608     lcall  f_08A6_0008
+021C:0658  9a0800a608     lcall  xor_sprite
 021C:065D  83c408         add    sp, 8
 L_021C_0660:
-021C:0660  8b3e0c45       mov    di, word ptr [0x450c]
+021C:0660  8b3e0c45       mov    di, word ptr [0x450c]   ; player
 021C:0664  8bdf           mov    bx, di
 021C:0666  83c307         add    bx, 7
 021C:0669  d1e3           shl    bx, 1
-021C:066B  031e0647       add    bx, word ptr [0x4706]
-021C:066F  8e060847       mov    es, word ptr [0x4708]
+021C:066B  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+021C:066F  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 021C:0673  268b07         mov    ax, word ptr es:[bx]
 021C:0676  d1e0           shl    ax, 1
-021C:0678  03060647       add    ax, word ptr [0x4706]
-021C:067C  8b160847       mov    dx, word ptr [0x4708]
+021C:0678  03060647       add    ax, word ptr [0x4706]   ; scene_items
+021C:067C  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 021C:0680  8956f4         mov    word ptr [bp - 0xc], dx
 021C:0683  8946f2         mov    word ptr [bp - 0xe], ax
 021C:0686  ff76f4         push   word ptr [bp - 0xc]
@@ -4333,10 +4333,10 @@ L_021C_0660:
 021C:068E  d1e3           shl    bx, 1
 021C:0690  ffb71e32       push   word ptr [bx + 0x321e]
 021C:0694  ffb71432       push   word ptr [bx + 0x3214]
-021C:0698  9a0800a608     lcall  f_08A6_0008
+021C:0698  9a0800a608     lcall  xor_sprite
 021C:069D  83c408         add    sp, 8
 L_021C_06A0:
-021C:06A0  9a61070a07     lcall  f_070A_0761
+021C:06A0  9a61070a07     lcall  wait_key
 021C:06A5  8bf0           mov    si, ax
 021C:06A7  8bc6           mov    ax, si
 021C:06A9  3d1c00         cmp    ax, 0x1c
@@ -4346,14 +4346,14 @@ L_021C_06B1:
 021C:06B1  b80700         mov    ax, 7
 021C:06B4  50             push   ax
 021C:06B5  ff360447       push   word ptr [0x4704]
-021C:06B9  ff360247       push   word ptr [0x4702]
-021C:06BD  9ab1020a07     lcall  f_070A_02B1
+021C:06B9  ff360247       push   word ptr [0x4702]   ; lib_scene
+021C:06BD  9ab1020a07     lcall  show_lib_picture
 021C:06C2  83c406         add    sp, 6
-021C:06C5  9ab3010a07     lcall  f_070A_01B3
+021C:06C5  9ab3010a07     lcall  show_screen
 021C:06CA  ff360800       push   word ptr [8]
 021C:06CE  b89800         mov    ax, 0x98   ; " army of %s"
 021C:06D1  50             push   ax
-021C:06D2  9ae00d0a07     lcall  f_070A_0DE0
+021C:06D2  9ae00d0a07     lcall  play_tune
 021C:06D7  83c404         add    sp, 4
 021C:06DA  83ec0e         sub    sp, 0xe
 021C:06DD  57             push   di
@@ -4370,27 +4370,27 @@ L_021C_06B1:
 021C:06F4  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:06F5  5e             pop    si
 021C:06F6  5f             pop    di
-021C:06F7  9af3020a07     lcall  f_070A_02F3
+021C:06F7  9af3020a07     lcall  dialog
 021C:06FC  83c40e         add    sp, 0xe
 L_021C_06FF:
 021C:06FF  33c0           xor    ax, ax
 021C:0701  50             push   ax
 021C:0702  b89800         mov    ax, 0x98   ; " army of %s"
 021C:0705  50             push   ax
-021C:0706  9a710e0a07     lcall  f_070A_0E71
+021C:0706  9a710e0a07     lcall  tune_playing
 021C:070B  83c404         add    sp, 4
 021C:070E  85c0           test   ax, ax
 021C:0710  740c           je     0x71e
 021C:0712  b80400         mov    ax, 4
 021C:0715  50             push   ax
-021C:0716  9a96091c02     lcall  f_021C_0996
+021C:0716  9a96091c02     lcall  fire_flicker
 021C:071B  59             pop    cx
 021C:071C  ebe1           jmp    0x6ff
 L_021C_071E:
 021C:071E  ff360800       push   word ptr [8]
 021C:0722  b89800         mov    ax, 0x98   ; " army of %s"
 021C:0725  50             push   ax
-021C:0726  9ae00d0a07     lcall  f_070A_0DE0
+021C:0726  9ae00d0a07     lcall  play_tune
 021C:072B  83c404         add    sp, 4
 021C:072E  83ec0e         sub    sp, 0xe
 021C:0731  57             push   di
@@ -4407,46 +4407,46 @@ L_021C_071E:
 021C:0748  a4             movsb  byte ptr es:[di], byte ptr [si]
 021C:0749  5e             pop    si
 021C:074A  5f             pop    di
-021C:074B  9af3020a07     lcall  f_070A_02F3
+021C:074B  9af3020a07     lcall  dialog
 021C:0750  83c40e         add    sp, 0xe
 L_021C_0753:
 021C:0753  33c0           xor    ax, ax
 021C:0755  50             push   ax
 021C:0756  b89800         mov    ax, 0x98   ; " army of %s"
 021C:0759  50             push   ax
-021C:075A  9a710e0a07     lcall  f_070A_0E71
+021C:075A  9a710e0a07     lcall  tune_playing
 021C:075F  83c404         add    sp, 4
 021C:0762  85c0           test   ax, ax
 021C:0764  740c           je     0x772
 021C:0766  b80400         mov    ax, 4
 021C:0769  50             push   ax
-021C:076A  9a96091c02     lcall  f_021C_0996
+021C:076A  9a96091c02     lcall  fire_flicker
 021C:076F  59             pop    cx
 021C:0770  ebe1           jmp    0x753
 L_021C_0772:
 021C:0772  b87d00         mov    ax, 0x7d   ; "4d>"
 021C:0775  50             push   ax
-021C:0776  9a96091c02     lcall  f_021C_0996
+021C:0776  9a96091c02     lcall  fire_flicker
 021C:077B  59             pop    cx
 021C:077C  c6060f1d01     mov    byte ptr [0x1d0f], 1
 021C:0781  c70644360000   mov    word ptr [0x3644], 0
 021C:0787  c7060a470000   mov    word ptr [0x470a], 0
 021C:078D  c7060e450000   mov    word ptr [0x450e], 0
 021C:0793  c706c633ffff   mov    word ptr [0x33c6], 0xffff
-021C:0799  c706e0460000   mov    word ptr [0x46e0], 0
+021C:0799  c706e0460000   mov    word ptr [0x46e0], 0   ; month
 021C:079F  c706da460800   mov    word ptr [0x46da], 8
 021C:07A5  c706dc467d04   mov    word ptr [0x46dc], 0x47d   ; "Sachs"
-021C:07AB  c706d6461e00   mov    word ptr [0x46d6], 0x1e
-021C:07B1  c7060c470000   mov    word ptr [0x470c], 0
-021C:07B7  c70616450000   mov    word ptr [0x4516], 0
-021C:07BD  c706de460000   mov    word ptr [0x46de], 0
-021C:07C3  9a0b00f103     lcall  f_03F1_000B
-021C:07C8  9a07002304     lcall  f_0423_0007
-021C:07CD  9a0200de03     lcall  f_03DE_0002
-021C:07D2  9a81001900     lcall  f_0019_0081
-021C:07D7  9a08001900     lcall  f_0019_0008
-021C:07DC  9a0200f907     lcall  f_07F9_0002
-021C:07E1  9a0d00bb02     lcall  f_02BB_000D
+021C:07AB  c706d6461e00   mov    word ptr [0x46d6], 0x1e   ; morale
+021C:07B1  c7060c470000   mov    word ptr [0x470c], 0   ; robin_4B
+021C:07B7  c70616450000   mov    word ptr [0x4516], 0   ; robin_4D
+021C:07BD  c706de460000   mov    word ptr [0x46de], 0   ; bright
+021C:07C3  9a0b00f103     lcall  setup_sides
+021C:07C8  9a07002304     lcall  place_castles
+021C:07CD  9a0200de03     lcall  setup_ladies
+021C:07D2  9a81001900     lcall  setup_garrisons
+021C:07D7  9a08001900     lcall  setup_armies
+021C:07DC  9a0200f907     lcall  next_event_in
+021C:07E1  9a0d00bb02     lcall  setup_enmity
 021C:07E6  33f6           xor    si, si
 L_021C_07E8:
 021C:07E8  83fe07         cmp    si, 7
@@ -4469,7 +4469,7 @@ L_021C_07FD:
 021C:080C  d1e0           shl    ax, 1
 021C:080E  03c2           add    ax, dx
 021C:0810  8bd8           mov    bx, ax
-021C:0812  8a874e36       mov    al, byte ptr [bx + 0x364e]
+021C:0812  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 021C:0816  98             cwde   
 021C:0817  8bf8           mov    di, ax
 021C:0819  8bc7           mov    ax, di
@@ -4478,11 +4478,11 @@ L_021C_07FD:
 021C:0820  8bde           mov    bx, si
 021C:0822  43             inc    bx
 021C:0823  d1e3           shl    bx, 1
-021C:0825  031e1045       add    bx, word ptr [0x4510]
+021C:0825  031e1045       add    bx, word ptr [0x4510]   ; font
 021C:0829  8e061245       mov    es, word ptr [0x4512]
 021C:082D  268b07         mov    ax, word ptr es:[bx]
 021C:0830  d1e0           shl    ax, 1
-021C:0832  03061045       add    ax, word ptr [0x4510]
+021C:0832  03061045       add    ax, word ptr [0x4510]   ; font
 021C:0836  8b161245       mov    dx, word ptr [0x4512]
 021C:083A  8956f4         mov    word ptr [bp - 0xc], dx
 021C:083D  8946f2         mov    word ptr [bp - 0xe], ax
@@ -4491,7 +4491,7 @@ L_021C_07FD:
 021C:0844  ffb7c539       push   word ptr [bx + 0x39c5]
 021C:0848  ff76f4         push   word ptr [bp - 0xc]
 021C:084B  ff76f2         push   word ptr [bp - 0xe]
-021C:084E  9a0c003809     lcall  f_0938_000C
+021C:084E  9a0c003809     lcall  recolour_territory
 021C:0853  83c406         add    sp, 6
 L_021C_0856:
 021C:0856  46             inc    si
@@ -4500,7 +4500,7 @@ L_021C_0859:
 021C:0859  ff360c00       push   word ptr [0xc]
 021C:085D  b89800         mov    ax, 0x98   ; " army of %s"
 021C:0860  50             push   ax
-021C:0861  9ae00d0a07     lcall  f_070A_0DE0
+021C:0861  9ae00d0a07     lcall  play_tune
 021C:0866  83c404         add    sp, 4
 021C:0869  5e             pop    si
 021C:086A  5f             pop    di
@@ -4508,7 +4508,7 @@ L_021C_0859:
 021C:086D  5d             pop    bp
 021C:086E  cb             retf   
 
-f_021C_086F proc  ; 021C:086F  callers: f_021C_0002
+title_twinkle proc  ; 021C:086F  callers: new_game
 021C:086F  55             push   bp
 021C:0870  8bec           mov    bp, sp
 021C:0872  83c492         add    sp, -0x6e
@@ -4517,14 +4517,14 @@ f_021C_086F proc  ; 021C:086F  callers: f_021C_0002
 021C:0877  c746fe0000     mov    word ptr [bp - 2], 0
 021C:087C  ff7608         push   word ptr [bp + 8]
 021C:087F  ff7606         push   word ptr [bp + 6]
-021C:0882  9a04000c09     lcall  f_090C_0004
+021C:0882  9a04000c09     lcall  get_pixel
 021C:0887  83c404         add    sp, 4
 021C:088A  894692         mov    word ptr [bp - 0x6e], ax
 021C:088D  b80100         mov    ax, 1
 021C:0890  50             push   ax
 021C:0891  ff7608         push   word ptr [bp + 8]
 021C:0894  ff7606         push   word ptr [bp + 6]
-021C:0897  9a0f003c09     lcall  f_093C_000F
+021C:0897  9a0f003c09     lcall  put_pixel
 021C:089C  83c406         add    sp, 6
 021C:089F  be0b00         mov    si, 0xb
 L_021C_08A2:
@@ -4547,7 +4547,7 @@ L_021C_08A9:
 021C:08C8  8946f6         mov    word ptr [bp - 0xa], ax
 021C:08CB  50             push   ax
 021C:08CC  ff76f8         push   word ptr [bp - 8]
-021C:08CF  9a04000c09     lcall  f_090C_0004
+021C:08CF  9a04000c09     lcall  get_pixel
 021C:08D4  83c404         add    sp, 4
 021C:08D7  8b5efe         mov    bx, word ptr [bp - 2]
 021C:08DA  d1e3           shl    bx, 1
@@ -4558,12 +4558,12 @@ L_021C_08A9:
 021C:08E7  50             push   ax
 021C:08E8  ff76f6         push   word ptr [bp - 0xa]
 021C:08EB  ff76f8         push   word ptr [bp - 8]
-021C:08EE  9a0f003c09     lcall  f_093C_000F
+021C:08EE  9a0f003c09     lcall  put_pixel
 021C:08F3  83c406         add    sp, 6
 021C:08F6  4f             dec    di
 021C:08F7  ebb0           jmp    0x8a9
 L_021C_08F9:
-021C:08F9  a13643         mov    ax, word ptr [0x4336]
+021C:08F9  a13643         mov    ax, word ptr [0x4336]   ; speed
 021C:08FC  b9dc05         mov    cx, 0x5dc
 021C:08FF  f7e9           imul   cx
 021C:0901  8bf8           mov    di, ax
@@ -4578,7 +4578,7 @@ L_021C_090A:
 L_021C_090D:
 021C:090D  b80200         mov    ax, 2
 021C:0910  50             push   ax
-021C:0911  9ae9080a07     lcall  f_070A_08E9
+021C:0911  9ae9080a07     lcall  delay_ticks
 021C:0916  59             pop    cx
 021C:0917  be0b00         mov    si, 0xb
 L_021C_091A:
@@ -4603,13 +4603,13 @@ L_021C_0921:
 021C:0945  36ff37         push   word ptr ss:[bx]
 021C:0948  ff76f6         push   word ptr [bp - 0xa]
 021C:094B  ff76f8         push   word ptr [bp - 8]
-021C:094E  9a0f003c09     lcall  f_093C_000F
+021C:094E  9a0f003c09     lcall  put_pixel
 021C:0953  83c406         add    sp, 6
 021C:0956  ff4efe         dec    word ptr [bp - 2]
 021C:0959  4f             dec    di
 021C:095A  ebc5           jmp    0x921
 L_021C_095C:
-021C:095C  a13643         mov    ax, word ptr [0x4336]
+021C:095C  a13643         mov    ax, word ptr [0x4336]   ; speed
 021C:095F  b9dc05         mov    cx, 0x5dc
 021C:0962  f7e9           imul   cx
 021C:0964  8bf8           mov    di, ax
@@ -4625,12 +4625,12 @@ L_021C_0970:
 021C:0970  ff7692         push   word ptr [bp - 0x6e]
 021C:0973  ff7608         push   word ptr [bp + 8]
 021C:0976  ff7606         push   word ptr [bp + 6]
-021C:0979  9a0f003c09     lcall  f_093C_000F
+021C:0979  9a0f003c09     lcall  put_pixel
 021C:097E  83c406         add    sp, 6
 021C:0981  ff760a         push   word ptr [bp + 0xa]
-021C:0984  9ae9080a07     lcall  f_070A_08E9
+021C:0984  9ae9080a07     lcall  delay_ticks
 021C:0989  59             pop    cx
-021C:098A  9aab070a07     lcall  f_070A_07AB
+021C:098A  9aab070a07     lcall  get_key
 021C:098F  98             cwde   
 021C:0990  5e             pop    si
 021C:0991  5f             pop    di
@@ -4638,29 +4638,29 @@ L_021C_0970:
 021C:0994  5d             pop    bp
 021C:0995  cb             retf   
 
-f_021C_0996 proc  ; 021C:0996  callers: f_021C_0002
+fire_flicker proc  ; 021C:0996  callers: new_game
 021C:0996  55             push   bp
 021C:0997  8bec           mov    bp, sp
 021C:0999  83c4fc         add    sp, -4
 021C:099C  57             push   di
 021C:099D  56             push   si
-021C:099E  c41e1045       les    bx, ptr [0x4510]
+021C:099E  c41e1045       les    bx, ptr [0x4510]   ; font
 021C:09A2  268b876c01     mov    ax, word ptr es:[bx + 0x16c]
 021C:09A7  d1e0           shl    ax, 1
-021C:09A9  03061045       add    ax, word ptr [0x4510]
+021C:09A9  03061045       add    ax, word ptr [0x4510]   ; font
 021C:09AD  8b161245       mov    dx, word ptr [0x4512]
 021C:09B1  8956fe         mov    word ptr [bp - 2], dx
 021C:09B4  8946fc         mov    word ptr [bp - 4], ax
-021C:09B7  a13643         mov    ax, word ptr [0x4336]
+021C:09B7  a13643         mov    ax, word ptr [0x4336]   ; speed
 021C:09BA  f76e06         imul   word ptr [bp + 6]
 021C:09BD  8bf0           mov    si, ax
 L_021C_09BF:
 021C:09BF  85f6           test   si, si
 021C:09C1  7434           je     0x9f7
-021C:09C3  9aab070a07     lcall  f_070A_07AB
+021C:09C3  9aab070a07     lcall  get_key
 021C:09C8  b80400         mov    ax, 4
 021C:09CB  50             push   ax
-021C:09CC  9a0d000a07     lcall  f_070A_000D
+021C:09CC  9a0d000a07     lcall  random
 021C:09D1  59             pop    cx
 021C:09D2  8bf8           mov    di, ax
 021C:09D4  ff76fe         push   word ptr [bp - 2]
@@ -4673,7 +4673,7 @@ L_021C_09BF:
 021C:09E5  8a875032       mov    al, byte ptr [bx + 0x3250]
 021C:09E9  2ae4           sub    ah, ah
 021C:09EB  50             push   ax
-021C:09EC  9a0800a608     lcall  f_08A6_0008
+021C:09EC  9a0800a608     lcall  xor_sprite
 021C:09F1  83c408         add    sp, 8
 021C:09F4  4e             dec    si
 021C:09F5  ebc8           jmp    0x9bf
@@ -4686,7 +4686,7 @@ L_021C_09F7:
 
 ;================ segment 02BB ================
 
-f_02BB_000D proc  ; 02BB:000D  callers: f_021C_0002
+setup_enmity proc  ; 02BB:000D  callers: new_game
 02BB:000D  55             push   bp
 02BB:000E  8bec           mov    bp, sp
 02BB:0010  57             push   di
@@ -4719,7 +4719,7 @@ L_02BB_0034:
 02BB:0042  8bc7           mov    ax, di
 02BB:0044  d1e0           shl    ax, 1
 02BB:0046  03d8           add    bx, ax
-02BB:0048  c787e4320200   mov    word ptr [bx + 0x32e4], 2
+02BB:0048  c787e4320200   mov    word ptr [bx + 0x32e4], 2   ; enmity+0
 02BB:004E  eb1a           jmp    0x6a
 L_02BB_0050:
 02BB:0050  8bc6           mov    ax, si
@@ -4732,7 +4732,7 @@ L_02BB_0050:
 02BB:005E  8bc7           mov    ax, di
 02BB:0060  d1e0           shl    ax, 1
 02BB:0062  03d8           add    bx, ax
-02BB:0064  c787e4320000   mov    word ptr [bx + 0x32e4], 0
+02BB:0064  c787e4320000   mov    word ptr [bx + 0x32e4], 0   ; enmity+0
 L_02BB_006A:
 02BB:006A  4f             dec    di
 02BB:006B  ebaf           jmp    0x1c
@@ -4746,7 +4746,7 @@ L_02BB_0070:
 02BB:0077  50             push   ax
 02BB:0078  b80400         mov    ax, 4
 02BB:007B  50             push   ax
-02BB:007C  9ab200bb02     lcall  f_02BB_00B2
+02BB:007C  9ab200bb02     lcall  enmity_add
 02BB:0081  83c406         add    sp, 6
 02BB:0084  b80300         mov    ax, 3
 02BB:0087  50             push   ax
@@ -4754,7 +4754,7 @@ L_02BB_0070:
 02BB:008B  50             push   ax
 02BB:008C  b80500         mov    ax, 5
 02BB:008F  50             push   ax
-02BB:0090  9ab200bb02     lcall  f_02BB_00B2
+02BB:0090  9ab200bb02     lcall  enmity_add
 02BB:0095  83c406         add    sp, 6
 02BB:0098  b80300         mov    ax, 3
 02BB:009B  50             push   ax
@@ -4762,7 +4762,7 @@ L_02BB_0070:
 02BB:009F  50             push   ax
 02BB:00A0  b80600         mov    ax, 6
 02BB:00A3  50             push   ax
-02BB:00A4  9ab200bb02     lcall  f_02BB_00B2
+02BB:00A4  9ab200bb02     lcall  enmity_add
 02BB:00A9  83c406         add    sp, 6
 02BB:00AC  5e             pop    si
 02BB:00AD  5f             pop    di
@@ -4770,7 +4770,7 @@ L_02BB_0070:
 02BB:00B0  5d             pop    bp
 02BB:00B1  cb             retf   
 
-f_02BB_00B2 proc  ; 02BB:00B2  callers: f_01A5_023A, f_01A5_0352, f_02BB_000D ...
+enmity_add proc  ; 02BB:00B2  callers: apply_result, ask_passage, setup_enmity ...
 02BB:00B2  55             push   bp
 02BB:00B3  8bec           mov    bp, sp
 02BB:00B5  83c4fe         add    sp, -2
@@ -4807,7 +4807,7 @@ L_02BB_00E0:
 02BB:00EE  8bc7           mov    ax, di
 02BB:00F0  d1e0           shl    ax, 1
 02BB:00F2  03d8           add    bx, ax
-02BB:00F4  8b87e432       mov    ax, word ptr [bx + 0x32e4]
+02BB:00F4  8b87e432       mov    ax, word ptr [bx + 0x32e4]   ; enmity+0
 02BB:00F8  03460a         add    ax, word ptr [bp + 0xa]
 02BB:00FB  8946fe         mov    word ptr [bp - 2], ax
 02BB:00FE  3df6ff         cmp    ax, 0xfff6
@@ -4821,7 +4821,7 @@ L_02BB_010A:
 02BB:0112  c746fe0a00     mov    word ptr [bp - 2], 0xa
 L_02BB_0117:
 02BB:0117  8b46fe         mov    ax, word ptr [bp - 2]
-02BB:011A  8987e432       mov    word ptr [bx + 0x32e4], ax
+02BB:011A  8987e432       mov    word ptr [bx + 0x32e4], ax   ; enmity+0
 02BB:011E  8bc7           mov    ax, di
 02BB:0120  8bd0           mov    dx, ax
 02BB:0122  b103           mov    cl, 3
@@ -4832,7 +4832,7 @@ L_02BB_0117:
 02BB:012C  8bc6           mov    ax, si
 02BB:012E  d1e0           shl    ax, 1
 02BB:0130  03d8           add    bx, ax
-02BB:0132  8b87e432       mov    ax, word ptr [bx + 0x32e4]
+02BB:0132  8b87e432       mov    ax, word ptr [bx + 0x32e4]   ; enmity+0
 02BB:0136  03460a         add    ax, word ptr [bp + 0xa]
 02BB:0139  8946fe         mov    word ptr [bp - 2], ax
 02BB:013C  3df6ff         cmp    ax, 0xfff6
@@ -4846,10 +4846,10 @@ L_02BB_0148:
 02BB:0150  c746fe0a00     mov    word ptr [bp - 2], 0xa
 L_02BB_0155:
 02BB:0155  8b46fe         mov    ax, word ptr [bp - 2]
-02BB:0158  8987e432       mov    word ptr [bx + 0x32e4], ax
+02BB:0158  8987e432       mov    word ptr [bx + 0x32e4], ax   ; enmity+0
 02BB:015C  e975ff         jmp    0xd4
 
-f_02BB_015F proc  ; 02BB:015F  callers: f_02D3_0006
+enmity_all_add? proc  ; 02BB:015F  callers: tournament
 02BB:015F  55             push   bp
 02BB:0160  8bec           mov    bp, sp
 02BB:0162  57             push   di
@@ -4863,7 +4863,7 @@ L_02BB_016A:
 02BB:0172  50             push   ax
 02BB:0173  56             push   si
 02BB:0174  57             push   di
-02BB:0175  9ab200bb02     lcall  f_02BB_00B2
+02BB:0175  9ab200bb02     lcall  enmity_add
 02BB:017A  83c406         add    sp, 6
 02BB:017D  47             inc    di
 02BB:017E  ebea           jmp    0x16a
@@ -4876,7 +4876,7 @@ L_02BB_0180:
 
 ;================ segment 02D3 ================
 
-f_02D3_0006 proc  ; 02D3:0006  callers: f_04BA_03EF, f_082C_0180
+tournament proc  ; 02D3:0006  callers: ai_do_order, orders_menu
 02D3:0006  55             push   bp
 02D3:0007  8bec           mov    bp, sp
 02D3:0009  83c4fc         add    sp, -4
@@ -4885,7 +4885,7 @@ f_02D3_0006 proc  ; 02D3:0006  callers: f_04BA_03EF, f_082C_0180
 02D3:000E  8b7606         mov    si, word ptr [bp + 6]
 02D3:0011  833e0a4700     cmp    word ptr [0x470a], 0
 02D3:0016  7433           je     0x4b
-02D3:0018  3b360c45       cmp    si, word ptr [0x450c]
+02D3:0018  3b360c45       cmp    si, word ptr [0x450c]   ; player
 02D3:001C  7525           jne    0x43
 02D3:001E  83ec0e         sub    sp, 0xe
 02D3:0021  57             push   di
@@ -4902,7 +4902,7 @@ f_02D3_0006 proc  ; 02D3:0006  callers: f_04BA_03EF, f_082C_0180
 02D3:0038  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0039  5e             pop    si
 02D3:003A  5f             pop    di
-02D3:003B  9af3020a07     lcall  f_070A_02F3
+02D3:003B  9af3020a07     lcall  dialog
 02D3:0040  83c40e         add    sp, 0xe
 L_02D3_0043:
 02D3:0043  33c0           xor    ax, ax
@@ -4927,7 +4927,7 @@ L_02D3_004B:
 02D3:0066  3b06c633       cmp    ax, word ptr [0x33c6]
 02D3:006A  752f           jne    0x9b
 L_02D3_006C:
-02D3:006C  3b360c45       cmp    si, word ptr [0x450c]
+02D3:006C  3b360c45       cmp    si, word ptr [0x450c]   ; player
 02D3:0070  7525           jne    0x97
 02D3:0072  83ec0e         sub    sp, 0xe
 02D3:0075  57             push   di
@@ -4944,7 +4944,7 @@ L_02D3_006C:
 02D3:008C  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:008D  5e             pop    si
 02D3:008E  5f             pop    di
-02D3:008F  9af3020a07     lcall  f_070A_02F3
+02D3:008F  9af3020a07     lcall  dialog
 02D3:0094  83c40e         add    sp, 0xe
 L_02D3_0097:
 02D3:0097  33c0           xor    ax, ax
@@ -4958,10 +4958,10 @@ L_02D3_009B:
 02D3:00A5  d1e0           shl    ax, 1
 02D3:00A7  d1e0           shl    ax, 1
 02D3:00A9  8bd8           mov    bx, ax
-02D3:00AB  8b875e44       mov    ax, word ptr [bx + 0x445e]
+02D3:00AB  8b875e44       mov    ax, word ptr [bx + 0x445e]   ; side.gold
 02D3:00AF  3d0500         cmp    ax, 5
 02D3:00B2  7d30           jge    0xe4
-02D3:00B4  3b360c45       cmp    si, word ptr [0x450c]
+02D3:00B4  3b360c45       cmp    si, word ptr [0x450c]   ; player
 02D3:00B8  7525           jne    0xdf
 02D3:00BA  83ec0e         sub    sp, 0xe
 02D3:00BD  57             push   di
@@ -4978,7 +4978,7 @@ L_02D3_009B:
 02D3:00D4  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:00D5  5e             pop    si
 02D3:00D6  5f             pop    di
-02D3:00D7  9af3020a07     lcall  f_070A_02F3
+02D3:00D7  9af3020a07     lcall  dialog
 02D3:00DC  83c40e         add    sp, 0xe
 L_02D3_00DF:
 02D3:00DF  33c0           xor    ax, ax
@@ -4992,9 +4992,9 @@ L_02D3_00E4:
 02D3:00EE  d1e0           shl    ax, 1
 02D3:00F0  d1e0           shl    ax, 1
 02D3:00F2  8bd8           mov    bx, ax
-02D3:00F4  83af5e4405     sub    word ptr [bx + 0x445e], 5
+02D3:00F4  83af5e4405     sub    word ptr [bx + 0x445e], 5   ; side.gold
 02D3:00F9  56             push   si
-02D3:00FA  9a5f01bb02     lcall  f_02BB_015F
+02D3:00FA  9a5f01bb02     lcall  enmity_all_add?
 02D3:00FF  59             pop    cx
 02D3:0100  bf0100         mov    di, 1
 L_02D3_0103:
@@ -5006,10 +5006,10 @@ L_02D3_0103:
 02D3:0112  47             inc    di
 02D3:0113  ebee           jmp    0x103
 L_02D3_0115:
-02D3:0115  8b1e0c45       mov    bx, word ptr [0x450c]
+02D3:0115  8b1e0c45       mov    bx, word ptr [0x450c]   ; player
 02D3:0119  d1e3           shl    bx, 1
 02D3:011B  c78754410000   mov    word ptr [bx + 0x4154], 0
-02D3:0121  9ab2042304     lcall  f_0423_04B2
+02D3:0121  9ab2042304     lcall  redraw_map
 02D3:0126  8bc6           mov    ax, si
 02D3:0128  8bd0           mov    dx, ax
 02D3:012A  b103           mov    cl, 3
@@ -5018,14 +5018,14 @@ L_02D3_0115:
 02D3:0130  d1e0           shl    ax, 1
 02D3:0132  d1e0           shl    ax, 1
 02D3:0134  8bd8           mov    bx, ax
-02D3:0136  ffb74644       push   word ptr [bx + 0x4446]
-02D3:013A  ffb74444       push   word ptr [bx + 0x4444]
+02D3:0136  ffb74644       push   word ptr [bx + 0x4446]   ; side+2
+02D3:013A  ffb74444       push   word ptr [bx + 0x4444]   ; side.name
 02D3:013E  1e             push   ds
 02D3:013F  b8c833         mov    ax, 0x33c8   ; "Sir %s"
 02D3:0142  50             push   ax
 02D3:0143  ff362b21       push   word ptr [0x212b]
 02D3:0147  ff362921       push   word ptr [0x2129]
-02D3:014B  9a0600f809     lcall  f_09F8_0006
+02D3:014B  9a0600f809     lcall  sprintf
 02D3:0150  83c40c         add    sp, 0xc
 02D3:0153  83ec0e         sub    sp, 0xe
 02D3:0156  57             push   di
@@ -5042,46 +5042,46 @@ L_02D3_0115:
 02D3:016D  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:016E  5e             pop    si
 02D3:016F  5f             pop    di
-02D3:0170  9af3020a07     lcall  f_070A_02F3
+02D3:0170  9af3020a07     lcall  dialog
 02D3:0175  83c40e         add    sp, 0xe
 02D3:0178  b800c0         mov    ax, 0xc000
 02D3:017B  50             push   ax
 02D3:017C  ff360447       push   word ptr [0x4704]
-02D3:0180  ff360247       push   word ptr [0x4702]
+02D3:0180  ff360247       push   word ptr [0x4702]   ; lib_scene
 02D3:0184  1e             push   ds
 02D3:0185  b8cf33         mov    ax, 0x33cf   ; "RAID.LIB"
 02D3:0188  50             push   ax
-02D3:0189  9a5a010a07     lcall  f_070A_015A
+02D3:0189  9a5a010a07     lcall  load_lib
 02D3:018E  83c40a         add    sp, 0xa
 02D3:0191  b80400         mov    ax, 4
 02D3:0194  50             push   ax
 02D3:0195  ff360447       push   word ptr [0x4704]
-02D3:0199  ff360247       push   word ptr [0x4702]
-02D3:019D  9ab1020a07     lcall  f_070A_02B1
+02D3:0199  ff360247       push   word ptr [0x4702]   ; lib_scene
+02D3:019D  9ab1020a07     lcall  show_lib_picture
 02D3:01A2  83c406         add    sp, 6
-02D3:01A5  9ab3010a07     lcall  f_070A_01B3
+02D3:01A5  9ab3010a07     lcall  show_screen
 02D3:01AA  ff360800       push   word ptr [8]
 02D3:01AE  b89a00         mov    ax, 0x9a   ; "rmy of %s"
 02D3:01B1  50             push   ax
-02D3:01B2  9ae00d0a07     lcall  f_070A_0DE0
+02D3:01B2  9ae00d0a07     lcall  play_tune
 02D3:01B7  83c404         add    sp, 4
 02D3:01BA  b80048         mov    ax, 0x4800
 02D3:01BD  50             push   ax
 02D3:01BE  ff36f846       push   word ptr [0x46f8]
-02D3:01C2  ff36f646       push   word ptr [0x46f6]
+02D3:01C2  ff36f646       push   word ptr [0x46f6]   ; lib_joust1
 02D3:01C6  1e             push   ds
 02D3:01C7  b8d833         mov    ax, 0x33d8   ; "JOUST1.LIB"
 02D3:01CA  50             push   ax
-02D3:01CB  9a5a010a07     lcall  f_070A_015A
+02D3:01CB  9a5a010a07     lcall  load_lib
 02D3:01D0  83c40a         add    sp, 0xa
 02D3:01D3  b800c0         mov    ax, 0xc000
 02D3:01D6  50             push   ax
 02D3:01D7  ff360447       push   word ptr [0x4704]
-02D3:01DB  ff360247       push   word ptr [0x4702]
+02D3:01DB  ff360247       push   word ptr [0x4702]   ; lib_scene
 02D3:01DF  1e             push   ds
 02D3:01E0  b8e333         mov    ax, 0x33e3   ; "JOUST2.LIB"
 02D3:01E3  50             push   ax
-02D3:01E4  9a5a010a07     lcall  f_070A_015A
+02D3:01E4  9a5a010a07     lcall  load_lib
 02D3:01E9  83c40a         add    sp, 0xa
 02D3:01EC  c41efa46       les    bx, ptr [0x46fa]
 02D3:01F0  268b4752       mov    ax, word ptr es:[bx + 0x52]
@@ -5089,11 +5089,11 @@ L_02D3_0115:
 02D3:01F6  0306fa46       add    ax, word ptr [0x46fa]
 02D3:01FA  8b16fc46       mov    dx, word ptr [0x46fc]
 02D3:01FE  89166a41       mov    word ptr [0x416a], dx
-02D3:0202  a36841         mov    word ptr [0x4168], ax
+02D3:0202  a36841         mov    word ptr [0x4168], ax   ; lance_save
 02D3:0205  8ec2           mov    es, dx
 02D3:0207  8bd8           mov    bx, ax
 02D3:0209  26c7075000     mov    word ptr es:[bx], 0x50   ; "     Knights  <>@%4d>"
-02D3:020E  c41e6841       les    bx, ptr [0x4168]
+02D3:020E  c41e6841       les    bx, ptr [0x4168]   ; lance_save
 02D3:0212  26c747025400   mov    word ptr es:[bx + 2], 0x54   ; " Knights  <>@%4d>"
 02D3:0218  c41efa46       les    bx, ptr [0x46fa]
 02D3:021C  268b4748       mov    ax, word ptr es:[bx + 0x48]
@@ -5101,16 +5101,16 @@ L_02D3_0115:
 02D3:0222  0306fa46       add    ax, word ptr [0x46fa]
 02D3:0226  8b16fc46       mov    dx, word ptr [0x46fc]
 02D3:022A  89166641       mov    word ptr [0x4166], dx
-02D3:022E  a36441         mov    word ptr [0x4164], ax
+02D3:022E  a36441         mov    word ptr [0x4164], ax   ; lance_sprite
 02D3:0231  b89a00         mov    ax, 0x9a   ; "rmy of %s"
 02D3:0234  50             push   ax
-02D3:0235  9a2d0e0a07     lcall  f_070A_0E2D
+02D3:0235  9a2d0e0a07     lcall  wait_tune
 02D3:023A  59             pop    cx
 02D3:023B  33ff           xor    di, di
 L_02D3_023D:
 02D3:023D  83ff03         cmp    di, 3
 02D3:0240  7d10           jge    0x252
-02D3:0242  9a9e02d302     lcall  f_02D3_029E
+02D3:0242  9a9e02d302     lcall  joust_round
 02D3:0247  8946fe         mov    word ptr [bp - 2], ax
 02D3:024A  3d0100         cmp    ax, 1
 02D3:024D  7503           jne    0x252
@@ -5135,7 +5135,7 @@ L_02D3_0252:
 02D3:0274  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0275  5e             pop    si
 02D3:0276  5f             pop    di
-02D3:0277  9af3020a07     lcall  f_070A_02F3
+02D3:0277  9af3020a07     lcall  dialog
 02D3:027C  83c40e         add    sp, 0xe
 L_02D3_027F:
 02D3:027F  a1dc46         mov    ax, word ptr [0x46dc]
@@ -5146,11 +5146,11 @@ L_02D3_027F:
 02D3:028A  d1e0           shl    ax, 1
 02D3:028C  0306da46       add    ax, word ptr [0x46da]
 02D3:0290  a3c633         mov    word ptr [0x33c6], ax
-02D3:0293  9ab2042304     lcall  f_0423_04B2
+02D3:0293  9ab2042304     lcall  redraw_map
 02D3:0298  b80100         mov    ax, 1
 02D3:029B  e9a7fd         jmp    0x45
 
-f_02D3_029E proc  ; 02D3:029E  callers: f_02D3_0006
+joust_round proc  ; 02D3:029E  callers: tournament
 02D3:029E  55             push   bp
 02D3:029F  8bec           mov    bp, sp
 02D3:02A1  83c4f8         add    sp, -8
@@ -5160,18 +5160,18 @@ f_02D3_029E proc  ; 02D3:029E  callers: f_02D3_0006
 02D3:02AB  b80100         mov    ax, 1
 02D3:02AE  50             push   ax
 02D3:02AF  ff36f846       push   word ptr [0x46f8]
-02D3:02B3  ff36f646       push   word ptr [0x46f6]
-02D3:02B7  9ab1020a07     lcall  f_070A_02B1
+02D3:02B3  ff36f646       push   word ptr [0x46f6]   ; lib_joust1
+02D3:02B7  9ab1020a07     lcall  show_lib_picture
 02D3:02BC  83c406         add    sp, 6
-02D3:02BF  9ab3010a07     lcall  f_070A_01B3
+02D3:02BF  9ab3010a07     lcall  show_screen
 02D3:02C4  ff360800       push   word ptr [8]
 02D3:02C8  b89a00         mov    ax, 0x9a   ; "rmy of %s"
 02D3:02CB  50             push   ax
-02D3:02CC  9ae00d0a07     lcall  f_070A_0DE0
+02D3:02CC  9ae00d0a07     lcall  play_tune
 02D3:02D1  83c404         add    sp, 4
 02D3:02D4  b81b00         mov    ax, 0x1b
 02D3:02D7  50             push   ax
-02D3:02D8  9ab2080a07     lcall  f_070A_08B2
+02D3:02D8  9ab2080a07     lcall  wait_ticks
 02D3:02DD  59             pop    cx
 02D3:02DE  be1200         mov    si, 0x12
 L_02D3_02E1:
@@ -5185,7 +5185,7 @@ L_02D3_02E1:
 02D3:02EF  d1e0           shl    ax, 1
 02D3:02F1  03c2           add    ax, dx
 02D3:02F3  8bd8           mov    bx, ax
-02D3:02F5  8a874e36       mov    al, byte ptr [bx + 0x364e]
+02D3:02F5  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 02D3:02F9  98             cwde   
 02D3:02FA  8bf8           mov    di, ax
 02D3:02FC  8bc7           mov    ax, di
@@ -5203,7 +5203,7 @@ L_02D3_02E1:
 02D3:0318  d1e0           shl    ax, 1
 02D3:031A  03c2           add    ax, dx
 02D3:031C  8bd8           mov    bx, ax
-02D3:031E  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+02D3:031E  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 02D3:0323  7403           je     0x328
 L_02D3_0325:
 02D3:0325  4e             dec    si
@@ -5223,11 +5223,11 @@ L_02D3_032F:
 02D3:033D  d1e0           shl    ax, 1
 02D3:033F  03c2           add    ax, dx
 02D3:0341  8bd8           mov    bx, ax
-02D3:0343  8a874e36       mov    al, byte ptr [bx + 0x364e]
+02D3:0343  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 02D3:0347  98             cwde   
-02D3:0348  3b060c45       cmp    ax, word ptr [0x450c]
+02D3:0348  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 02D3:034C  7507           jne    0x355
-02D3:034E  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+02D3:034E  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 02D3:0353  7403           je     0x358
 L_02D3_0355:
 02D3:0355  4e             dec    si
@@ -5252,36 +5252,36 @@ L_02D3_035F:
 02D3:0379  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:037A  5e             pop    si
 02D3:037B  5f             pop    di
-02D3:037C  9af3020a07     lcall  f_070A_02F3
+02D3:037C  9af3020a07     lcall  dialog
 02D3:0381  83c40e         add    sp, 0xe
 02D3:0384  8946fc         mov    word ptr [bp - 4], ax
 02D3:0387  3d0300         cmp    ax, 3
 02D3:038A  7520           jne    0x3ac
-02D3:038C  9a59052304     lcall  f_0423_0559
+02D3:038C  9a59052304     lcall  read_map
 02D3:0391  b80100         mov    ax, 1
 02D3:0394  50             push   ax
 02D3:0395  ff36f846       push   word ptr [0x46f8]
-02D3:0399  ff36f646       push   word ptr [0x46f6]
-02D3:039D  9ab1020a07     lcall  f_070A_02B1
+02D3:0399  ff36f646       push   word ptr [0x46f6]   ; lib_joust1
+02D3:039D  9ab1020a07     lcall  show_lib_picture
 02D3:03A2  83c406         add    sp, 6
-02D3:03A5  9ab3010a07     lcall  f_070A_01B3
+02D3:03A5  9ab3010a07     lcall  show_screen
 02D3:03AA  ebb3           jmp    0x35f
 L_02D3_03AC:
 02D3:03AC  8b46fc         mov    ax, word ptr [bp - 4]
 02D3:03AF  3d0100         cmp    ax, 1
 02D3:03B2  7510           jne    0x3c4
-02D3:03B4  9ada0fd302     lcall  f_02D3_0FDA
+02D3:03B4  9ada0fd302     lcall  choose_opponent
 02D3:03B9  a36241         mov    word ptr [0x4162], ax
-02D3:03BC  9ab3010a07     lcall  f_070A_01B3
+02D3:03BC  9ab3010a07     lcall  show_screen
 02D3:03C1  e97601         jmp    0x53a
 L_02D3_03C4:
-02D3:03C4  9ab2042304     lcall  f_0423_04B2
+02D3:03C4  9ab2042304     lcall  redraw_map
 L_02D3_03C9:
 02D3:03C9  837efe00       cmp    word ptr [bp - 2], 0
 02D3:03CD  7503           jne    0x3d2
 02D3:03CF  e93101         jmp    0x503
 L_02D3_03D2:
-02D3:03D2  a10c45         mov    ax, word ptr [0x450c]
+02D3:03D2  a10c45         mov    ax, word ptr [0x450c]   ; player
 02D3:03D5  8bd0           mov    dx, ax
 02D3:03D7  b103           mov    cl, 3
 02D3:03D9  d3e0           shl    ax, cl
@@ -5289,8 +5289,8 @@ L_02D3_03D2:
 02D3:03DD  d1e0           shl    ax, 1
 02D3:03DF  d1e0           shl    ax, 1
 02D3:03E1  8bd8           mov    bx, ax
-02D3:03E3  ffb75044       push   word ptr [bx + 0x4450]
-02D3:03E7  9a3b062304     lcall  f_0423_063B
+02D3:03E3  ffb75044       push   word ptr [bx + 0x4450]   ; side.home
+02D3:03E7  9a3b062304     lcall  choose_territory
 02D3:03EC  59             pop    cx
 02D3:03ED  8946f8         mov    word ptr [bp - 8], ax
 02D3:03F0  8bd0           mov    dx, ax
@@ -5300,7 +5300,7 @@ L_02D3_03D2:
 02D3:03F8  d1e0           shl    ax, 1
 02D3:03FA  03c2           add    ax, dx
 02D3:03FC  8bd8           mov    bx, ax
-02D3:03FE  80bf4e36ff     cmp    byte ptr [bx + 0x364e], 0xff
+02D3:03FE  80bf4e36ff     cmp    byte ptr [bx + 0x364e], 0xff   ; terr.owner
 02D3:0403  7528           jne    0x42d
 02D3:0405  83ec0e         sub    sp, 0xe
 02D3:0408  57             push   di
@@ -5317,7 +5317,7 @@ L_02D3_03D2:
 02D3:041F  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0420  5e             pop    si
 02D3:0421  5f             pop    di
-02D3:0422  9af3020a07     lcall  f_070A_02F3
+02D3:0422  9af3020a07     lcall  dialog
 02D3:0427  83c40e         add    sp, 0xe
 02D3:042A  e9d300         jmp    0x500
 L_02D3_042D:
@@ -5329,9 +5329,9 @@ L_02D3_042D:
 02D3:0438  d1e0           shl    ax, 1
 02D3:043A  03c2           add    ax, dx
 02D3:043C  8bd8           mov    bx, ax
-02D3:043E  8a874e36       mov    al, byte ptr [bx + 0x364e]
+02D3:043E  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 02D3:0442  98             cwde   
-02D3:0443  3b060c45       cmp    ax, word ptr [0x450c]
+02D3:0443  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 02D3:0447  7528           jne    0x471
 02D3:0449  83ec0e         sub    sp, 0xe
 02D3:044C  57             push   di
@@ -5348,7 +5348,7 @@ L_02D3_042D:
 02D3:0463  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0464  5e             pop    si
 02D3:0465  5f             pop    di
-02D3:0466  9af3020a07     lcall  f_070A_02F3
+02D3:0466  9af3020a07     lcall  dialog
 02D3:046B  83c40e         add    sp, 0xe
 02D3:046E  e98f00         jmp    0x500
 L_02D3_0471:
@@ -5360,7 +5360,7 @@ L_02D3_0471:
 02D3:047C  d1e0           shl    ax, 1
 02D3:047E  03c2           add    ax, dx
 02D3:0480  8bd8           mov    bx, ax
-02D3:0482  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+02D3:0482  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 02D3:0487  7427           je     0x4b0
 02D3:0489  83ec0e         sub    sp, 0xe
 02D3:048C  57             push   di
@@ -5377,7 +5377,7 @@ L_02D3_0471:
 02D3:04A3  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:04A4  5e             pop    si
 02D3:04A5  5f             pop    di
-02D3:04A6  9af3020a07     lcall  f_070A_02F3
+02D3:04A6  9af3020a07     lcall  dialog
 02D3:04AB  83c40e         add    sp, 0xe
 02D3:04AE  eb50           jmp    0x500
 L_02D3_04B0:
@@ -5389,7 +5389,7 @@ L_02D3_04B0:
 02D3:04BB  d1e0           shl    ax, 1
 02D3:04BD  03c2           add    ax, dx
 02D3:04BF  8bd8           mov    bx, ax
-02D3:04C1  8a874e36       mov    al, byte ptr [bx + 0x364e]
+02D3:04C1  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 02D3:04C5  98             cwde   
 02D3:04C6  a36241         mov    word ptr [0x4162], ax
 02D3:04C9  d1e0           shl    ax, 1
@@ -5411,7 +5411,7 @@ L_02D3_04B0:
 02D3:04EE  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:04EF  5e             pop    si
 02D3:04F0  5f             pop    di
-02D3:04F1  9af3020a07     lcall  f_070A_02F3
+02D3:04F1  9af3020a07     lcall  dialog
 02D3:04F6  83c40e         add    sp, 0xe
 02D3:04F9  eb05           jmp    0x500
 L_02D3_04FB:
@@ -5419,7 +5419,7 @@ L_02D3_04FB:
 L_02D3_0500:
 02D3:0500  e9c6fe         jmp    0x3c9
 L_02D3_0503:
-02D3:0503  9ab2042304     lcall  f_0423_04B2
+02D3:0503  9ab2042304     lcall  redraw_map
 02D3:0508  83ec0e         sub    sp, 0xe
 02D3:050B  57             push   di
 02D3:050C  8bc4           mov    ax, sp
@@ -5435,12 +5435,12 @@ L_02D3_0503:
 02D3:0522  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0523  5e             pop    si
 02D3:0524  5f             pop    di
-02D3:0525  9af3020a07     lcall  f_070A_02F3
+02D3:0525  9af3020a07     lcall  dialog
 02D3:052A  83c40e         add    sp, 0xe
 02D3:052D  b82400         mov    ax, 0x24
 02D3:0530  50             push   ax
 02D3:0531  56             push   si
-02D3:0532  9ab9052304     lcall  f_0423_05B9
+02D3:0532  9ab9052304     lcall  flash_territory
 02D3:0537  83c404         add    sp, 4
 L_02D3_053A:
 02D3:053A  eb32           jmp    0x56e
@@ -5460,22 +5460,22 @@ L_02D3_053C:
 02D3:0556  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0557  5e             pop    si
 02D3:0558  5f             pop    di
-02D3:0559  9af3020a07     lcall  f_070A_02F3
+02D3:0559  9af3020a07     lcall  dialog
 02D3:055E  83c40e         add    sp, 0xe
-02D3:0561  9ada0fd302     lcall  f_02D3_0FDA
+02D3:0561  9ada0fd302     lcall  choose_opponent
 02D3:0566  a36241         mov    word ptr [0x4162], ax
-02D3:0569  9ab3010a07     lcall  f_070A_01B3
+02D3:0569  9ab3010a07     lcall  show_screen
 L_02D3_056E:
 02D3:056E  8b1e6241       mov    bx, word ptr [0x4162]
 02D3:0572  d1e3           shl    bx, 1
 02D3:0574  c78754410000   mov    word ptr [bx + 0x4154], 0
 02D3:057A  b89a00         mov    ax, 0x9a   ; "rmy of %s"
 02D3:057D  50             push   ax
-02D3:057E  9a2d0e0a07     lcall  f_070A_0E2D
+02D3:057E  9a2d0e0a07     lcall  wait_tune
 02D3:0583  59             pop    cx
-02D3:0584  9a3707d302     lcall  f_02D3_0737
+02D3:0584  9a3707d302     lcall  joust_approach
 02D3:0589  57             push   di
-02D3:058A  9af40dd302     lcall  f_02D3_0DF4
+02D3:058A  9af40dd302     lcall  joust
 02D3:058F  59             pop    cx
 02D3:0590  8946fa         mov    word ptr [bp - 6], ax
 02D3:0593  3d0100         cmp    ax, 1
@@ -5497,25 +5497,25 @@ L_02D3_059B:
 02D3:05B5  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:05B6  5e             pop    si
 02D3:05B7  5f             pop    di
-02D3:05B8  9af3020a07     lcall  f_070A_02F3
+02D3:05B8  9af3020a07     lcall  dialog
 02D3:05BD  83c40e         add    sp, 0xe
 02D3:05C0  b80100         mov    ax, 1
 02D3:05C3  50             push   ax
-02D3:05C4  9ac70e0a07     lcall  f_070A_0EC7
+02D3:05C4  9ac70e0a07     lcall  morale_add
 02D3:05C9  59             pop    cx
 02D3:05CA  837efe00       cmp    word ptr [bp - 2], 0
 02D3:05CE  7412           je     0x5e2
 02D3:05D0  b80100         mov    ax, 1
 02D3:05D3  50             push   ax
-02D3:05D4  ff360c45       push   word ptr [0x450c]
-02D3:05D8  9a7110d302     lcall  f_02D3_1071
+02D3:05D4  ff360c45       push   word ptr [0x450c]   ; player
+02D3:05D8  9a7110d302     lcall  leadership_add
 02D3:05DD  83c404         add    sp, 4
 02D3:05E0  eb34           jmp    0x616
 L_02D3_05E2:
-02D3:05E2  9ab2042304     lcall  f_0423_04B2
+02D3:05E2  9ab2042304     lcall  redraw_map
 02D3:05E7  ff76f8         push   word ptr [bp - 8]
-02D3:05EA  ff360c45       push   word ptr [0x450c]
-02D3:05EE  9a58072304     lcall  f_0423_0758
+02D3:05EA  ff360c45       push   word ptr [0x450c]   ; player
+02D3:05EE  9a58072304     lcall  set_owner
 02D3:05F3  83c404         add    sp, 4
 02D3:05F6  8bc7           mov    ax, di
 02D3:05F8  8bd0           mov    dx, ax
@@ -5525,11 +5525,11 @@ L_02D3_05E2:
 02D3:0600  d1e0           shl    ax, 1
 02D3:0602  d1e0           shl    ax, 1
 02D3:0604  8bd8           mov    bx, ax
-02D3:0606  8b875244       mov    ax, word ptr [bx + 0x4452]
+02D3:0606  8b875244       mov    ax, word ptr [bx + 0x4452]   ; side.at
 02D3:060A  3b46f8         cmp    ax, word ptr [bp - 8]
 02D3:060D  7507           jne    0x616
 02D3:060F  57             push   di
-02D3:0610  9a30011900     lcall  f_0019_0130
+02D3:0610  9a30011900     lcall  army_go_home
 02D3:0615  59             pop    cx
 L_02D3_0616:
 02D3:0616  e91501         jmp    0x72e
@@ -5541,7 +5541,7 @@ L_02D3_0619:
 L_02D3_0624:
 02D3:0624  b8ffff         mov    ax, 0xffff
 02D3:0627  50             push   ax
-02D3:0628  9ac70e0a07     lcall  f_070A_0EC7
+02D3:0628  9ac70e0a07     lcall  morale_add
 02D3:062D  59             pop    cx
 02D3:062E  83ec0e         sub    sp, 0xe
 02D3:0631  57             push   di
@@ -5558,23 +5558,23 @@ L_02D3_0624:
 02D3:0648  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0649  5e             pop    si
 02D3:064A  5f             pop    di
-02D3:064B  9af3020a07     lcall  f_070A_02F3
+02D3:064B  9af3020a07     lcall  dialog
 02D3:0650  83c40e         add    sp, 0xe
 02D3:0653  837efe00       cmp    word ptr [bp - 2], 0
 02D3:0657  7412           je     0x66b
 02D3:0659  b8ffff         mov    ax, 0xffff
 02D3:065C  50             push   ax
-02D3:065D  ff360c45       push   word ptr [0x450c]
-02D3:0661  9a7110d302     lcall  f_02D3_1071
+02D3:065D  ff360c45       push   word ptr [0x450c]   ; player
+02D3:0661  9a7110d302     lcall  leadership_add
 02D3:0666  83c404         add    sp, 4
 02D3:0669  eb35           jmp    0x6a0
 L_02D3_066B:
-02D3:066B  9ab2042304     lcall  f_0423_04B2
+02D3:066B  9ab2042304     lcall  redraw_map
 02D3:0670  56             push   si
 02D3:0671  ff366241       push   word ptr [0x4162]
-02D3:0675  9a58072304     lcall  f_0423_0758
+02D3:0675  9a58072304     lcall  set_owner
 02D3:067A  83c404         add    sp, 4
-02D3:067D  a10c45         mov    ax, word ptr [0x450c]
+02D3:067D  a10c45         mov    ax, word ptr [0x450c]   ; player
 02D3:0680  8bd0           mov    dx, ax
 02D3:0682  b103           mov    cl, 3
 02D3:0684  d3e0           shl    ax, cl
@@ -5582,17 +5582,17 @@ L_02D3_066B:
 02D3:0688  d1e0           shl    ax, 1
 02D3:068A  d1e0           shl    ax, 1
 02D3:068C  8bd8           mov    bx, ax
-02D3:068E  8b875244       mov    ax, word ptr [bx + 0x4452]
+02D3:068E  8b875244       mov    ax, word ptr [bx + 0x4452]   ; side.at
 02D3:0692  3bc6           cmp    ax, si
 02D3:0694  750a           jne    0x6a0
-02D3:0696  ff360c45       push   word ptr [0x450c]
-02D3:069A  9a30011900     lcall  f_0019_0130
+02D3:0696  ff360c45       push   word ptr [0x450c]   ; player
+02D3:069A  9a30011900     lcall  army_go_home
 02D3:069F  59             pop    cx
 L_02D3_06A0:
 02D3:06A0  e98b00         jmp    0x72e
 L_02D3_06A3:
 02D3:06A3  c7060a470100   mov    word ptr [0x470a], 1
-02D3:06A9  c706d6461300   mov    word ptr [0x46d6], 0x13
+02D3:06A9  c706d6461300   mov    word ptr [0x46d6], 0x13   ; morale
 02D3:06AF  83ec0e         sub    sp, 0xe
 02D3:06B2  57             push   di
 02D3:06B3  8bc4           mov    ax, sp
@@ -5608,9 +5608,9 @@ L_02D3_06A3:
 02D3:06C9  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:06CA  5e             pop    si
 02D3:06CB  5f             pop    di
-02D3:06CC  9af3020a07     lcall  f_070A_02F3
+02D3:06CC  9af3020a07     lcall  dialog
 02D3:06D1  83c40e         add    sp, 0xe
-02D3:06D4  9ab2042304     lcall  f_0423_04B2
+02D3:06D4  9ab2042304     lcall  redraw_map
 02D3:06D9  be1200         mov    si, 0x12
 L_02D3_06DC:
 02D3:06DC  85f6           test   si, si
@@ -5623,11 +5623,11 @@ L_02D3_06DC:
 02D3:06EA  d1e0           shl    ax, 1
 02D3:06EC  03c2           add    ax, dx
 02D3:06EE  8bd8           mov    bx, ax
-02D3:06F0  8a874e36       mov    al, byte ptr [bx + 0x364e]
+02D3:06F0  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 02D3:06F4  98             cwde   
-02D3:06F5  3b060c45       cmp    ax, word ptr [0x450c]
+02D3:06F5  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 02D3:06F9  7526           jne    0x721
-02D3:06FB  a10c45         mov    ax, word ptr [0x450c]
+02D3:06FB  a10c45         mov    ax, word ptr [0x450c]   ; player
 02D3:06FE  8bd0           mov    dx, ax
 02D3:0700  b103           mov    cl, 3
 02D3:0702  d3e0           shl    ax, cl
@@ -5635,20 +5635,20 @@ L_02D3_06DC:
 02D3:0706  d1e0           shl    ax, 1
 02D3:0708  d1e0           shl    ax, 1
 02D3:070A  8bd8           mov    bx, ax
-02D3:070C  8b875044       mov    ax, word ptr [bx + 0x4450]
+02D3:070C  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 02D3:0710  3bc6           cmp    ax, si
 02D3:0712  740d           je     0x721
 02D3:0714  56             push   si
 02D3:0715  b8ffff         mov    ax, 0xffff
 02D3:0718  50             push   ax
-02D3:0719  9a58072304     lcall  f_0423_0758
+02D3:0719  9a58072304     lcall  set_owner
 02D3:071E  83c404         add    sp, 4
 L_02D3_0721:
 02D3:0721  4e             dec    si
 02D3:0722  ebb8           jmp    0x6dc
 L_02D3_0724:
-02D3:0724  ff360c45       push   word ptr [0x450c]
-02D3:0728  9a30011900     lcall  f_0019_0130
+02D3:0724  ff360c45       push   word ptr [0x450c]   ; player
+02D3:0728  9a30011900     lcall  army_go_home
 02D3:072D  59             pop    cx
 L_02D3_072E:
 02D3:072E  8b46fa         mov    ax, word ptr [bp - 6]
@@ -5658,7 +5658,7 @@ L_02D3_072E:
 02D3:0735  5d             pop    bp
 02D3:0736  cb             retf   
 
-f_02D3_0737 proc  ; 02D3:0737  callers: f_02D3_029E
+joust_approach proc  ; 02D3:0737  callers: joust_round
 02D3:0737  55             push   bp
 02D3:0738  8bec           mov    bp, sp
 02D3:073A  83c4f6         add    sp, -0xa
@@ -5667,10 +5667,10 @@ f_02D3_0737 proc  ; 02D3:0737  callers: f_02D3_029E
 02D3:073F  b80100         mov    ax, 1
 02D3:0742  50             push   ax
 02D3:0743  ff36f846       push   word ptr [0x46f8]
-02D3:0747  ff36f646       push   word ptr [0x46f6]
-02D3:074B  9ab1020a07     lcall  f_070A_02B1
+02D3:0747  ff36f646       push   word ptr [0x46f6]   ; lib_joust1
+02D3:074B  9ab1020a07     lcall  show_lib_picture
 02D3:0750  83c406         add    sp, 6
-02D3:0753  9ab3010a07     lcall  f_070A_01B3
+02D3:0753  9ab3010a07     lcall  show_screen
 02D3:0758  bf2a00         mov    di, 0x2a
 02D3:075B  be0200         mov    si, 2
 L_02D3_075E:
@@ -5693,13 +5693,13 @@ L_02D3_075E:
 02D3:078C  8bc7           mov    ax, di
 02D3:078E  47             inc    di
 02D3:078F  50             push   ax
-02D3:0790  9a07009b08     lcall  f_089B_0007
+02D3:0790  9a07009b08     lcall  put_sprite
 02D3:0795  83c408         add    sp, 8
 02D3:0798  b80300         mov    ax, 3
 02D3:079B  50             push   ax
-02D3:079C  9ab2080a07     lcall  f_070A_08B2
+02D3:079C  9ab2080a07     lcall  wait_ticks
 02D3:07A1  59             pop    cx
-02D3:07A2  9aab070a07     lcall  f_070A_07AB
+02D3:07A2  9aab070a07     lcall  get_key
 02D3:07A7  46             inc    si
 02D3:07A8  ebb4           jmp    0x75e
 L_02D3_07AA:
@@ -5720,11 +5720,11 @@ L_02D3_07AA:
 02D3:07D3  50             push   ax
 02D3:07D4  b83e00         mov    ax, 0x3e
 02D3:07D7  50             push   ax
-02D3:07D8  9a07009b08     lcall  f_089B_0007
+02D3:07D8  9a07009b08     lcall  put_sprite
 02D3:07DD  83c408         add    sp, 8
 02D3:07E0  b80300         mov    ax, 3
 02D3:07E3  50             push   ax
-02D3:07E4  9ab2080a07     lcall  f_070A_08B2
+02D3:07E4  9ab2080a07     lcall  wait_ticks
 02D3:07E9  59             pop    cx
 02D3:07EA  8bde           mov    bx, si
 02D3:07EC  46             inc    si
@@ -5743,11 +5743,11 @@ L_02D3_07AA:
 02D3:0813  50             push   ax
 02D3:0814  b83d00         mov    ax, 0x3d
 02D3:0817  50             push   ax
-02D3:0818  9a07009b08     lcall  f_089B_0007
+02D3:0818  9a07009b08     lcall  put_sprite
 02D3:081D  83c408         add    sp, 8
 02D3:0820  b80300         mov    ax, 3
 02D3:0823  50             push   ax
-02D3:0824  9ab2080a07     lcall  f_070A_08B2
+02D3:0824  9ab2080a07     lcall  wait_ticks
 02D3:0829  59             pop    cx
 02D3:082A  bf3d00         mov    di, 0x3d
 02D3:082D  c746fe0f00     mov    word ptr [bp - 2], 0xf
@@ -5774,11 +5774,11 @@ L_02D3_083A:
 02D3:0864  8bc7           mov    ax, di
 02D3:0866  4f             dec    di
 02D3:0867  50             push   ax
-02D3:0868  9a07009b08     lcall  f_089B_0007
+02D3:0868  9a07009b08     lcall  put_sprite
 02D3:086D  83c408         add    sp, 8
 02D3:0870  b80100         mov    ax, 1
 02D3:0873  50             push   ax
-02D3:0874  9ab2080a07     lcall  f_070A_08B2
+02D3:0874  9ab2080a07     lcall  wait_ticks
 02D3:0879  59             pop    cx
 02D3:087A  8bde           mov    bx, si
 02D3:087C  83c304         add    bx, 4
@@ -5798,13 +5798,13 @@ L_02D3_083A:
 02D3:08A6  8b46fe         mov    ax, word ptr [bp - 2]
 02D3:08A9  ff46fe         inc    word ptr [bp - 2]
 02D3:08AC  50             push   ax
-02D3:08AD  9a07009b08     lcall  f_089B_0007
+02D3:08AD  9a07009b08     lcall  put_sprite
 02D3:08B2  83c408         add    sp, 8
 02D3:08B5  b80200         mov    ax, 2
 02D3:08B8  50             push   ax
-02D3:08B9  9ab2080a07     lcall  f_070A_08B2
+02D3:08B9  9ab2080a07     lcall  wait_ticks
 02D3:08BE  59             pop    cx
-02D3:08BF  9aab070a07     lcall  f_070A_07AB
+02D3:08BF  9aab070a07     lcall  get_key
 02D3:08C4  e96bff         jmp    0x832
 L_02D3_08C7:
 02D3:08C7  8bde           mov    bx, si
@@ -5823,11 +5823,11 @@ L_02D3_08C7:
 02D3:08EF  b85600         mov    ax, 0x56   ; "nights  <>@%4d>"
 02D3:08F2  50             push   ax
 02D3:08F3  ff76fe         push   word ptr [bp - 2]
-02D3:08F6  9a07009b08     lcall  f_089B_0007
+02D3:08F6  9a07009b08     lcall  put_sprite
 02D3:08FB  83c408         add    sp, 8
 02D3:08FE  b80900         mov    ax, 9
 02D3:0901  50             push   ax
-02D3:0902  9ab2080a07     lcall  f_070A_08B2
+02D3:0902  9ab2080a07     lcall  wait_ticks
 02D3:0907  59             pop    cx
 02D3:0908  b80300         mov    ax, 3
 02D3:090B  50             push   ax
@@ -5841,8 +5841,8 @@ L_02D3_08C7:
 02D3:091B  d1e0           shl    ax, 1
 02D3:091D  d1e0           shl    ax, 1
 02D3:091F  8bd8           mov    bx, ax
-02D3:0921  ffb74c44       push   word ptr [bx + 0x444c]
-02D3:0925  9a650d0a07     lcall  f_070A_0D65
+02D3:0921  ffb74c44       push   word ptr [bx + 0x444c]   ; side.portrait
+02D3:0925  9a650d0a07     lcall  show_portrait
 02D3:092A  83c406         add    sp, 6
 02D3:092D  a16241         mov    ax, word ptr [0x4162]
 02D3:0930  8bd0           mov    dx, ax
@@ -5852,8 +5852,8 @@ L_02D3_08C7:
 02D3:0938  d1e0           shl    ax, 1
 02D3:093A  d1e0           shl    ax, 1
 02D3:093C  8bd8           mov    bx, ax
-02D3:093E  8b874444       mov    ax, word ptr [bx + 0x4444]
-02D3:0942  8b974644       mov    dx, word ptr [bx + 0x4446]
+02D3:093E  8b874444       mov    ax, word ptr [bx + 0x4444]   ; side.name
+02D3:0942  8b974644       mov    dx, word ptr [bx + 0x4446]   ; side+2
 02D3:0946  89168620       mov    word ptr [0x2086], dx
 02D3:094A  a38420         mov    word ptr [0x2084], ax
 02D3:094D  c606892001     mov    byte ptr [0x2089], 1
@@ -5872,13 +5872,13 @@ L_02D3_08C7:
 02D3:096C  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:096D  5e             pop    si
 02D3:096E  5f             pop    di
-02D3:096F  9af3020a07     lcall  f_070A_02F3
+02D3:096F  9af3020a07     lcall  dialog
 02D3:0974  83c40e         add    sp, 0xe
 02D3:0977  b80300         mov    ax, 3
 02D3:097A  50             push   ax
 02D3:097B  b83500         mov    ax, 0x35
 02D3:097E  50             push   ax
-02D3:097F  a10c45         mov    ax, word ptr [0x450c]
+02D3:097F  a10c45         mov    ax, word ptr [0x450c]   ; player
 02D3:0982  8bd0           mov    dx, ax
 02D3:0984  b103           mov    cl, 3
 02D3:0986  d3e0           shl    ax, cl
@@ -5886,12 +5886,12 @@ L_02D3_08C7:
 02D3:098A  d1e0           shl    ax, 1
 02D3:098C  d1e0           shl    ax, 1
 02D3:098E  8bd8           mov    bx, ax
-02D3:0990  8b874c44       mov    ax, word ptr [bx + 0x444c]
+02D3:0990  8b874c44       mov    ax, word ptr [bx + 0x444c]   ; side.portrait
 02D3:0994  03061c47       add    ax, word ptr [0x471c]
 02D3:0998  50             push   ax
-02D3:0999  9a650d0a07     lcall  f_070A_0D65
+02D3:0999  9a650d0a07     lcall  show_portrait
 02D3:099E  83c406         add    sp, 6
-02D3:09A1  a10c45         mov    ax, word ptr [0x450c]
+02D3:09A1  a10c45         mov    ax, word ptr [0x450c]   ; player
 02D3:09A4  8bd0           mov    dx, ax
 02D3:09A6  b103           mov    cl, 3
 02D3:09A8  d3e0           shl    ax, cl
@@ -5899,8 +5899,8 @@ L_02D3_08C7:
 02D3:09AC  d1e0           shl    ax, 1
 02D3:09AE  d1e0           shl    ax, 1
 02D3:09B0  8bd8           mov    bx, ax
-02D3:09B2  8b874444       mov    ax, word ptr [bx + 0x4444]
-02D3:09B6  8b974644       mov    dx, word ptr [bx + 0x4446]
+02D3:09B2  8b874444       mov    ax, word ptr [bx + 0x4444]   ; side.name
+02D3:09B6  8b974644       mov    dx, word ptr [bx + 0x4446]   ; side+2
 02D3:09BA  89168620       mov    word ptr [0x2086], dx
 02D3:09BE  a38420         mov    word ptr [0x2084], ax
 02D3:09C1  c60689202d     mov    byte ptr [0x2089], 0x2d
@@ -5919,7 +5919,7 @@ L_02D3_08C7:
 02D3:09E0  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:09E1  5e             pop    si
 02D3:09E2  5f             pop    di
-02D3:09E3  9af3020a07     lcall  f_070A_02F3
+02D3:09E3  9af3020a07     lcall  dialog
 02D3:09E8  83c40e         add    sp, 0xe
 02D3:09EB  83ec0e         sub    sp, 0xe
 02D3:09EE  57             push   di
@@ -5936,7 +5936,7 @@ L_02D3_08C7:
 02D3:0A05  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0A06  5e             pop    si
 02D3:0A07  5f             pop    di
-02D3:0A08  9af3020a07     lcall  f_070A_02F3
+02D3:0A08  9af3020a07     lcall  dialog
 02D3:0A0D  83c40e         add    sp, 0xe
 02D3:0A10  5e             pop    si
 02D3:0A11  5f             pop    di
@@ -5944,25 +5944,25 @@ L_02D3_08C7:
 02D3:0A14  5d             pop    bp
 02D3:0A15  cb             retf   
 
-f_02D3_0A16 proc  ; 02D3:0A16  callers: f_02D3_0DF4
+lance_step proc  ; 02D3:0A16  callers: joust
 02D3:0A16  55             push   bp
 02D3:0A17  8bec           mov    bp, sp
 02D3:0A19  83c4fc         add    sp, -4
 02D3:0A1C  57             push   di
 02D3:0A1D  56             push   si
-02D3:0A1E  ff36ee33       push   word ptr [0x33ee]
-02D3:0A22  9a0500f308     lcall  f_08F3_0005
+02D3:0A1E  ff36ee33       push   word ptr [0x33ee]   ; gallop
+02D3:0A22  9a0500f308     lcall  speaker_tone
 02D3:0A27  59             pop    cx
-02D3:0A28  a03443         mov    al, byte ptr [0x4334]
+02D3:0A28  a03443         mov    al, byte ptr [0x4334]   ; crtc_value
 02D3:0A2B  98             cwde   
 02D3:0A2C  2b4608         sub    ax, word ptr [bp + 8]
 02D3:0A2F  50             push   ax
-02D3:0A30  a03243         mov    al, byte ptr [0x4332]
+02D3:0A30  a03243         mov    al, byte ptr [0x4332]   ; crtc_reg
 02D3:0A33  98             cwde   
 02D3:0A34  50             push   ax
-02D3:0A35  9a0c001909     lcall  f_0919_000C
+02D3:0A35  9a0c001909     lcall  crtc_write
 02D3:0A3A  83c404         add    sp, 4
-02D3:0A3D  9aab070a07     lcall  f_070A_07AB
+02D3:0A3D  9aab070a07     lcall  get_key
 02D3:0A42  8bf0           mov    si, ax
 02D3:0A44  83c6b9         add    si, -0x47
 02D3:0A47  8bc6           mov    ax, si
@@ -5976,22 +5976,22 @@ L_02D3_0A53:
 02D3:0A58  be0300         mov    si, 3
 L_02D3_0A5B:
 02D3:0A5B  ff366a41       push   word ptr [0x416a]
-02D3:0A5F  ff366841       push   word ptr [0x4168]
+02D3:0A5F  ff366841       push   word ptr [0x4168]   ; lance_save
 02D3:0A63  b87400         mov    ax, 0x74   ; "apults@@%4d>"
 02D3:0A66  50             push   ax
-02D3:0A67  ff366c41       push   word ptr [0x416c]
-02D3:0A6B  9a04007109     lcall  f_0971_0004
+02D3:0A67  ff366c41       push   word ptr [0x416c]   ; lance_x
+02D3:0A6B  9a04007109     lcall  put_sprite_w
 02D3:0A70  83c408         add    sp, 8
 02D3:0A73  837e0600       cmp    word ptr [bp + 6], 0
 02D3:0A77  743d           je     0xab6
 02D3:0A79  8b5e06         mov    bx, word ptr [bp + 6]
 02D3:0A7C  d1e3           shl    bx, 1
-02D3:0A7E  031e0647       add    bx, word ptr [0x4706]
-02D3:0A82  8e060847       mov    es, word ptr [0x4708]
+02D3:0A7E  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+02D3:0A82  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 02D3:0A86  268b07         mov    ax, word ptr es:[bx]
 02D3:0A89  d1e0           shl    ax, 1
-02D3:0A8B  03060647       add    ax, word ptr [0x4706]
-02D3:0A8F  8b160847       mov    dx, word ptr [0x4708]
+02D3:0A8B  03060647       add    ax, word ptr [0x4706]   ; scene_items
+02D3:0A8F  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 02D3:0A93  8956fe         mov    word ptr [bp - 2], dx
 02D3:0A96  8946fc         mov    word ptr [bp - 4], ax
 02D3:0A99  ff76fe         push   word ptr [bp - 2]
@@ -6001,7 +6001,7 @@ L_02D3_0A5B:
 02D3:0AA4  d1e3           shl    bx, 1
 02D3:0AA6  ffb74833       push   word ptr [bx + 0x3348]
 02D3:0AAA  ffb74633       push   word ptr [bx + 0x3346]
-02D3:0AAE  9a07009b08     lcall  f_089B_0007
+02D3:0AAE  9a07009b08     lcall  put_sprite
 02D3:0AB3  83c408         add    sp, 8
 L_02D3_0AB6:
 02D3:0AB6  8bde           mov    bx, si
@@ -6013,74 +6013,74 @@ L_02D3_0AB6:
 02D3:0AC4  837e0600       cmp    word ptr [bp + 6], 0
 02D3:0AC8  743b           je     0xb05
 L_02D3_0ACA:
-02D3:0ACA  a16c41         mov    ax, word ptr [0x416c]
+02D3:0ACA  a16c41         mov    ax, word ptr [0x416c]   ; lance_x
 02D3:0ACD  03c7           add    ax, di
-02D3:0ACF  a36c41         mov    word ptr [0x416c], ax
+02D3:0ACF  a36c41         mov    word ptr [0x416c], ax   ; lance_x
 02D3:0AD2  3d1400         cmp    ax, 0x14
 02D3:0AD5  7d08           jge    0xadf
-02D3:0AD7  c7066c411400   mov    word ptr [0x416c], 0x14
+02D3:0AD7  c7066c411400   mov    word ptr [0x416c], 0x14   ; lance_x
 02D3:0ADD  eb0e           jmp    0xaed
 L_02D3_0ADF:
-02D3:0ADF  a16c41         mov    ax, word ptr [0x416c]
+02D3:0ADF  a16c41         mov    ax, word ptr [0x416c]   ; lance_x
 02D3:0AE2  3d3200         cmp    ax, 0x32
 02D3:0AE5  7e06           jle    0xaed
-02D3:0AE7  c7066c413200   mov    word ptr [0x416c], 0x32
+02D3:0AE7  c7066c413200   mov    word ptr [0x416c], 0x32   ; lance_x
 L_02D3_0AED:
 02D3:0AED  ff366a41       push   word ptr [0x416a]
-02D3:0AF1  ff366841       push   word ptr [0x4168]
+02D3:0AF1  ff366841       push   word ptr [0x4168]   ; lance_save
 02D3:0AF5  b87400         mov    ax, 0x74   ; "apults@@%4d>"
 02D3:0AF8  50             push   ax
-02D3:0AF9  ff366c41       push   word ptr [0x416c]
-02D3:0AFD  9a08007709     lcall  f_0977_0008
+02D3:0AF9  ff366c41       push   word ptr [0x416c]   ; lance_x
+02D3:0AFD  9a08007709     lcall  save_under
 02D3:0B02  83c408         add    sp, 8
 L_02D3_0B05:
 02D3:0B05  8bde           mov    bx, si
 02D3:0B07  d1e3           shl    bx, 1
 02D3:0B09  d1e3           shl    bx, 1
 02D3:0B0B  8b879833       mov    ax, word ptr [bx + 0x3398]
-02D3:0B0F  0306f233       add    ax, word ptr [0x33f2]
-02D3:0B13  8b0e6e41       mov    cx, word ptr [0x416e]
+02D3:0B0F  0306f233       add    ax, word ptr [0x33f2]   ; bob
+02D3:0B13  8b0e6e41       mov    cx, word ptr [0x416e]   ; lance_y
 02D3:0B17  03c8           add    cx, ax
-02D3:0B19  890e6e41       mov    word ptr [0x416e], cx
+02D3:0B19  890e6e41       mov    word ptr [0x416e], cx   ; lance_y
 02D3:0B1D  8bc1           mov    ax, cx
 02D3:0B1F  3db400         cmp    ax, 0xb4
 02D3:0B22  7e0e           jle    0xb32
-02D3:0B24  c7066e41b400   mov    word ptr [0x416e], 0xb4   ; "arrison army of %s"
-02D3:0B2A  c706f0330100   mov    word ptr [0x33f0], 1
+02D3:0B24  c7066e41b400   mov    word ptr [0x416e], 0xb4   ; lance_y "arrison army of %s"
+02D3:0B2A  c706f0330100   mov    word ptr [0x33f0], 1   ; bob_left
 02D3:0B30  eb14           jmp    0xb46
 L_02D3_0B32:
-02D3:0B32  a16e41         mov    ax, word ptr [0x416e]
+02D3:0B32  a16e41         mov    ax, word ptr [0x416e]   ; lance_y
 02D3:0B35  3d7400         cmp    ax, 0x74
 02D3:0B38  7d0c           jge    0xb46
-02D3:0B3A  c7066e417400   mov    word ptr [0x416e], 0x74   ; "apults@@%4d>"
-02D3:0B40  c706f0330100   mov    word ptr [0x33f0], 1
+02D3:0B3A  c7066e417400   mov    word ptr [0x416e], 0x74   ; lance_y "apults@@%4d>"
+02D3:0B40  c706f0330100   mov    word ptr [0x33f0], 1   ; bob_left
 L_02D3_0B46:
 02D3:0B46  b8c800         mov    ax, 0xc8   ; "our army is attacked by %s."
-02D3:0B49  2b066e41       sub    ax, word ptr [0x416e]
-02D3:0B4D  c41e6441       les    bx, ptr [0x4164]
+02D3:0B49  2b066e41       sub    ax, word ptr [0x416e]   ; lance_y
+02D3:0B4D  c41e6441       les    bx, ptr [0x4164]   ; lance_sprite
 02D3:0B51  26894702       mov    word ptr es:[bx + 2], ax
 02D3:0B55  ff366641       push   word ptr [0x4166]
-02D3:0B59  ff366441       push   word ptr [0x4164]
-02D3:0B5D  ff366e41       push   word ptr [0x416e]
-02D3:0B61  ff366c41       push   word ptr [0x416c]
-02D3:0B65  9a00006b09     lcall  f_096B_0000
+02D3:0B59  ff366441       push   word ptr [0x4164]   ; lance_sprite
+02D3:0B5D  ff366e41       push   word ptr [0x416e]   ; lance_y
+02D3:0B61  ff366c41       push   word ptr [0x416c]   ; lance_x
+02D3:0B65  9a00006b09     lcall  or_sprite
 02D3:0B6A  83c408         add    sp, 8
-02D3:0B6D  ff0ef033       dec    word ptr [0x33f0]
+02D3:0B6D  ff0ef033       dec    word ptr [0x33f0]   ; bob_left
 02D3:0B71  750a           jne    0xb7d
-02D3:0B73  c706f0330600   mov    word ptr [0x33f0], 6
-02D3:0B79  f71ef233       neg    word ptr [0x33f2]
+02D3:0B73  c706f0330600   mov    word ptr [0x33f0], 6   ; bob_left
+02D3:0B79  f71ef233       neg    word ptr [0x33f2]   ; bob
 L_02D3_0B7D:
 02D3:0B7D  b80100         mov    ax, 1
 02D3:0B80  50             push   ax
-02D3:0B81  ff36ee33       push   word ptr [0x33ee]
-02D3:0B85  9a2d090a07     lcall  f_070A_092D
+02D3:0B81  ff36ee33       push   word ptr [0x33ee]   ; gallop
+02D3:0B85  9a2d090a07     lcall  beep
 02D3:0B8A  83c404         add    sp, 4
-02D3:0B8D  a1ee33         mov    ax, word ptr [0x33ee]
+02D3:0B8D  a1ee33         mov    ax, word ptr [0x33ee]   ; gallop
 02D3:0B90  2df401         sub    ax, 0x1f4
-02D3:0B93  a3ee33         mov    word ptr [0x33ee], ax
+02D3:0B93  a3ee33         mov    word ptr [0x33ee], ax   ; gallop
 02D3:0B96  3d546f         cmp    ax, 0x6f54
 02D3:0B99  7d06           jge    0xba1
-02D3:0B9B  c706ee333075   mov    word ptr [0x33ee], 0x7530
+02D3:0B9B  c706ee333075   mov    word ptr [0x33ee], 0x7530   ; gallop
 L_02D3_0BA1:
 02D3:0BA1  5e             pop    si
 02D3:0BA2  5f             pop    di
@@ -6088,22 +6088,22 @@ L_02D3_0BA1:
 02D3:0BA5  5d             pop    bp
 02D3:0BA6  cb             retf   
 
-f_02D3_0BA7 proc  ; 02D3:0BA7  callers: f_02D3_0DF4
+joust_outcome proc  ; 02D3:0BA7  callers: joust
 02D3:0BA7  55             push   bp
 02D3:0BA8  8bec           mov    bp, sp
 02D3:0BAA  83c4e0         add    sp, -0x20
 02D3:0BAD  57             push   di
 02D3:0BAE  56             push   si
-02D3:0BAF  9a1b090a07     lcall  f_070A_091B
+02D3:0BAF  9a1b090a07     lcall  flush_keys
 02D3:0BB4  b81400         mov    ax, 0x14
 02D3:0BB7  50             push   ax
 02D3:0BB8  ff360447       push   word ptr [0x4704]
-02D3:0BBC  ff360247       push   word ptr [0x4702]
-02D3:0BC0  9ab1020a07     lcall  f_070A_02B1
+02D3:0BBC  ff360247       push   word ptr [0x4702]   ; lib_scene
+02D3:0BC0  9ab1020a07     lcall  show_lib_picture
 02D3:0BC5  83c406         add    sp, 6
-02D3:0BC8  c706d8460100   mov    word ptr [0x46d8], 1
-02D3:0BCE  9ab3010a07     lcall  f_070A_01B3
-02D3:0BD3  c706d8460000   mov    word ptr [0x46d8], 0
+02D3:0BC8  c706d8460100   mov    word ptr [0x46d8], 1   ; no_wipe
+02D3:0BCE  9ab3010a07     lcall  show_screen
+02D3:0BD3  c706d8460000   mov    word ptr [0x46d8], 0   ; no_wipe
 02D3:0BD9  8b5e06         mov    bx, word ptr [bp + 6]
 02D3:0BDC  83c325         add    bx, 0x25
 02D3:0BDF  d1e3           shl    bx, 1
@@ -6128,7 +6128,7 @@ L_02D3_0C14:
 02D3:0C19  7503           jne    0xc1e
 02D3:0C1B  e9d001         jmp    0xdee
 L_02D3_0C1E:
-02D3:0C1E  9aab070a07     lcall  f_070A_07AB
+02D3:0C1E  9aab070a07     lcall  get_key
 02D3:0C23  85ff           test   di, di
 02D3:0C25  7464           je     0xc8b
 02D3:0C27  c45ee0         les    bx, ptr [bp - 0x20]
@@ -6137,12 +6137,12 @@ L_02D3_0C1E:
 02D3:0C31  2ae4           sub    ah, ah
 02D3:0C33  8bd8           mov    bx, ax
 02D3:0C35  d1e3           shl    bx, 1
-02D3:0C37  031e0647       add    bx, word ptr [0x4706]
-02D3:0C3B  8e060847       mov    es, word ptr [0x4708]
+02D3:0C37  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+02D3:0C3B  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 02D3:0C3F  268b07         mov    ax, word ptr es:[bx]
 02D3:0C42  d1e0           shl    ax, 1
-02D3:0C44  03060647       add    ax, word ptr [0x4706]
-02D3:0C48  8b160847       mov    dx, word ptr [0x4708]
+02D3:0C44  03060647       add    ax, word ptr [0x4706]   ; scene_items
+02D3:0C48  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 02D3:0C4C  8956ea         mov    word ptr [bp - 0x16], dx
 02D3:0C4F  8946e8         mov    word ptr [bp - 0x18], ax
 02D3:0C52  c45ee0         les    bx, ptr [bp - 0x20]
@@ -6175,12 +6175,12 @@ L_02D3_0C8B:
 02D3:0C9B  2ae4           sub    ah, ah
 02D3:0C9D  8bd8           mov    bx, ax
 02D3:0C9F  d1e3           shl    bx, 1
-02D3:0CA1  031e0647       add    bx, word ptr [0x4706]
-02D3:0CA5  8e060847       mov    es, word ptr [0x4708]
+02D3:0CA1  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+02D3:0CA5  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 02D3:0CA9  268b07         mov    ax, word ptr es:[bx]
 02D3:0CAC  d1e0           shl    ax, 1
-02D3:0CAE  03060647       add    ax, word ptr [0x4706]
-02D3:0CB2  8b160847       mov    dx, word ptr [0x4708]
+02D3:0CAE  03060647       add    ax, word ptr [0x4706]   ; scene_items
+02D3:0CB2  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 02D3:0CB6  8956e6         mov    word ptr [bp - 0x1a], dx
 02D3:0CB9  8946e4         mov    word ptr [bp - 0x1c], ax
 02D3:0CBC  c45ee0         les    bx, ptr [bp - 0x20]
@@ -6207,7 +6207,7 @@ L_02D3_0CF5:
 02D3:0CF5  b80100         mov    ax, 1
 02D3:0CF8  50             push   ax
 02D3:0CF9  ff36f433       push   word ptr [0x33f4]
-02D3:0CFD  9a2d090a07     lcall  f_070A_092D
+02D3:0CFD  9a2d090a07     lcall  beep
 02D3:0D02  83c404         add    sp, 4
 02D3:0D05  a1f433         mov    ax, word ptr [0x33f4]
 02D3:0D08  2df401         sub    ax, 0x1f4
@@ -6217,28 +6217,28 @@ L_02D3_0CF5:
 02D3:0D13  c706f4333075   mov    word ptr [0x33f4], 0x7530
 L_02D3_0D19:
 02D3:0D19  ff36f433       push   word ptr [0x33f4]
-02D3:0D1D  9a0500f308     lcall  f_08F3_0005
+02D3:0D1D  9a0500f308     lcall  speaker_tone
 02D3:0D22  59             pop    cx
 02D3:0D23  837ef800       cmp    word ptr [bp - 8], 0
 02D3:0D27  741c           je     0xd45
 02D3:0D29  ff36ec46       push   word ptr [0x46ec]
-02D3:0D2D  ff36ea46       push   word ptr [0x46ea]
+02D3:0D2D  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 02D3:0D31  ff76f4         push   word ptr [bp - 0xc]
 02D3:0D34  ff76f6         push   word ptr [bp - 0xa]
 02D3:0D37  ff76f8         push   word ptr [bp - 8]
 02D3:0D3A  ff76fa         push   word ptr [bp - 6]
-02D3:0D3D  9a0e005e09     lcall  f_095E_000E
+02D3:0D3D  9a0e005e09     lcall  restore_rect
 02D3:0D42  83c40c         add    sp, 0xc
 L_02D3_0D45:
 02D3:0D45  837ef000       cmp    word ptr [bp - 0x10], 0
 02D3:0D49  741c           je     0xd67
 02D3:0D4B  ff36ec46       push   word ptr [0x46ec]
-02D3:0D4F  ff36ea46       push   word ptr [0x46ea]
+02D3:0D4F  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 02D3:0D53  ff76ec         push   word ptr [bp - 0x14]
 02D3:0D56  ff76ee         push   word ptr [bp - 0x12]
 02D3:0D59  ff76f0         push   word ptr [bp - 0x10]
 02D3:0D5C  ff76f2         push   word ptr [bp - 0xe]
-02D3:0D5F  9a0e005e09     lcall  f_095E_000E
+02D3:0D5F  9a0e005e09     lcall  restore_rect
 02D3:0D64  83c40c         add    sp, 0xc
 L_02D3_0D67:
 02D3:0D67  85ff           test   di, di
@@ -6247,7 +6247,7 @@ L_02D3_0D67:
 02D3:0D6E  ff76e8         push   word ptr [bp - 0x18]
 02D3:0D71  57             push   di
 02D3:0D72  56             push   si
-02D3:0D73  9a0d00f408     lcall  f_08F4_000D
+02D3:0D73  9a0d00f408     lcall  put_key1
 02D3:0D78  83c408         add    sp, 8
 L_02D3_0D7B:
 02D3:0D7B  837efc00       cmp    word ptr [bp - 4], 0
@@ -6256,13 +6256,13 @@ L_02D3_0D7B:
 02D3:0D84  ff76e4         push   word ptr [bp - 0x1c]
 02D3:0D87  ff76fc         push   word ptr [bp - 4]
 02D3:0D8A  ff76fe         push   word ptr [bp - 2]
-02D3:0D8D  9a0d00f408     lcall  f_08F4_000D
+02D3:0D8D  9a0d00f408     lcall  put_key1
 02D3:0D92  83c408         add    sp, 8
 L_02D3_0D95:
 02D3:0D95  b80100         mov    ax, 1
 02D3:0D98  50             push   ax
 02D3:0D99  ff36f433       push   word ptr [0x33f4]
-02D3:0D9D  9a2d090a07     lcall  f_070A_092D
+02D3:0D9D  9a2d090a07     lcall  beep
 02D3:0DA2  83c404         add    sp, 4
 02D3:0DA5  a1f433         mov    ax, word ptr [0x33f4]
 02D3:0DA8  2df401         sub    ax, 0x1f4
@@ -6295,7 +6295,7 @@ L_02D3_0DEE:
 02D3:0DF2  5d             pop    bp
 02D3:0DF3  cb             retf   
 
-f_02D3_0DF4 proc  ; 02D3:0DF4  callers: f_02D3_029E
+joust proc  ; 02D3:0DF4  callers: joust_round
 02D3:0DF4  55             push   bp
 02D3:0DF5  8bec           mov    bp, sp
 02D3:0DF7  83c4f2         add    sp, -0xe
@@ -6314,21 +6314,21 @@ L_02D3_0E1A:
 02D3:0E1A  b80200         mov    ax, 2
 02D3:0E1D  50             push   ax
 02D3:0E1E  ff360447       push   word ptr [0x4704]
-02D3:0E22  ff360247       push   word ptr [0x4702]
-02D3:0E26  9ab1020a07     lcall  f_070A_02B1
+02D3:0E22  ff360247       push   word ptr [0x4702]   ; lib_scene
+02D3:0E26  9ab1020a07     lcall  show_lib_picture
 02D3:0E2B  83c406         add    sp, 6
-02D3:0E2E  9a61070a07     lcall  f_070A_0761
-02D3:0E33  9ab3010a07     lcall  f_070A_01B3
-02D3:0E38  c7066c412800   mov    word ptr [0x416c], 0x28
-02D3:0E3E  c7066e417d00   mov    word ptr [0x416e], 0x7d   ; "4d>"
-02D3:0E44  c41e6441       les    bx, ptr [0x4164]
+02D3:0E2E  9a61070a07     lcall  wait_key
+02D3:0E33  9ab3010a07     lcall  show_screen
+02D3:0E38  c7066c412800   mov    word ptr [0x416c], 0x28   ; lance_x
+02D3:0E3E  c7066e417d00   mov    word ptr [0x416e], 0x7d   ; lance_y "4d>"
+02D3:0E44  c41e6441       les    bx, ptr [0x4164]   ; lance_sprite
 02D3:0E48  26c747024b00   mov    word ptr es:[bx + 2], 0x4b   ; " %4d      Knights  <>@%4d>"
 02D3:0E4E  ff366a41       push   word ptr [0x416a]
-02D3:0E52  ff366841       push   word ptr [0x4168]
+02D3:0E52  ff366841       push   word ptr [0x4168]   ; lance_save
 02D3:0E56  b87400         mov    ax, 0x74   ; "apults@@%4d>"
 02D3:0E59  50             push   ax
-02D3:0E5A  ff366c41       push   word ptr [0x416c]
-02D3:0E5E  9a08007709     lcall  f_0977_0008
+02D3:0E5A  ff366c41       push   word ptr [0x416c]   ; lance_x
+02D3:0E5E  9a08007709     lcall  save_under
 02D3:0E63  83c408         add    sp, 8
 02D3:0E66  be0300         mov    si, 3
 L_02D3_0E69:
@@ -6337,29 +6337,29 @@ L_02D3_0E69:
 02D3:0E6E  b80100         mov    ax, 1
 02D3:0E71  50             push   ax
 02D3:0E72  56             push   si
-02D3:0E73  9a160ad302     lcall  f_02D3_0A16
+02D3:0E73  9a160ad302     lcall  lance_step
 02D3:0E78  83c404         add    sp, 4
 02D3:0E7B  b80200         mov    ax, 2
 02D3:0E7E  50             push   ax
 02D3:0E7F  33c0           xor    ax, ax
 02D3:0E81  50             push   ax
-02D3:0E82  9a160ad302     lcall  f_02D3_0A16
+02D3:0E82  9a160ad302     lcall  lance_step
 02D3:0E87  83c404         add    sp, 4
 02D3:0E8A  b80100         mov    ax, 1
 02D3:0E8D  50             push   ax
 02D3:0E8E  33c0           xor    ax, ax
 02D3:0E90  50             push   ax
-02D3:0E91  9a160ad302     lcall  f_02D3_0A16
+02D3:0E91  9a160ad302     lcall  lance_step
 02D3:0E96  83c404         add    sp, 4
 02D3:0E99  33c0           xor    ax, ax
 02D3:0E9B  50             push   ax
 02D3:0E9C  50             push   ax
-02D3:0E9D  9a160ad302     lcall  f_02D3_0A16
+02D3:0E9D  9a160ad302     lcall  lance_step
 02D3:0EA2  83c404         add    sp, 4
 02D3:0EA5  46             inc    si
 02D3:0EA6  ebc1           jmp    0xe69
 L_02D3_0EA8:
-02D3:0EA8  a10c45         mov    ax, word ptr [0x450c]
+02D3:0EA8  a10c45         mov    ax, word ptr [0x450c]   ; player
 02D3:0EAB  8bd0           mov    dx, ax
 02D3:0EAD  b103           mov    cl, 3
 02D3:0EAF  d3e0           shl    ax, cl
@@ -6367,7 +6367,7 @@ L_02D3_0EA8:
 02D3:0EB3  d1e0           shl    ax, 1
 02D3:0EB5  d1e0           shl    ax, 1
 02D3:0EB7  8bd8           mov    bx, ax
-02D3:0EB9  8b875644       mov    ax, word ptr [bx + 0x4456]
+02D3:0EB9  8b875644       mov    ax, word ptr [bx + 0x4456]   ; side.joust
 02D3:0EBD  050200         add    ax, 2
 02D3:0EC0  50             push   ax
 02D3:0EC1  8b4606         mov    ax, word ptr [bp + 6]
@@ -6379,14 +6379,14 @@ L_02D3_0EA8:
 02D3:0ECE  d1e0           shl    ax, 1
 02D3:0ED0  8bf8           mov    di, ax
 02D3:0ED2  58             pop    ax
-02D3:0ED3  2b855644       sub    ax, word ptr [di + 0x4456]
+02D3:0ED3  2b855644       sub    ax, word ptr [di + 0x4456]   ; side.joust
 02D3:0ED7  8946f6         mov    word ptr [bp - 0xa], ax
 02D3:0EDA  3d0100         cmp    ax, 1
 02D3:0EDD  7d05           jge    0xee4
 02D3:0EDF  c746f60100     mov    word ptr [bp - 0xa], 1
 L_02D3_0EE4:
-02D3:0EE4  8b875644       mov    ax, word ptr [bx + 0x4456]
-02D3:0EE8  3b855644       cmp    ax, word ptr [di + 0x4456]
+02D3:0EE4  8b875644       mov    ax, word ptr [bx + 0x4456]   ; side.joust
+02D3:0EE8  3b855644       cmp    ax, word ptr [di + 0x4456]   ; side.joust
 02D3:0EEC  7e07           jle    0xef5
 02D3:0EEE  c746f80100     mov    word ptr [bp - 8], 1
 02D3:0EF3  eb05           jmp    0xefa
@@ -6395,35 +6395,35 @@ L_02D3_0EF5:
 L_02D3_0EFA:
 02D3:0EFA  8b46fe         mov    ax, word ptr [bp - 2]
 02D3:0EFD  2b46f8         sub    ax, word ptr [bp - 8]
-02D3:0F00  3b066c41       cmp    ax, word ptr [0x416c]
+02D3:0F00  3b066c41       cmp    ax, word ptr [0x416c]   ; lance_x
 02D3:0F04  7f2b           jg     0xf31
 02D3:0F06  8b46fe         mov    ax, word ptr [bp - 2]
 02D3:0F09  0346f8         add    ax, word ptr [bp - 8]
-02D3:0F0C  3b066c41       cmp    ax, word ptr [0x416c]
+02D3:0F0C  3b066c41       cmp    ax, word ptr [0x416c]   ; lance_x
 02D3:0F10  7c1f           jl     0xf31
 02D3:0F12  8b46fc         mov    ax, word ptr [bp - 4]
 02D3:0F15  2b46f6         sub    ax, word ptr [bp - 0xa]
-02D3:0F18  3b066e41       cmp    ax, word ptr [0x416e]
+02D3:0F18  3b066e41       cmp    ax, word ptr [0x416e]   ; lance_y
 02D3:0F1C  7f13           jg     0xf31
 02D3:0F1E  8b46fc         mov    ax, word ptr [bp - 4]
 02D3:0F21  0346f6         add    ax, word ptr [bp - 0xa]
-02D3:0F24  3b066e41       cmp    ax, word ptr [0x416e]
+02D3:0F24  3b066e41       cmp    ax, word ptr [0x416e]   ; lance_y
 02D3:0F28  7c07           jl     0xf31
 02D3:0F2A  c746f40100     mov    word ptr [bp - 0xc], 1
 02D3:0F2F  eb37           jmp    0xf68
 L_02D3_0F31:
 02D3:0F31  8b46fe         mov    ax, word ptr [bp - 2]
 02D3:0F34  050400         add    ax, 4
-02D3:0F37  3b066c41       cmp    ax, word ptr [0x416c]
+02D3:0F37  3b066c41       cmp    ax, word ptr [0x416c]   ; lance_x
 02D3:0F3B  7e10           jle    0xf4d
 02D3:0F3D  8b46fa         mov    ax, word ptr [bp - 6]
-02D3:0F40  3b066e41       cmp    ax, word ptr [0x416e]
+02D3:0F40  3b066e41       cmp    ax, word ptr [0x416e]   ; lance_y
 02D3:0F44  7d07           jge    0xf4d
 02D3:0F46  c746f40300     mov    word ptr [bp - 0xc], 3
 02D3:0F4B  eb1b           jmp    0xf68
 L_02D3_0F4D:
-02D3:0F4D  ffb55644       push   word ptr [di + 0x4456]
-02D3:0F51  9a0d000a07     lcall  f_070A_000D
+02D3:0F4D  ffb55644       push   word ptr [di + 0x4456]   ; side.joust
+02D3:0F51  9a0d000a07     lcall  random
 02D3:0F56  59             pop    cx
 02D3:0F57  3d0200         cmp    ax, 2
 02D3:0F5A  7c07           jl     0xf63
@@ -6439,7 +6439,7 @@ L_02D3_0F68:
 02D3:0F73  c746f40200     mov    word ptr [bp - 0xc], 2
 L_02D3_0F78:
 02D3:0F78  ff76f4         push   word ptr [bp - 0xc]
-02D3:0F7B  9aa70bd302     lcall  f_02D3_0BA7
+02D3:0F7B  9aa70bd302     lcall  joust_outcome
 02D3:0F80  59             pop    cx
 02D3:0F81  837ef400       cmp    word ptr [bp - 0xc], 0
 02D3:0F85  7409           je     0xf90
@@ -6463,9 +6463,9 @@ L_02D3_0F90:
 02D3:0FA4  f3a5           rep movsw word ptr es:[di], word ptr [si]
 02D3:0FA6  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0FA7  5e             pop    si
-02D3:0FA8  9af3020a07     lcall  f_070A_02F3
+02D3:0FA8  9af3020a07     lcall  dialog
 02D3:0FAD  83c40e         add    sp, 0xe
-02D3:0FB0  9ab3010a07     lcall  f_070A_01B3
+02D3:0FB0  9ab3010a07     lcall  show_screen
 02D3:0FB5  83ec0e         sub    sp, 0xe
 02D3:0FB8  8bc4           mov    ax, sp
 02D3:0FBA  8cd2           mov    dx, ss
@@ -6478,13 +6478,13 @@ L_02D3_0F90:
 02D3:0FC9  f3a5           rep movsw word ptr es:[di], word ptr [si]
 02D3:0FCB  a4             movsb  byte ptr es:[di], byte ptr [si]
 02D3:0FCC  5e             pop    si
-02D3:0FCD  9af3020a07     lcall  f_070A_02F3
+02D3:0FCD  9af3020a07     lcall  dialog
 02D3:0FD2  83c40e         add    sp, 0xe
 02D3:0FD5  e938fe         jmp    0xe10
 L_02D3_0FD8:
 02D3:0FD8  ebb0           jmp    0xf8a
 
-f_02D3_0FDA proc  ; 02D3:0FDA  callers: f_02D3_029E
+choose_opponent proc  ; 02D3:0FDA  callers: joust_round
 02D3:0FDA  55             push   bp
 02D3:0FDB  8bec           mov    bp, sp
 02D3:0FDD  83c4f2         add    sp, -0xe
@@ -6507,8 +6507,8 @@ L_02D3_0FEA:
 02D3:1004  d1e0           shl    ax, 1
 02D3:1006  d1e0           shl    ax, 1
 02D3:1008  8bf8           mov    di, ax
-02D3:100A  8b854444       mov    ax, word ptr [di + 0x4444]
-02D3:100E  8b954644       mov    dx, word ptr [di + 0x4446]
+02D3:100A  8b854444       mov    ax, word ptr [di + 0x4444]   ; side.name
+02D3:100E  8b954644       mov    dx, word ptr [di + 0x4446]   ; side+2
 02D3:1012  fe06481d       inc    byte ptr [0x1d48]
 02D3:1016  52             push   dx
 02D3:1017  50             push   ax
@@ -6543,7 +6543,7 @@ L_02D3_103A:
 02D3:1054  b90600         mov    cx, 6
 02D3:1057  f3a5           rep movsw word ptr es:[di], word ptr [si]
 02D3:1059  a4             movsb  byte ptr es:[di], byte ptr [si]
-02D3:105A  9af3020a07     lcall  f_070A_02F3
+02D3:105A  9af3020a07     lcall  dialog
 02D3:105F  83c40e         add    sp, 0xe
 02D3:1062  8bf0           mov    si, ax
 02D3:1064  8bfe           mov    di, si
@@ -6555,7 +6555,7 @@ L_02D3_103A:
 02D3:106F  5d             pop    bp
 02D3:1070  cb             retf   
 
-f_02D3_1071 proc  ; 02D3:1071  callers: f_02D3_029E, f_050E_000D, f_050E_022C, f_050E_0ADB
+leadership_add proc  ; 02D3:1071  callers: joust_round, raid, rescue_offer, sword_fight
 02D3:1071  55             push   bp
 02D3:1072  8bec           mov    bp, sp
 02D3:1074  8b4608         mov    ax, word ptr [bp + 8]
@@ -6569,17 +6569,17 @@ f_02D3_1071 proc  ; 02D3:1071  callers: f_02D3_029E, f_050E_000D, f_050E_022C, f
 02D3:1085  d1e0           shl    ax, 1
 02D3:1087  8bd8           mov    bx, ax
 02D3:1089  58             pop    ax
-02D3:108A  03875844       add    ax, word ptr [bx + 0x4458]
-02D3:108E  89875844       mov    word ptr [bx + 0x4458], ax
+02D3:108A  03875844       add    ax, word ptr [bx + 0x4458]   ; side.lead
+02D3:108E  89875844       mov    word ptr [bx + 0x4458], ax   ; side.lead
 02D3:1092  3d0a00         cmp    ax, 0xa
 02D3:1095  7e08           jle    0x109f
-02D3:1097  c78758440a00   mov    word ptr [bx + 0x4458], 0xa
+02D3:1097  c78758440a00   mov    word ptr [bx + 0x4458], 0xa   ; side.lead
 02D3:109D  eb0f           jmp    0x10ae
 L_02D3_109F:
-02D3:109F  8b875844       mov    ax, word ptr [bx + 0x4458]
+02D3:109F  8b875844       mov    ax, word ptr [bx + 0x4458]   ; side.lead
 02D3:10A3  3d0000         cmp    ax, 0
 02D3:10A6  7d06           jge    0x10ae
-02D3:10A8  c78758440000   mov    word ptr [bx + 0x4458], 0
+02D3:10A8  c78758440000   mov    word ptr [bx + 0x4458], 0   ; side.lead
 L_02D3_10AE:
 02D3:10AE  8be5           mov    sp, bp
 02D3:10B0  5d             pop    bp
@@ -6587,18 +6587,18 @@ L_02D3_10AE:
 
 ;================ segment 03DE ================
 
-f_03DE_0002 proc  ; 03DE:0002  callers: f_021C_0002
+setup_ladies proc  ; 03DE:0002  callers: new_game
 03DE:0002  55             push   bp
 03DE:0003  8bec           mov    bp, sp
 03DE:0005  83c4f8         add    sp, -8
 03DE:0008  56             push   si
-03DE:0009  c7061e47ffff   mov    word ptr [0x471e], 0xffff
+03DE:0009  c7061e47ffff   mov    word ptr [0x471e], 0xffff   ; kidnapped
 03DE:000F  b80400         mov    ax, 4
 03DE:0012  50             push   ax
 03DE:0013  16             push   ss
 03DE:0014  8d46f8         lea    ax, [bp - 8]
 03DE:0017  50             push   ax
-03DE:0018  9a5c000a07     lcall  f_070A_005C
+03DE:0018  9a5c000a07     lcall  shuffle
 03DE:001D  83c406         add    sp, 6
 03DE:0020  33f6           xor    si, si
 L_03DE_0022:
@@ -6611,9 +6611,9 @@ L_03DE_0022:
 03DE:002F  03c2           add    ax, dx
 03DE:0031  d1e0           shl    ax, 1
 03DE:0033  8bd8           mov    bx, ax
-03DE:0035  c787fa33ffff   mov    word ptr [bx + 0x33fa], 0xffff
-03DE:003B  c787fc330000   mov    word ptr [bx + 0x33fc], 0
-03DE:0041  c787fe330000   mov    word ptr [bx + 0x33fe], 0
+03DE:0035  c787fa33ffff   mov    word ptr [bx + 0x33fa], 0xffff   ; lady.side
+03DE:003B  c787fc330000   mov    word ptr [bx + 0x33fc], 0   ; lady.terr
+03DE:0041  c787fe330000   mov    word ptr [bx + 0x33fe], 0   ; lady.flag
 03DE:0047  46             inc    si
 03DE:0048  ebd8           jmp    0x22
 L_03DE_004A:
@@ -6622,21 +6622,21 @@ L_03DE_004A:
 03DE:004E  b80200         mov    ax, 2
 03DE:0051  50             push   ax
 03DE:0052  ff76f8         push   word ptr [bp - 8]
-03DE:0055  9a7500de03     lcall  f_03DE_0075
+03DE:0055  9a7500de03     lcall  lady_to_side
 03DE:005A  83c406         add    sp, 6
 03DE:005D  b80100         mov    ax, 1
 03DE:0060  50             push   ax
 03DE:0061  b80300         mov    ax, 3
 03DE:0064  50             push   ax
 03DE:0065  ff76fa         push   word ptr [bp - 6]
-03DE:0068  9a7500de03     lcall  f_03DE_0075
+03DE:0068  9a7500de03     lcall  lady_to_side
 03DE:006D  83c406         add    sp, 6
 03DE:0070  5e             pop    si
 03DE:0071  8be5           mov    sp, bp
 03DE:0073  5d             pop    bp
 03DE:0074  cb             retf   
 
-f_03DE_0075 proc  ; 03DE:0075  callers: f_03DE_0002, f_050E_022C
+lady_to_side proc  ; 03DE:0075  callers: raid, setup_ladies
 03DE:0075  55             push   bp
 03DE:0076  8bec           mov    bp, sp
 03DE:0078  57             push   di
@@ -6650,7 +6650,7 @@ f_03DE_0075 proc  ; 03DE:0075  callers: f_03DE_0002, f_050E_022C
 03DE:0088  03c2           add    ax, dx
 03DE:008A  d1e0           shl    ax, 1
 03DE:008C  8bd8           mov    bx, ax
-03DE:008E  8b87fa33       mov    ax, word ptr [bx + 0x33fa]
+03DE:008E  8b87fa33       mov    ax, word ptr [bx + 0x33fa]   ; lady.side
 03DE:0092  3dffff         cmp    ax, 0xffff
 03DE:0095  7414           je     0xab
 03DE:0097  8bd0           mov    dx, ax
@@ -6660,7 +6660,7 @@ f_03DE_0075 proc  ; 03DE:0075  callers: f_03DE_0002, f_050E_022C
 03DE:009F  d1e0           shl    ax, 1
 03DE:00A1  d1e0           shl    ax, 1
 03DE:00A3  8bd8           mov    bx, ax
-03DE:00A5  c7874e44ffff   mov    word ptr [bx + 0x444e], 0xffff
+03DE:00A5  c7874e44ffff   mov    word ptr [bx + 0x444e], 0xffff   ; side.lady
 L_03DE_00AB:
 03DE:00AB  8bc7           mov    ax, di
 03DE:00AD  8bd0           mov    dx, ax
@@ -6670,7 +6670,7 @@ L_03DE_00AB:
 03DE:00B5  d1e0           shl    ax, 1
 03DE:00B7  d1e0           shl    ax, 1
 03DE:00B9  8bd8           mov    bx, ax
-03DE:00BB  89b74e44       mov    word ptr [bx + 0x444e], si
+03DE:00BB  89b74e44       mov    word ptr [bx + 0x444e], si   ; side.lady
 03DE:00BF  8bc6           mov    ax, si
 03DE:00C1  8bd0           mov    dx, ax
 03DE:00C3  d1e0           shl    ax, 1
@@ -6678,7 +6678,7 @@ L_03DE_00AB:
 03DE:00C7  03c2           add    ax, dx
 03DE:00C9  d1e0           shl    ax, 1
 03DE:00CB  8bd8           mov    bx, ax
-03DE:00CD  89bffa33       mov    word ptr [bx + 0x33fa], di
+03DE:00CD  89bffa33       mov    word ptr [bx + 0x33fa], di   ; lady.side
 03DE:00D1  8bc7           mov    ax, di
 03DE:00D3  8bd0           mov    dx, ax
 03DE:00D5  b103           mov    cl, 3
@@ -6687,7 +6687,7 @@ L_03DE_00AB:
 03DE:00DB  d1e0           shl    ax, 1
 03DE:00DD  d1e0           shl    ax, 1
 03DE:00DF  8bd8           mov    bx, ax
-03DE:00E1  8b875044       mov    ax, word ptr [bx + 0x4450]
+03DE:00E1  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 03DE:00E5  50             push   ax
 03DE:00E6  8bc6           mov    ax, si
 03DE:00E8  8bd0           mov    dx, ax
@@ -6697,16 +6697,16 @@ L_03DE_00AB:
 03DE:00F0  d1e0           shl    ax, 1
 03DE:00F2  8bd8           mov    bx, ax
 03DE:00F4  58             pop    ax
-03DE:00F5  8987fc33       mov    word ptr [bx + 0x33fc], ax
+03DE:00F5  8987fc33       mov    word ptr [bx + 0x33fc], ax   ; lady.terr
 03DE:00F9  8b460a         mov    ax, word ptr [bp + 0xa]
-03DE:00FC  8987fe33       mov    word ptr [bx + 0x33fe], ax
+03DE:00FC  8987fe33       mov    word ptr [bx + 0x33fe], ax   ; lady.flag
 03DE:0100  5e             pop    si
 03DE:0101  5f             pop    di
 03DE:0102  8be5           mov    sp, bp
 03DE:0104  5d             pop    bp
 03DE:0105  cb             retf   
 
-f_03DE_0106 proc  ; 03DE:0106
+find_lady? proc  ; 03DE:0106
 03DE:0106  55             push   bp
 03DE:0107  8bec           mov    bp, sp
 03DE:0109  57             push   di
@@ -6723,7 +6723,7 @@ L_03DE_0110:
 03DE:011D  03c2           add    ax, dx
 03DE:011F  d1e0           shl    ax, 1
 03DE:0121  8bd8           mov    bx, ax
-03DE:0123  8b87fc33       mov    ax, word ptr [bx + 0x33fc]
+03DE:0123  8b87fc33       mov    ax, word ptr [bx + 0x33fc]   ; lady.terr
 03DE:0127  3bc6           cmp    ax, si
 03DE:0129  7508           jne    0x133
 03DE:012B  8bc7           mov    ax, di
@@ -6742,7 +6742,7 @@ L_03DE_0136:
 
 ;================ segment 03F1 ================
 
-f_03F1_000B proc  ; 03F1:000B  callers: f_021C_0002
+setup_sides proc  ; 03F1:000B  callers: new_game
 03F1:000B  55             push   bp
 03F1:000C  8bec           mov    bp, sp
 03F1:000E  83c4f4         add    sp, -0xc
@@ -6753,7 +6753,7 @@ f_03F1_000B proc  ; 03F1:000B  callers: f_021C_0002
 03F1:0017  16             push   ss
 03F1:0018  8d46f6         lea    ax, [bp - 0xa]
 03F1:001B  50             push   ax
-03F1:001C  9a5c000a07     lcall  f_070A_005C
+03F1:001C  9a5c000a07     lcall  shuffle
 03F1:0021  83c406         add    sp, 6
 03F1:0024  8b46f6         mov    ax, word ptr [bp - 0xa]
 03F1:0027  40             inc    ax
@@ -6764,7 +6764,7 @@ f_03F1_000B proc  ; 03F1:000B  callers: f_021C_0002
 03F1:0030  d1e0           shl    ax, 1
 03F1:0032  d1e0           shl    ax, 1
 03F1:0034  8bd8           mov    bx, ax
-03F1:0036  c78750440100   mov    word ptr [bx + 0x4450], 1
+03F1:0036  c78750440100   mov    word ptr [bx + 0x4450], 1   ; side.home
 03F1:003C  8b46f8         mov    ax, word ptr [bp - 8]
 03F1:003F  40             inc    ax
 03F1:0040  8bd0           mov    dx, ax
@@ -6774,7 +6774,7 @@ f_03F1_000B proc  ; 03F1:000B  callers: f_021C_0002
 03F1:0048  d1e0           shl    ax, 1
 03F1:004A  d1e0           shl    ax, 1
 03F1:004C  8bd8           mov    bx, ax
-03F1:004E  c78750440500   mov    word ptr [bx + 0x4450], 5
+03F1:004E  c78750440500   mov    word ptr [bx + 0x4450], 5   ; side.home
 03F1:0054  8b46fa         mov    ax, word ptr [bp - 6]
 03F1:0057  40             inc    ax
 03F1:0058  8bd0           mov    dx, ax
@@ -6784,7 +6784,7 @@ f_03F1_000B proc  ; 03F1:000B  callers: f_021C_0002
 03F1:0060  d1e0           shl    ax, 1
 03F1:0062  d1e0           shl    ax, 1
 03F1:0064  8bd8           mov    bx, ax
-03F1:0066  c78750440800   mov    word ptr [bx + 0x4450], 8
+03F1:0066  c78750440800   mov    word ptr [bx + 0x4450], 8   ; side.home
 03F1:006C  c706c0440b00   mov    word ptr [0x44c0], 0xb
 03F1:0072  c706dc440d00   mov    word ptr [0x44dc], 0xd
 03F1:0078  c706f8440f00   mov    word ptr [0x44f8], 0xf
@@ -6793,16 +6793,16 @@ f_03F1_000B proc  ; 03F1:000B  callers: f_021C_0002
 03F1:0085  b86044         mov    ax, 0x4460
 03F1:0088  50             push   ax
 03F1:0089  1e             push   ds
-03F1:008A  a10c45         mov    ax, word ptr [0x450c]
+03F1:008A  a10c45         mov    ax, word ptr [0x450c]   ; player
 03F1:008D  48             dec    ax
 03F1:008E  b91400         mov    cx, 0x14
 03F1:0091  f7e9           imul   cx
 03F1:0093  056e34         add    ax, 0x346e
 03F1:0096  50             push   ax
-03F1:0097  9aff01f103     lcall  f_03F1_01FF
+03F1:0097  9aff01f103     lcall  copy_lord
 03F1:009C  83c408         add    sp, 8
-03F1:009F  c7060c450100   mov    word ptr [0x450c], 1
-03F1:00A5  a10c45         mov    ax, word ptr [0x450c]
+03F1:009F  c7060c450100   mov    word ptr [0x450c], 1   ; player
+03F1:00A5  a10c45         mov    ax, word ptr [0x450c]   ; player
 03F1:00A8  8bd0           mov    dx, ax
 03F1:00AA  b103           mov    cl, 3
 03F1:00AC  d3e0           shl    ax, cl
@@ -6810,8 +6810,8 @@ f_03F1_000B proc  ; 03F1:000B  callers: f_021C_0002
 03F1:00B0  d1e0           shl    ax, 1
 03F1:00B2  d1e0           shl    ax, 1
 03F1:00B4  8bd8           mov    bx, ax
-03F1:00B6  8b874444       mov    ax, word ptr [bx + 0x4444]
-03F1:00BA  8b974644       mov    dx, word ptr [bx + 0x4446]
+03F1:00B6  8b874444       mov    ax, word ptr [bx + 0x4444]   ; side.name
+03F1:00BA  8b974644       mov    dx, word ptr [bx + 0x4446]   ; side+2
 03F1:00BE  8916990b       mov    word ptr [0xb99], dx
 03F1:00C2  a3970b         mov    word ptr [0xb97], ax
 03F1:00C5  b80400         mov    ax, 4
@@ -6819,7 +6819,7 @@ f_03F1_000B proc  ; 03F1:000B  callers: f_021C_0002
 03F1:00C9  16             push   ss
 03F1:00CA  8d46f6         lea    ax, [bp - 0xa]
 03F1:00CD  50             push   ax
-03F1:00CE  9a5c000a07     lcall  f_070A_005C
+03F1:00CE  9a5c000a07     lcall  shuffle
 03F1:00D3  83c406         add    sp, 6
 03F1:00D6  be0200         mov    si, 2
 03F1:00D9  c746f40000     mov    word ptr [bp - 0xc], 0
@@ -6838,7 +6838,7 @@ L_03F1_00DE:
 03F1:00FB  8b977034       mov    dx, word ptr [bx + 0x3470]
 03F1:00FF  52             push   dx
 03F1:0100  50             push   ax
-03F1:0101  a10c45         mov    ax, word ptr [0x450c]
+03F1:0101  a10c45         mov    ax, word ptr [0x450c]   ; player
 03F1:0104  8bd0           mov    dx, ax
 03F1:0106  b103           mov    cl, 3
 03F1:0108  d3e0           shl    ax, cl
@@ -6848,9 +6848,9 @@ L_03F1_00DE:
 03F1:0110  8bd8           mov    bx, ax
 03F1:0112  58             pop    ax
 03F1:0113  5a             pop    dx
-03F1:0114  3b974644       cmp    dx, word ptr [bx + 0x4446]
+03F1:0114  3b974644       cmp    dx, word ptr [bx + 0x4446]   ; side+2
 03F1:0118  7504           jne    0x11e
-03F1:011A  3b874444       cmp    ax, word ptr [bx + 0x4444]
+03F1:011A  3b874444       cmp    ax, word ptr [bx + 0x4444]   ; side.name
 L_03F1_011E:
 03F1:011E  7433           je     0x153
 03F1:0120  1e             push   ds
@@ -6873,7 +6873,7 @@ L_03F1_011E:
 03F1:0144  f7e9           imul   cx
 03F1:0146  056e34         add    ax, 0x346e
 03F1:0149  50             push   ax
-03F1:014A  9aff01f103     lcall  f_03F1_01FF
+03F1:014A  9aff01f103     lcall  copy_lord
 03F1:014F  83c408         add    sp, 8
 03F1:0152  46             inc    si
 L_03F1_0153:
@@ -6885,7 +6885,7 @@ L_03F1_0158:
 03F1:015C  16             push   ss
 03F1:015D  8d46f6         lea    ax, [bp - 0xa]
 03F1:0160  50             push   ax
-03F1:0161  9a5c000a07     lcall  f_070A_005C
+03F1:0161  9a5c000a07     lcall  shuffle
 03F1:0166  83c406         add    sp, 6
 03F1:0169  33ff           xor    di, di
 L_03F1_016B:
@@ -6912,7 +6912,7 @@ L_03F1_016B:
 03F1:0196  f7e9           imul   cx
 03F1:0198  055935         add    ax, 0x3559
 03F1:019B  50             push   ax
-03F1:019C  9aff01f103     lcall  f_03F1_01FF
+03F1:019C  9aff01f103     lcall  copy_lord
 03F1:01A1  83c408         add    sp, 8
 03F1:01A4  47             inc    di
 03F1:01A5  ebc4           jmp    0x16b
@@ -6929,9 +6929,9 @@ L_03F1_01AA:
 03F1:01B9  d1e0           shl    ax, 1
 03F1:01BB  d1e0           shl    ax, 1
 03F1:01BD  8bd8           mov    bx, ax
-03F1:01BF  c7874e44ffff   mov    word ptr [bx + 0x444e], 0xffff
-03F1:01C5  8b875044       mov    ax, word ptr [bx + 0x4450]
-03F1:01C9  89875244       mov    word ptr [bx + 0x4452], ax
+03F1:01BF  c7874e44ffff   mov    word ptr [bx + 0x444e], 0xffff   ; side.lady
+03F1:01C5  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
+03F1:01C9  89875244       mov    word ptr [bx + 0x4452], ax   ; side.at
 03F1:01CD  8bd0           mov    dx, ax
 03F1:01CF  b103           mov    cl, 3
 03F1:01D1  d3e0           shl    ax, cl
@@ -6939,7 +6939,7 @@ L_03F1_01AA:
 03F1:01D5  d1e0           shl    ax, 1
 03F1:01D7  03c2           add    ax, dx
 03F1:01D9  8bd8           mov    bx, ax
-03F1:01DB  8a875136       mov    al, byte ptr [bx + 0x3651]
+03F1:01DB  8a875136       mov    al, byte ptr [bx + 0x3651]   ; terr.income
 03F1:01DF  98             cwde   
 03F1:01E0  50             push   ax
 03F1:01E1  8bc7           mov    ax, di
@@ -6951,7 +6951,7 @@ L_03F1_01AA:
 03F1:01ED  d1e0           shl    ax, 1
 03F1:01EF  8bd8           mov    bx, ax
 03F1:01F1  58             pop    ax
-03F1:01F2  89875c44       mov    word ptr [bx + 0x445c], ax
+03F1:01F2  89875c44       mov    word ptr [bx + 0x445c], ax   ; side.income
 03F1:01F6  47             inc    di
 03F1:01F7  ebb1           jmp    0x1aa
 L_03F1_01F9:
@@ -6961,7 +6961,7 @@ L_03F1_01F9:
 03F1:01FD  5d             pop    bp
 03F1:01FE  cb             retf   
 
-f_03F1_01FF proc  ; 03F1:01FF  callers: f_03F1_000B
+copy_lord proc  ; 03F1:01FF  callers: setup_sides
 03F1:01FF  55             push   bp
 03F1:0200  8bec           mov    bp, sp
 03F1:0202  c45e06         les    bx, ptr [bp + 6]
@@ -7004,7 +7004,7 @@ f_03F1_01FF proc  ; 03F1:01FF  callers: f_03F1_000B
 03F1:0282  5d             pop    bp
 03F1:0283  cb             retf   
 
-f_03F1_0284 proc  ; 03F1:0284  callers: f_082C_0268
+side_income proc  ; 03F1:0284  callers: month
 03F1:0284  55             push   bp
 03F1:0285  8bec           mov    bp, sp
 03F1:0287  83c4fe         add    sp, -2
@@ -7026,11 +7026,11 @@ L_03F1_029C:
 03F1:02AB  d1e0           shl    ax, 1
 03F1:02AD  03c2           add    ax, dx
 03F1:02AF  8bd8           mov    bx, ax
-03F1:02B1  8a874e36       mov    al, byte ptr [bx + 0x364e]
+03F1:02B1  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 03F1:02B5  98             cwde   
 03F1:02B6  3bc6           cmp    ax, si
 03F1:02B8  7508           jne    0x2c2
-03F1:02BA  8a875136       mov    al, byte ptr [bx + 0x3651]
+03F1:02BA  8a875136       mov    al, byte ptr [bx + 0x3651]   ; terr.income
 03F1:02BE  98             cwde   
 03F1:02BF  0146fe         add    word ptr [bp - 2], ax
 L_03F1_02C2:
@@ -7048,20 +7048,20 @@ L_03F1_02C5:
 03F1:02D5  d1e0           shl    ax, 1
 03F1:02D7  8bd8           mov    bx, ax
 03F1:02D9  58             pop    ax
-03F1:02DA  89875c44       mov    word ptr [bx + 0x445c], ax
+03F1:02DA  89875c44       mov    word ptr [bx + 0x445c], ax   ; side.income
 03F1:02DE  5e             pop    si
 03F1:02DF  5f             pop    di
 03F1:02E0  8be5           mov    sp, bp
 03F1:02E2  5d             pop    bp
 03F1:02E3  cb             retf   
 
-f_03F1_02E4 proc  ; 03F1:02E4  callers: f_01A5_0352, f_050E_022C
+side_falls proc  ; 03F1:02E4  callers: apply_result, raid
 03F1:02E4  55             push   bp
 03F1:02E5  8bec           mov    bp, sp
 03F1:02E7  57             push   di
 03F1:02E8  56             push   si
 03F1:02E9  8b7606         mov    si, word ptr [bp + 6]
-03F1:02EC  9ab2042304     lcall  f_0423_04B2
+03F1:02EC  9ab2042304     lcall  redraw_map
 03F1:02F1  bf0100         mov    di, 1
 L_03F1_02F4:
 03F1:02F4  83ff13         cmp    di, 0x13
@@ -7074,13 +7074,13 @@ L_03F1_02F4:
 03F1:0303  d1e0           shl    ax, 1
 03F1:0305  03c2           add    ax, dx
 03F1:0307  8bd8           mov    bx, ax
-03F1:0309  8a874e36       mov    al, byte ptr [bx + 0x364e]
+03F1:0309  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 03F1:030D  98             cwde   
 03F1:030E  3bc6           cmp    ax, si
 03F1:0310  750c           jne    0x31e
 03F1:0312  57             push   di
 03F1:0313  ff7608         push   word ptr [bp + 8]
-03F1:0316  9a58072304     lcall  f_0423_0758
+03F1:0316  9a58072304     lcall  set_owner
 03F1:031B  83c404         add    sp, 4
 L_03F1_031E:
 03F1:031E  47             inc    di
@@ -7094,7 +7094,7 @@ L_03F1_0321:
 
 ;================ segment 0423 ================
 
-f_0423_0007 proc  ; 0423:0007  callers: f_021C_0002
+place_castles proc  ; 0423:0007  callers: new_game
 0423:0007  55             push   bp
 0423:0008  8bec           mov    bp, sp
 0423:000A  a16c44         mov    ax, word ptr [0x446c]
@@ -7105,7 +7105,7 @@ f_0423_0007 proc  ; 0423:0007  callers: f_021C_0002
 0423:0015  d1e0           shl    ax, 1
 0423:0017  03c2           add    ax, dx
 0423:0019  8bd8           mov    bx, ax
-0423:001B  c6874e3601     mov    byte ptr [bx + 0x364e], 1
+0423:001B  c6874e3601     mov    byte ptr [bx + 0x364e], 1   ; terr.owner
 0423:0020  c60662361e     mov    byte ptr [0x3662], 0x1e
 0423:0025  c6067436ff     mov    byte ptr [0x3674], 0xff
 0423:002A  c606753600     mov    byte ptr [0x3675], 0
@@ -7121,7 +7121,7 @@ f_0423_0007 proc  ; 0423:0007  callers: f_021C_0002
 0423:004E  d1e0           shl    ax, 1
 0423:0050  03c2           add    ax, dx
 0423:0052  8bd8           mov    bx, ax
-0423:0054  c6874e3602     mov    byte ptr [bx + 0x364e], 2
+0423:0054  c6874e3602     mov    byte ptr [bx + 0x364e], 2   ; terr.owner
 0423:0059  c606ae361e     mov    byte ptr [0x36ae], 0x1e
 0423:005E  c606c036ff     mov    byte ptr [0x36c0], 0xff
 0423:0063  c606c13600     mov    byte ptr [0x36c1], 0
@@ -7135,7 +7135,7 @@ f_0423_0007 proc  ; 0423:0007  callers: f_021C_0002
 0423:007D  d1e0           shl    ax, 1
 0423:007F  03c2           add    ax, dx
 0423:0081  8bd8           mov    bx, ax
-0423:0083  c6874e3603     mov    byte ptr [bx + 0x364e], 3
+0423:0083  c6874e3603     mov    byte ptr [bx + 0x364e], 3   ; terr.owner
 0423:0088  c606e7361e     mov    byte ptr [0x36e7], 0x1e
 0423:008D  c606f936ff     mov    byte ptr [0x36f9], 0xff
 0423:0092  c606fa3600     mov    byte ptr [0x36fa], 0
@@ -7161,7 +7161,7 @@ f_0423_0007 proc  ; 0423:0007  callers: f_021C_0002
 0423:00F3  5d             pop    bp
 0423:00F4  cb             retf   
 
-f_0423_00F5 proc  ; 0423:00F5  callers: f_01A5_054C, f_01A5_05D3
+is_neighbour proc  ; 0423:00F5  callers: choose_destination, seek_conquest
 0423:00F5  55             push   bp
 0423:00F6  8bec           mov    bp, sp
 0423:00F8  57             push   di
@@ -7180,7 +7180,7 @@ L_0423_00FF:
 0423:0110  03c2           add    ax, dx
 0423:0112  8bd8           mov    bx, ax
 0423:0114  03df           add    bx, di
-0423:0116  8a875236       mov    al, byte ptr [bx + 0x3652]
+0423:0116  8a875236       mov    al, byte ptr [bx + 0x3652]   ; terr.nb
 0423:011A  98             cwde   
 0423:011B  3b4608         cmp    ax, word ptr [bp + 8]
 0423:011E  7509           jne    0x129
@@ -7198,16 +7198,16 @@ L_0423_012C:
 0423:012C  33c0           xor    ax, ax
 0423:012E  ebf3           jmp    0x123
 
-f_0423_0130 proc  ; 0423:0130  callers: f_0423_0559
+territory_info proc  ; 0423:0130  callers: read_map
 0423:0130  55             push   bp
 0423:0131  8bec           mov    bp, sp
 0423:0133  83c4fc         add    sp, -4
 0423:0136  57             push   di
 0423:0137  56             push   si
-0423:0138  ff362247       push   word ptr [0x4722]
-0423:013C  9a3b062304     lcall  f_0423_063B
+0423:0138  ff362247       push   word ptr [0x4722]   ; cur_terr
+0423:013C  9a3b062304     lcall  choose_territory
 0423:0141  59             pop    cx
-0423:0142  a32247         mov    word ptr [0x4722], ax
+0423:0142  a32247         mov    word ptr [0x4722], ax   ; cur_terr
 0423:0145  8bd0           mov    dx, ax
 0423:0147  b103           mov    cl, 3
 0423:0149  d3e0           shl    ax, cl
@@ -7215,7 +7215,7 @@ f_0423_0130 proc  ; 0423:0130  callers: f_0423_0559
 0423:014D  d1e0           shl    ax, 1
 0423:014F  03c2           add    ax, dx
 0423:0151  8bd8           mov    bx, ax
-0423:0153  8a874e36       mov    al, byte ptr [bx + 0x364e]
+0423:0153  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 0423:0157  98             cwde   
 0423:0158  8bf0           mov    si, ax
 0423:015A  ffb74836       push   word ptr [bx + 0x3648]
@@ -7225,9 +7225,9 @@ f_0423_0130 proc  ; 0423:0130  callers: f_0423_0559
 0423:0166  50             push   ax
 0423:0167  ff36da0f       push   word ptr [0xfda]
 0423:016B  ff36d80f       push   word ptr [0xfd8]
-0423:016F  9a0600f809     lcall  f_09F8_0006
+0423:016F  9a0600f809     lcall  sprintf
 0423:0174  83c40c         add    sp, 0xc
-0423:0177  a12247         mov    ax, word ptr [0x4722]
+0423:0177  a12247         mov    ax, word ptr [0x4722]   ; cur_terr
 0423:017A  8bd0           mov    dx, ax
 0423:017C  b103           mov    cl, 3
 0423:017E  d3e0           shl    ax, cl
@@ -7235,7 +7235,7 @@ f_0423_0130 proc  ; 0423:0130  callers: f_0423_0559
 0423:0182  d1e0           shl    ax, 1
 0423:0184  03c2           add    ax, dx
 0423:0186  8bd8           mov    bx, ax
-0423:0188  8a875136       mov    al, byte ptr [bx + 0x3651]
+0423:0188  8a875136       mov    al, byte ptr [bx + 0x3651]   ; terr.income
 0423:018C  98             cwde   
 0423:018D  50             push   ax
 0423:018E  1e             push   ds
@@ -7243,9 +7243,9 @@ f_0423_0130 proc  ; 0423:0130  callers: f_0423_0559
 0423:0192  50             push   ax
 0423:0193  ff36de0f       push   word ptr [0xfde]
 0423:0197  ff36dc0f       push   word ptr [0xfdc]
-0423:019B  9a0600f809     lcall  f_09F8_0006
+0423:019B  9a0600f809     lcall  sprintf
 0423:01A0  83c40a         add    sp, 0xa
-0423:01A3  a12247         mov    ax, word ptr [0x4722]
+0423:01A3  a12247         mov    ax, word ptr [0x4722]   ; cur_terr
 0423:01A6  8bd0           mov    dx, ax
 0423:01A8  b103           mov    cl, 3
 0423:01AA  d3e0           shl    ax, cl
@@ -7253,7 +7253,7 @@ f_0423_0130 proc  ; 0423:0130  callers: f_0423_0559
 0423:01AE  d1e0           shl    ax, 1
 0423:01B0  03c2           add    ax, dx
 0423:01B2  8bd8           mov    bx, ax
-0423:01B4  8a875036       mov    al, byte ptr [bx + 0x3650]
+0423:01B4  8a875036       mov    al, byte ptr [bx + 0x3650]   ; terr.vassals
 0423:01B8  98             cwde   
 0423:01B9  50             push   ax
 0423:01BA  1e             push   ds
@@ -7261,10 +7261,10 @@ f_0423_0130 proc  ; 0423:0130  callers: f_0423_0559
 0423:01BE  50             push   ax
 0423:01BF  ff36e20f       push   word ptr [0xfe2]
 0423:01C3  ff36e00f       push   word ptr [0xfe0]
-0423:01C7  9a0600f809     lcall  f_09F8_0006
+0423:01C7  9a0600f809     lcall  sprintf
 0423:01CC  83c40a         add    sp, 0xa
 0423:01CF  b81900         mov    ax, 0x19
-0423:01D2  833e224700     cmp    word ptr [0x4722], 0
+0423:01D2  833e224700     cmp    word ptr [0x4722], 0   ; cur_terr
 0423:01D7  7403           je     0x1dc
 0423:01D9  b81700         mov    ax, 0x17
 L_0423_01DC:
@@ -7283,11 +7283,11 @@ L_0423_01F1:
 0423:01FB  d1e0           shl    ax, 1
 0423:01FD  d1e0           shl    ax, 1
 0423:01FF  8bd8           mov    bx, ax
-0423:0201  8b874444       mov    ax, word ptr [bx + 0x4444]
-0423:0205  8b974644       mov    dx, word ptr [bx + 0x4446]
+0423:0201  8b874444       mov    ax, word ptr [bx + 0x4444]   ; side.name
+0423:0205  8b974644       mov    dx, word ptr [bx + 0x4446]   ; side+2
 0423:0209  8916f80f       mov    word ptr [0xff8], dx
 0423:020D  a3f60f         mov    word ptr [0xff6], ax
-0423:0210  8bbf5844       mov    di, word ptr [bx + 0x4458]
+0423:0210  8bbf5844       mov    di, word ptr [bx + 0x4458]   ; side.lead
 0423:0214  d1e7           shl    di, 1
 0423:0216  d1e7           shl    di, 1
 0423:0218  8b859329       mov    ax, word ptr [di + 0x2993]
@@ -7301,7 +7301,7 @@ L_0423_01F1:
 0423:0230  50             push   ax
 0423:0231  ff36fc0f       push   word ptr [0xffc]
 0423:0235  ff36fa0f       push   word ptr [0xffa]
-0423:0239  9a0600f809     lcall  f_09F8_0006
+0423:0239  9a0600f809     lcall  sprintf
 0423:023E  83c40c         add    sp, 0xc
 0423:0241  8bc6           mov    ax, si
 0423:0243  8bd0           mov    dx, ax
@@ -7311,7 +7311,7 @@ L_0423_01F1:
 0423:024B  d1e0           shl    ax, 1
 0423:024D  d1e0           shl    ax, 1
 0423:024F  8bd8           mov    bx, ax
-0423:0251  8b9f5644       mov    bx, word ptr [bx + 0x4456]
+0423:0251  8b9f5644       mov    bx, word ptr [bx + 0x4456]   ; side.joust
 0423:0255  d1e3           shl    bx, 1
 0423:0257  d1e3           shl    bx, 1
 0423:0259  8b879329       mov    ax, word ptr [bx + 0x2993]
@@ -7325,7 +7325,7 @@ L_0423_01F1:
 0423:0271  50             push   ax
 0423:0272  ff360010       push   word ptr [0x1000]
 0423:0276  ff36fe0f       push   word ptr [0xffe]
-0423:027A  9a0600f809     lcall  f_09F8_0006
+0423:027A  9a0600f809     lcall  sprintf
 0423:027F  83c40c         add    sp, 0xc
 0423:0282  8bc6           mov    ax, si
 0423:0284  8bd0           mov    dx, ax
@@ -7335,7 +7335,7 @@ L_0423_01F1:
 0423:028C  d1e0           shl    ax, 1
 0423:028E  d1e0           shl    ax, 1
 0423:0290  8bd8           mov    bx, ax
-0423:0292  8b9f5a44       mov    bx, word ptr [bx + 0x445a]
+0423:0292  8b9f5a44       mov    bx, word ptr [bx + 0x445a]   ; side.sword
 0423:0296  d1e3           shl    bx, 1
 0423:0298  d1e3           shl    bx, 1
 0423:029A  8b879329       mov    ax, word ptr [bx + 0x2993]
@@ -7349,7 +7349,7 @@ L_0423_01F1:
 0423:02B2  50             push   ax
 0423:02B3  ff360410       push   word ptr [0x1004]
 0423:02B7  ff360210       push   word ptr [0x1002]
-0423:02BB  9a0600f809     lcall  f_09F8_0006
+0423:02BB  9a0600f809     lcall  sprintf
 0423:02C0  83c40c         add    sp, 0xc
 0423:02C3  8bc6           mov    ax, si
 0423:02C5  8bd0           mov    dx, ax
@@ -7359,8 +7359,8 @@ L_0423_01F1:
 0423:02CD  d1e0           shl    ax, 1
 0423:02CF  d1e0           shl    ax, 1
 0423:02D1  8bd8           mov    bx, ax
-0423:02D3  8b875044       mov    ax, word ptr [bx + 0x4450]
-0423:02D7  3b062247       cmp    ax, word ptr [0x4722]
+0423:02D3  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
+0423:02D7  3b062247       cmp    ax, word ptr [0x4722]   ; cur_terr
 0423:02DB  7525           jne    0x302
 0423:02DD  8c1ee60f       mov    word ptr [0xfe6], ds
 0423:02E1  c706e40f2a3a   mov    word ptr [0xfe4], 0x3a2a   ; "Home"
@@ -7368,8 +7368,8 @@ L_0423_01F1:
 0423:02EA  50             push   ax
 0423:02EB  b81900         mov    ax, 0x19
 0423:02EE  50             push   ax
-0423:02EF  ffb74c44       push   word ptr [bx + 0x444c]
-0423:02F3  9a650d0a07     lcall  f_070A_0D65
+0423:02EF  ffb74c44       push   word ptr [bx + 0x444c]   ; side.portrait
+0423:02F3  9a650d0a07     lcall  show_portrait
 0423:02F8  83c406         add    sp, 6
 0423:02FB  c60607102d     mov    byte ptr [0x1007], 0x2d
 0423:0300  eb0f           jmp    0x311
@@ -7390,7 +7390,7 @@ L_0423_0311:
 0423:0325  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0423:0327  a4             movsb  byte ptr es:[di], byte ptr [si]
 0423:0328  5e             pop    si
-0423:0329  9af3020a07     lcall  f_070A_02F3
+0423:0329  9af3020a07     lcall  dialog
 0423:032E  83c40e         add    sp, 0xe
 L_0423_0331:
 0423:0331  83ec0e         sub    sp, 0xe
@@ -7405,7 +7405,7 @@ L_0423_0331:
 0423:0345  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0423:0347  a4             movsb  byte ptr es:[di], byte ptr [si]
 0423:0348  5e             pop    si
-0423:0349  9af3020a07     lcall  f_070A_02F3
+0423:0349  9af3020a07     lcall  dialog
 0423:034E  83c40e         add    sp, 0xe
 0423:0351  5e             pop    si
 0423:0352  5f             pop    di
@@ -7413,7 +7413,7 @@ L_0423_0331:
 0423:0355  5d             pop    bp
 0423:0356  cb             retf   
 
-f_0423_0357 proc  ; 0423:0357  callers: f_0423_04B2
+draw_castles proc  ; 0423:0357  callers: redraw_map
 0423:0357  55             push   bp
 0423:0358  8bec           mov    bp, sp
 0423:035A  83c4fc         add    sp, -4
@@ -7433,20 +7433,20 @@ L_0423_036A:
 0423:0374  d1e0           shl    ax, 1
 0423:0376  03c2           add    ax, dx
 0423:0378  8bd8           mov    bx, ax
-0423:037A  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+0423:037A  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 0423:037F  7503           jne    0x384
 0423:0381  e99900         jmp    0x41d
 L_0423_0384:
-0423:0384  8a874f36       mov    al, byte ptr [bx + 0x364f]
+0423:0384  8a874f36       mov    al, byte ptr [bx + 0x364f]   ; terr.castle
 0423:0388  98             cwde   
 0423:0389  8bf8           mov    di, ax
 0423:038B  47             inc    di
 0423:038C  d1e7           shl    di, 1
-0423:038E  033e1045       add    di, word ptr [0x4510]
+0423:038E  033e1045       add    di, word ptr [0x4510]   ; font
 0423:0392  8e061245       mov    es, word ptr [0x4512]
 0423:0396  268b05         mov    ax, word ptr es:[di]
 0423:0399  d1e0           shl    ax, 1
-0423:039B  03061045       add    ax, word ptr [0x4510]
+0423:039B  03061045       add    ax, word ptr [0x4510]   ; font
 0423:039F  8b161245       mov    dx, word ptr [0x4512]
 0423:03A3  8956fe         mov    word ptr [bp - 2], dx
 0423:03A6  8946fc         mov    word ptr [bp - 4], ax
@@ -7460,7 +7460,7 @@ L_0423_0384:
 0423:03BA  8a877739       mov    al, byte ptr [bx + 0x3977]
 0423:03BE  2ae4           sub    ah, ah
 0423:03C0  50             push   ax
-0423:03C1  9a0e005209     lcall  f_0952_000E
+0423:03C1  9a0e005209     lcall  and_mask
 0423:03C6  83c408         add    sp, 8
 0423:03C9  8bc6           mov    ax, si
 0423:03CB  8bd0           mov    dx, ax
@@ -7470,15 +7470,15 @@ L_0423_0384:
 0423:03D3  d1e0           shl    ax, 1
 0423:03D5  03c2           add    ax, dx
 0423:03D7  8bd8           mov    bx, ax
-0423:03D9  8a874f36       mov    al, byte ptr [bx + 0x364f]
+0423:03D9  8a874f36       mov    al, byte ptr [bx + 0x364f]   ; terr.castle
 0423:03DD  98             cwde   
 0423:03DE  8bd8           mov    bx, ax
 0423:03E0  d1e3           shl    bx, 1
-0423:03E2  031e1045       add    bx, word ptr [0x4510]
+0423:03E2  031e1045       add    bx, word ptr [0x4510]   ; font
 0423:03E6  8e061245       mov    es, word ptr [0x4512]
 0423:03EA  268b07         mov    ax, word ptr es:[bx]
 0423:03ED  d1e0           shl    ax, 1
-0423:03EF  03061045       add    ax, word ptr [0x4510]
+0423:03EF  03061045       add    ax, word ptr [0x4510]   ; font
 0423:03F3  8b161245       mov    dx, word ptr [0x4512]
 0423:03F7  8956fe         mov    word ptr [bp - 2], dx
 0423:03FA  8946fc         mov    word ptr [bp - 4], ax
@@ -7492,25 +7492,25 @@ L_0423_0384:
 0423:040E  8a857739       mov    al, byte ptr [di + 0x3977]
 0423:0412  2ae4           sub    ah, ah
 0423:0414  50             push   ax
-0423:0415  9a00006b09     lcall  f_096B_0000
+0423:0415  9a00006b09     lcall  or_sprite
 0423:041A  83c408         add    sp, 8
 L_0423_041D:
 0423:041D  46             inc    si
 0423:041E  e941ff         jmp    0x362
 L_0423_0421:
-0423:0421  a10c45         mov    ax, word ptr [0x450c]
+0423:0421  a10c45         mov    ax, word ptr [0x450c]   ; player
 0423:0424  8bd0           mov    dx, ax
 0423:0426  d1e0           shl    ax, 1
 0423:0428  d1e0           shl    ax, 1
 0423:042A  03c2           add    ax, dx
 0423:042C  d1e0           shl    ax, 1
 0423:042E  8bd8           mov    bx, ax
-0423:0430  8b874043       mov    ax, word ptr [bx + 0x4340]
+0423:0430  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0423:0434  a3c339         mov    word ptr [0x39c3], ax
-0423:0437  c43e1045       les    di, ptr [0x4510]
+0423:0437  c43e1045       les    di, ptr [0x4510]   ; font
 0423:043B  268b454a       mov    ax, word ptr es:[di + 0x4a]
 0423:043F  d1e0           shl    ax, 1
-0423:0441  03061045       add    ax, word ptr [0x4510]
+0423:0441  03061045       add    ax, word ptr [0x4510]   ; font
 0423:0445  8b161245       mov    dx, word ptr [0x4512]
 0423:0449  8956fe         mov    word ptr [bp - 2], dx
 0423:044C  8946fc         mov    word ptr [bp - 4], ax
@@ -7524,12 +7524,12 @@ L_0423_0421:
 0423:0462  8a879d39       mov    al, byte ptr [bx + 0x399d]
 0423:0466  2ae4           sub    ah, ah
 0423:0468  50             push   ax
-0423:0469  9a0e005209     lcall  f_0952_000E
+0423:0469  9a0e005209     lcall  and_mask
 0423:046E  83c408         add    sp, 8
-0423:0471  c41e1045       les    bx, ptr [0x4510]
+0423:0471  c41e1045       les    bx, ptr [0x4510]   ; font
 0423:0475  268b87fe00     mov    ax, word ptr es:[bx + 0xfe]
 0423:047A  d1e0           shl    ax, 1
-0423:047C  03061045       add    ax, word ptr [0x4510]
+0423:047C  03061045       add    ax, word ptr [0x4510]   ; font
 0423:0480  8b161245       mov    dx, word ptr [0x4512]
 0423:0484  8956fe         mov    word ptr [bp - 2], dx
 0423:0487  8946fc         mov    word ptr [bp - 4], ax
@@ -7543,7 +7543,7 @@ L_0423_0421:
 0423:049D  8a859d39       mov    al, byte ptr [di + 0x399d]
 0423:04A1  2ae4           sub    ah, ah
 0423:04A3  50             push   ax
-0423:04A4  9a00006b09     lcall  f_096B_0000
+0423:04A4  9a00006b09     lcall  or_sprite
 0423:04A9  83c408         add    sp, 8
 0423:04AC  5e             pop    si
 0423:04AD  5f             pop    di
@@ -7551,7 +7551,7 @@ L_0423_0421:
 0423:04B0  5d             pop    bp
 0423:04B1  cb             retf   
 
-f_0423_04B2 proc  ; 0423:04B2  callers: f_0079_00C6, f_0079_010E, f_0176_000B, f_01A5_023A, f_01A5_05D3, f_02D3_0006 ...
+redraw_map proc  ; 0423:04B2  callers: ask_passage, battle, battle_shown, buy_army, seek_conquest, tournament ...
 0423:04B2  55             push   bp
 0423:04B3  8bec           mov    bp, sp
 0423:04B5  83c4f8         add    sp, -8
@@ -7562,14 +7562,14 @@ f_0423_04B2 proc  ; 0423:04B2  callers: f_0079_00C6, f_0079_010E, f_0176_000B, f
 0423:04C1  b85e00         mov    ax, 0x5e   ; "<>@%4d>"
 0423:04C4  50             push   ax
 0423:04C5  ff360a45       push   word ptr [0x450a]
-0423:04C9  ff360845       push   word ptr [0x4508]
-0423:04CD  9ab1020a07     lcall  f_070A_02B1
+0423:04C9  ff360845       push   word ptr [0x4508]   ; lib_chars
+0423:04CD  9ab1020a07     lcall  show_lib_picture
 0423:04D2  83c406         add    sp, 6
 0423:04D5  c70644360100   mov    word ptr [0x3644], 1
 L_0423_04DB:
-0423:04DB  c706d8460100   mov    word ptr [0x46d8], 1
-0423:04E1  9ab3010a07     lcall  f_070A_01B3
-0423:04E6  c706d8460000   mov    word ptr [0x46d8], 0
+0423:04DB  c706d8460100   mov    word ptr [0x46d8], 1   ; no_wipe
+0423:04E1  9ab3010a07     lcall  show_screen
+0423:04E6  c706d8460000   mov    word ptr [0x46d8], 0   ; no_wipe
 0423:04EC  be0100         mov    si, 1
 L_0423_04EF:
 0423:04EF  83fe13         cmp    si, 0x13
@@ -7582,16 +7582,16 @@ L_0423_04EF:
 0423:04FE  d1e0           shl    ax, 1
 0423:0500  03c2           add    ax, dx
 0423:0502  8bd8           mov    bx, ax
-0423:0504  80bf4e36ff     cmp    byte ptr [bx + 0x364e], 0xff
+0423:0504  80bf4e36ff     cmp    byte ptr [bx + 0x364e], 0xff   ; terr.owner
 0423:0509  7440           je     0x54b
 0423:050B  8bfe           mov    di, si
 0423:050D  47             inc    di
 0423:050E  d1e7           shl    di, 1
-0423:0510  033e1045       add    di, word ptr [0x4510]
+0423:0510  033e1045       add    di, word ptr [0x4510]   ; font
 0423:0514  8e061245       mov    es, word ptr [0x4512]
 0423:0518  268b05         mov    ax, word ptr es:[di]
 0423:051B  d1e0           shl    ax, 1
-0423:051D  03061045       add    ax, word ptr [0x4510]
+0423:051D  03061045       add    ax, word ptr [0x4510]   ; font
 0423:0521  8b161245       mov    dx, word ptr [0x4512]
 0423:0525  8956fe         mov    word ptr [bp - 2], dx
 0423:0528  8946fc         mov    word ptr [bp - 4], ax
@@ -7605,26 +7605,26 @@ L_0423_04EF:
 0423:053C  8a875139       mov    al, byte ptr [bx + 0x3951]
 0423:0540  2ae4           sub    ah, ah
 0423:0542  50             push   ax
-0423:0543  9a0800a608     lcall  f_08A6_0008
+0423:0543  9a0800a608     lcall  xor_sprite
 0423:0548  83c408         add    sp, 8
 L_0423_054B:
 0423:054B  46             inc    si
 0423:054C  eba1           jmp    0x4ef
 L_0423_054E:
-0423:054E  9a57032304     lcall  f_0423_0357
+0423:054E  9a57032304     lcall  draw_castles
 0423:0553  5e             pop    si
 0423:0554  5f             pop    di
 0423:0555  8be5           mov    sp, bp
 0423:0557  5d             pop    bp
 0423:0558  cb             retf   
 
-f_0423_0559 proc  ; 0423:0559  callers: f_01A5_05D3, f_02D3_029E, f_082C_0180
+read_map proc  ; 0423:0559  callers: joust_round, orders_menu, seek_conquest
 0423:0559  55             push   bp
 0423:055A  8bec           mov    bp, sp
 0423:055C  57             push   di
 0423:055D  56             push   si
 0423:055E  be0100         mov    si, 1
-0423:0561  a10c45         mov    ax, word ptr [0x450c]
+0423:0561  a10c45         mov    ax, word ptr [0x450c]   ; player
 0423:0564  8bd0           mov    dx, ax
 0423:0566  b103           mov    cl, 3
 0423:0568  d3e0           shl    ax, cl
@@ -7632,9 +7632,9 @@ f_0423_0559 proc  ; 0423:0559  callers: f_01A5_05D3, f_02D3_029E, f_082C_0180
 0423:056C  d1e0           shl    ax, 1
 0423:056E  d1e0           shl    ax, 1
 0423:0570  8bd8           mov    bx, ax
-0423:0572  8b875044       mov    ax, word ptr [bx + 0x4450]
-0423:0576  a32247         mov    word ptr [0x4722], ax
-0423:0579  9ab2042304     lcall  f_0423_04B2
+0423:0572  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
+0423:0576  a32247         mov    word ptr [0x4722], ax   ; cur_terr
+0423:0579  9ab2042304     lcall  redraw_map
 L_0423_057E:
 0423:057E  83fe01         cmp    si, 1
 0423:0581  752e           jne    0x5b1
@@ -7648,13 +7648,13 @@ L_0423_057E:
 0423:0593  b90600         mov    cx, 6
 0423:0596  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0423:0598  a4             movsb  byte ptr es:[di], byte ptr [si]
-0423:0599  9af3020a07     lcall  f_070A_02F3
+0423:0599  9af3020a07     lcall  dialog
 0423:059E  83c40e         add    sp, 0xe
 0423:05A1  8bf0           mov    si, ax
 0423:05A3  8bc6           mov    ax, si
 0423:05A5  3d0100         cmp    ax, 1
 0423:05A8  7505           jne    0x5af
-0423:05AA  9a30012304     lcall  f_0423_0130
+0423:05AA  9a30012304     lcall  territory_info
 L_0423_05AF:
 0423:05AF  ebcd           jmp    0x57e
 L_0423_05B1:
@@ -7665,7 +7665,7 @@ L_0423_05B1:
 0423:05B7  5d             pop    bp
 0423:05B8  cb             retf   
 
-f_0423_05B9 proc  ; 0423:05B9  callers: f_02D3_029E, f_0423_063B, f_0423_0758, f_04BA_0000 ...
+flash_territory proc  ; 0423:05B9  callers: ai_turn, choose_territory, joust_round, set_owner ...
 0423:05B9  55             push   bp
 0423:05BA  8bec           mov    bp, sp
 0423:05BC  83c4f4         add    sp, -0xc
@@ -7673,11 +7673,11 @@ f_0423_05B9 proc  ; 0423:05B9  callers: f_02D3_029E, f_0423_063B, f_0423_0758, f
 0423:05C0  8b5e06         mov    bx, word ptr [bp + 6]
 0423:05C3  43             inc    bx
 0423:05C4  d1e3           shl    bx, 1
-0423:05C6  031e1045       add    bx, word ptr [0x4510]
+0423:05C6  031e1045       add    bx, word ptr [0x4510]   ; font
 0423:05CA  8e061245       mov    es, word ptr [0x4512]
 0423:05CE  268b07         mov    ax, word ptr es:[bx]
 0423:05D1  d1e0           shl    ax, 1
-0423:05D3  03061045       add    ax, word ptr [0x4510]
+0423:05D3  03061045       add    ax, word ptr [0x4510]   ; font
 0423:05D7  8b161245       mov    dx, word ptr [0x4512]
 0423:05DB  8956fe         mov    word ptr [bp - 2], dx
 0423:05DE  8946fc         mov    word ptr [bp - 4], ax
@@ -7685,12 +7685,12 @@ f_0423_05B9 proc  ; 0423:05B9  callers: f_02D3_029E, f_0423_063B, f_0423_0758, f
 L_0423_05E4:
 0423:05E4  85f6           test   si, si
 0423:05E6  744e           je     0x636
-0423:05E8  9a0300010a     lcall  f_0A01_0003
+0423:05E8  9a0300010a     lcall  get_ticks
 0423:05ED  99             cdq    
 0423:05EE  8956fa         mov    word ptr [bp - 6], dx
 0423:05F1  8946f8         mov    word ptr [bp - 8], ax
 L_0423_05F4:
-0423:05F4  9a0300010a     lcall  f_0A01_0003
+0423:05F4  9a0300010a     lcall  get_ticks
 0423:05F9  99             cdq    
 0423:05FA  8956f6         mov    word ptr [bp - 0xa], dx
 0423:05FD  8946f4         mov    word ptr [bp - 0xc], ax
@@ -7713,7 +7713,7 @@ L_0423_060C:
 0423:0624  8a875139       mov    al, byte ptr [bx + 0x3951]
 0423:0628  2ae4           sub    ah, ah
 0423:062A  50             push   ax
-0423:062B  9a0800a608     lcall  f_08A6_0008
+0423:062B  9a0800a608     lcall  xor_sprite
 0423:0630  83c408         add    sp, 8
 0423:0633  4e             dec    si
 0423:0634  ebae           jmp    0x5e4
@@ -7723,12 +7723,12 @@ L_0423_0636:
 0423:0639  5d             pop    bp
 0423:063A  cb             retf   
 
-f_0423_063B proc  ; 0423:063B  callers: f_0176_000B, f_01A5_054C, f_02D3_029E, f_0423_0130, f_050E_0734
+choose_territory proc  ; 0423:063B  callers: buy_army, choose_destination, choose_raid_target, joust_round, territory_info
 0423:063B  55             push   bp
 0423:063C  8bec           mov    bp, sp
 0423:063E  57             push   di
 0423:063F  56             push   si
-0423:0640  9ab2042304     lcall  f_0423_04B2
+0423:0640  9ab2042304     lcall  redraw_map
 0423:0645  83ec0e         sub    sp, 0xe
 0423:0648  57             push   di
 0423:0649  8bc4           mov    ax, sp
@@ -7744,7 +7744,7 @@ f_0423_063B proc  ; 0423:063B  callers: f_0176_000B, f_01A5_054C, f_02D3_029E, f
 0423:065F  a4             movsb  byte ptr es:[di], byte ptr [si]
 0423:0660  5e             pop    si
 0423:0661  5f             pop    di
-0423:0662  9af3020a07     lcall  f_070A_02F3
+0423:0662  9af3020a07     lcall  dialog
 0423:0667  83c40e         add    sp, 0xe
 0423:066A  8b7e06         mov    di, word ptr [bp + 6]
 0423:066D  8bf7           mov    si, di
@@ -7752,11 +7752,11 @@ L_0423_066F:
 0423:066F  b80200         mov    ax, 2
 0423:0672  50             push   ax
 0423:0673  56             push   si
-0423:0674  9ab9052304     lcall  f_0423_05B9
+0423:0674  9ab9052304     lcall  flash_territory
 0423:0679  83c404         add    sp, 4
 0423:067C  85ff           test   di, di
 0423:067E  7405           je     0x685
-0423:0680  9a1b090a07     lcall  f_070A_091B
+0423:0680  9a1b090a07     lcall  flush_keys
 L_0423_0685:
 0423:0685  8bc7           mov    ax, di
 0423:0687  e9a300         jmp    0x72d
@@ -7765,7 +7765,7 @@ L_0423_068A:
 0423:068C  d1e3           shl    bx, 1
 0423:068E  d1e3           shl    bx, 1
 0423:0690  d1e3           shl    bx, 1
-0423:0692  8a87b938       mov    al, byte ptr [bx + 0x38b9]
+0423:0692  8a87b938       mov    al, byte ptr [bx + 0x38b9]   ; nav+0
 0423:0696  98             cwde   
 0423:0697  8bf0           mov    si, ax
 0423:0699  e9a300         jmp    0x73f
@@ -7774,7 +7774,7 @@ L_0423_069C:
 0423:069E  d1e3           shl    bx, 1
 0423:06A0  d1e3           shl    bx, 1
 0423:06A2  d1e3           shl    bx, 1
-0423:06A4  8a87ba38       mov    al, byte ptr [bx + 0x38ba]
+0423:06A4  8a87ba38       mov    al, byte ptr [bx + 0x38ba]   ; nav+1
 0423:06A8  98             cwde   
 0423:06A9  8bf0           mov    si, ax
 0423:06AB  e99100         jmp    0x73f
@@ -7783,7 +7783,7 @@ L_0423_06AE:
 0423:06B0  d1e3           shl    bx, 1
 0423:06B2  d1e3           shl    bx, 1
 0423:06B4  d1e3           shl    bx, 1
-0423:06B6  8a87bb38       mov    al, byte ptr [bx + 0x38bb]
+0423:06B6  8a87bb38       mov    al, byte ptr [bx + 0x38bb]   ; nav+2
 0423:06BA  98             cwde   
 0423:06BB  8bf0           mov    si, ax
 0423:06BD  e97f00         jmp    0x73f
@@ -7792,7 +7792,7 @@ L_0423_06C0:
 0423:06C2  d1e3           shl    bx, 1
 0423:06C4  d1e3           shl    bx, 1
 0423:06C6  d1e3           shl    bx, 1
-0423:06C8  8a87bc38       mov    al, byte ptr [bx + 0x38bc]
+0423:06C8  8a87bc38       mov    al, byte ptr [bx + 0x38bc]   ; nav+3
 0423:06CC  98             cwde   
 0423:06CD  8bf0           mov    si, ax
 0423:06CF  eb6e           jmp    0x73f
@@ -7801,7 +7801,7 @@ L_0423_06D1:
 0423:06D3  d1e3           shl    bx, 1
 0423:06D5  d1e3           shl    bx, 1
 0423:06D7  d1e3           shl    bx, 1
-0423:06D9  8a87bd38       mov    al, byte ptr [bx + 0x38bd]
+0423:06D9  8a87bd38       mov    al, byte ptr [bx + 0x38bd]   ; nav+4
 0423:06DD  98             cwde   
 0423:06DE  8bf0           mov    si, ax
 0423:06E0  eb5d           jmp    0x73f
@@ -7810,7 +7810,7 @@ L_0423_06E2:
 0423:06E4  d1e3           shl    bx, 1
 0423:06E6  d1e3           shl    bx, 1
 0423:06E8  d1e3           shl    bx, 1
-0423:06EA  8a87be38       mov    al, byte ptr [bx + 0x38be]
+0423:06EA  8a87be38       mov    al, byte ptr [bx + 0x38be]   ; nav+5
 0423:06EE  98             cwde   
 0423:06EF  8bf0           mov    si, ax
 0423:06F1  eb4c           jmp    0x73f
@@ -7819,7 +7819,7 @@ L_0423_06F3:
 0423:06F5  d1e3           shl    bx, 1
 0423:06F7  d1e3           shl    bx, 1
 0423:06F9  d1e3           shl    bx, 1
-0423:06FB  8a87bf38       mov    al, byte ptr [bx + 0x38bf]
+0423:06FB  8a87bf38       mov    al, byte ptr [bx + 0x38bf]   ; nav+6
 0423:06FF  98             cwde   
 0423:0700  8bf0           mov    si, ax
 0423:0702  eb3b           jmp    0x73f
@@ -7828,7 +7828,7 @@ L_0423_0704:
 0423:0706  d1e3           shl    bx, 1
 0423:0708  d1e3           shl    bx, 1
 0423:070A  d1e3           shl    bx, 1
-0423:070C  8a87c038       mov    al, byte ptr [bx + 0x38c0]
+0423:070C  8a87c038       mov    al, byte ptr [bx + 0x38c0]   ; nav+7
 0423:0710  98             cwde   
 0423:0711  8bf0           mov    si, ax
 0423:0713  eb2a           jmp    0x73f
@@ -7845,7 +7845,7 @@ L_0423_072D:
 L_0423_073D:
 0423:073D  ebd6           jmp    0x715
 L_0423_073F:
-0423:073F  9aab070a07     lcall  f_070A_07AB
+0423:073F  9aab070a07     lcall  get_key
 0423:0744  8bf8           mov    di, ax
 0423:0746  8bc7           mov    ax, di
 0423:0748  3d1c00         cmp    ax, 0x1c
@@ -7859,7 +7859,7 @@ L_0423_0750:
 0423:0756  5d             pop    bp
 0423:0757  cb             retf   
 
-f_0423_0758 proc  ; 0423:0758  callers: f_01A5_0352, f_02D3_029E, f_03F1_02E4, f_07F9_009C ...
+set_owner proc  ; 0423:0758  callers: apply_result, joust_round, monthly_event, side_falls ...
 0423:0758  55             push   bp
 0423:0759  8bec           mov    bp, sp
 0423:075B  83c4fa         add    sp, -6
@@ -7869,23 +7869,23 @@ f_0423_0758 proc  ; 0423:0758  callers: f_01A5_0352, f_02D3_029E, f_03F1_02E4, f
 0423:0763  8b7e08         mov    di, word ptr [bp + 8]
 0423:0766  833e443600     cmp    word ptr [0x3644], 0
 0423:076B  7505           jne    0x772
-0423:076D  9ab2042304     lcall  f_0423_04B2
+0423:076D  9ab2042304     lcall  redraw_map
 L_0423_0772:
 0423:0772  8bdf           mov    bx, di
 0423:0774  43             inc    bx
 0423:0775  d1e3           shl    bx, 1
-0423:0777  031e1045       add    bx, word ptr [0x4510]
+0423:0777  031e1045       add    bx, word ptr [0x4510]   ; font
 0423:077B  8e061245       mov    es, word ptr [0x4512]
 0423:077F  268b07         mov    ax, word ptr es:[bx]
 0423:0782  d1e0           shl    ax, 1
-0423:0784  03061045       add    ax, word ptr [0x4510]
+0423:0784  03061045       add    ax, word ptr [0x4510]   ; font
 0423:0788  8b161245       mov    dx, word ptr [0x4512]
 0423:078C  8956fc         mov    word ptr [bp - 4], dx
 0423:078F  8946fa         mov    word ptr [bp - 6], ax
 0423:0792  b80400         mov    ax, 4
 0423:0795  50             push   ax
 0423:0796  57             push   di
-0423:0797  9ab9052304     lcall  f_0423_05B9
+0423:0797  9ab9052304     lcall  flash_territory
 0423:079C  83c404         add    sp, 4
 0423:079F  8bc7           mov    ax, di
 0423:07A1  8bd0           mov    dx, ax
@@ -7895,7 +7895,7 @@ L_0423_0772:
 0423:07A9  d1e0           shl    ax, 1
 0423:07AB  03c2           add    ax, dx
 0423:07AD  8bd8           mov    bx, ax
-0423:07AF  8a874e36       mov    al, byte ptr [bx + 0x364e]
+0423:07AF  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 0423:07B3  98             cwde   
 0423:07B4  8946fe         mov    word ptr [bp - 2], ax
 0423:07B7  3dffff         cmp    ax, 0xffff
@@ -7903,14 +7903,14 @@ L_0423_0772:
 0423:07BC  b80100         mov    ax, 1
 0423:07BF  50             push   ax
 0423:07C0  57             push   di
-0423:07C1  9ab9052304     lcall  f_0423_05B9
+0423:07C1  9ab9052304     lcall  flash_territory
 0423:07C6  83c404         add    sp, 4
 0423:07C9  8b5efe         mov    bx, word ptr [bp - 2]
 0423:07CC  d1e3           shl    bx, 1
 0423:07CE  ffb7c539       push   word ptr [bx + 0x39c5]
 0423:07D2  ff76fc         push   word ptr [bp - 4]
 0423:07D5  ff76fa         push   word ptr [bp - 6]
-0423:07D8  9a0c003809     lcall  f_0938_000C
+0423:07D8  9a0c003809     lcall  recolour_territory
 0423:07DD  83c406         add    sp, 6
 L_0423_07E0:
 0423:07E0  8bc6           mov    ax, si
@@ -7924,7 +7924,7 @@ L_0423_07E0:
 0423:07EF  03c2           add    ax, dx
 0423:07F1  8bd8           mov    bx, ax
 0423:07F3  58             pop    ax
-0423:07F4  88874e36       mov    byte ptr [bx + 0x364e], al
+0423:07F4  88874e36       mov    byte ptr [bx + 0x364e], al   ; terr.owner
 0423:07F8  3cff           cmp    al, 0xff
 0423:07FA  7423           je     0x81f
 0423:07FC  8bde           mov    bx, si
@@ -7932,18 +7932,18 @@ L_0423_07E0:
 0423:0800  ffb7c539       push   word ptr [bx + 0x39c5]
 0423:0804  ff76fc         push   word ptr [bp - 4]
 0423:0807  ff76fa         push   word ptr [bp - 6]
-0423:080A  9a0c003809     lcall  f_0938_000C
+0423:080A  9a0c003809     lcall  recolour_territory
 0423:080F  83c406         add    sp, 6
 0423:0812  b80100         mov    ax, 1
 0423:0815  50             push   ax
 0423:0816  57             push   di
-0423:0817  9ab9052304     lcall  f_0423_05B9
+0423:0817  9ab9052304     lcall  flash_territory
 0423:081C  83c404         add    sp, 4
 L_0423_081F:
 0423:081F  b80400         mov    ax, 4
 0423:0822  50             push   ax
 0423:0823  57             push   di
-0423:0824  9ab9052304     lcall  f_0423_05B9
+0423:0824  9ab9052304     lcall  flash_territory
 0423:0829  83c404         add    sp, 4
 0423:082C  8bc7           mov    ax, di
 0423:082E  8bd0           mov    dx, ax
@@ -7953,20 +7953,20 @@ L_0423_081F:
 0423:0836  d1e0           shl    ax, 1
 0423:0838  03c2           add    ax, dx
 0423:083A  8bd8           mov    bx, ax
-0423:083C  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+0423:083C  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 0423:0841  7503           jne    0x846
 0423:0843  e99900         jmp    0x8df
 L_0423_0846:
-0423:0846  8a874f36       mov    al, byte ptr [bx + 0x364f]
+0423:0846  8a874f36       mov    al, byte ptr [bx + 0x364f]   ; terr.castle
 0423:084A  98             cwde   
 0423:084B  8bd8           mov    bx, ax
 0423:084D  43             inc    bx
 0423:084E  d1e3           shl    bx, 1
-0423:0850  031e1045       add    bx, word ptr [0x4510]
+0423:0850  031e1045       add    bx, word ptr [0x4510]   ; font
 0423:0854  8e061245       mov    es, word ptr [0x4512]
 0423:0858  268b07         mov    ax, word ptr es:[bx]
 0423:085B  d1e0           shl    ax, 1
-0423:085D  03061045       add    ax, word ptr [0x4510]
+0423:085D  03061045       add    ax, word ptr [0x4510]   ; font
 0423:0861  8b161245       mov    dx, word ptr [0x4512]
 0423:0865  8956fc         mov    word ptr [bp - 4], dx
 0423:0868  8946fa         mov    word ptr [bp - 6], ax
@@ -7980,7 +7980,7 @@ L_0423_0846:
 0423:087C  8a877739       mov    al, byte ptr [bx + 0x3977]
 0423:0880  2ae4           sub    ah, ah
 0423:0882  50             push   ax
-0423:0883  9a0e005209     lcall  f_0952_000E
+0423:0883  9a0e005209     lcall  and_mask
 0423:0888  83c408         add    sp, 8
 0423:088B  8bc7           mov    ax, di
 0423:088D  8bd0           mov    dx, ax
@@ -7990,15 +7990,15 @@ L_0423_0846:
 0423:0895  d1e0           shl    ax, 1
 0423:0897  03c2           add    ax, dx
 0423:0899  8bd8           mov    bx, ax
-0423:089B  8a874f36       mov    al, byte ptr [bx + 0x364f]
+0423:089B  8a874f36       mov    al, byte ptr [bx + 0x364f]   ; terr.castle
 0423:089F  98             cwde   
 0423:08A0  8bd8           mov    bx, ax
 0423:08A2  d1e3           shl    bx, 1
-0423:08A4  031e1045       add    bx, word ptr [0x4510]
+0423:08A4  031e1045       add    bx, word ptr [0x4510]   ; font
 0423:08A8  8e061245       mov    es, word ptr [0x4512]
 0423:08AC  268b07         mov    ax, word ptr es:[bx]
 0423:08AF  d1e0           shl    ax, 1
-0423:08B1  03061045       add    ax, word ptr [0x4510]
+0423:08B1  03061045       add    ax, word ptr [0x4510]   ; font
 0423:08B5  8b161245       mov    dx, word ptr [0x4512]
 0423:08B9  8956fc         mov    word ptr [bp - 4], dx
 0423:08BC  8946fa         mov    word ptr [bp - 6], ax
@@ -8012,24 +8012,24 @@ L_0423_0846:
 0423:08D0  8a877739       mov    al, byte ptr [bx + 0x3977]
 0423:08D4  2ae4           sub    ah, ah
 0423:08D6  50             push   ax
-0423:08D7  9a00006b09     lcall  f_096B_0000
+0423:08D7  9a00006b09     lcall  or_sprite
 0423:08DC  83c408         add    sp, 8
 L_0423_08DF:
-0423:08DF  a10c45         mov    ax, word ptr [0x450c]
+0423:08DF  a10c45         mov    ax, word ptr [0x450c]   ; player
 0423:08E2  8bd0           mov    dx, ax
 0423:08E4  d1e0           shl    ax, 1
 0423:08E6  d1e0           shl    ax, 1
 0423:08E8  03c2           add    ax, dx
 0423:08EA  d1e0           shl    ax, 1
 0423:08EC  8bd8           mov    bx, ax
-0423:08EE  8b874043       mov    ax, word ptr [bx + 0x4340]
+0423:08EE  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 0423:08F2  a3c339         mov    word ptr [0x39c3], ax
 0423:08F5  3bc7           cmp    ax, di
 0423:08F7  7571           jne    0x96a
-0423:08F9  c41e1045       les    bx, ptr [0x4510]
+0423:08F9  c41e1045       les    bx, ptr [0x4510]   ; font
 0423:08FD  268b474a       mov    ax, word ptr es:[bx + 0x4a]
 0423:0901  d1e0           shl    ax, 1
-0423:0903  03061045       add    ax, word ptr [0x4510]
+0423:0903  03061045       add    ax, word ptr [0x4510]   ; font
 0423:0907  8b161245       mov    dx, word ptr [0x4512]
 0423:090B  8956fc         mov    word ptr [bp - 4], dx
 0423:090E  8946fa         mov    word ptr [bp - 6], ax
@@ -8043,12 +8043,12 @@ L_0423_08DF:
 0423:0922  8a879d39       mov    al, byte ptr [bx + 0x399d]
 0423:0926  2ae4           sub    ah, ah
 0423:0928  50             push   ax
-0423:0929  9a0e005209     lcall  f_0952_000E
+0423:0929  9a0e005209     lcall  and_mask
 0423:092E  83c408         add    sp, 8
-0423:0931  c41e1045       les    bx, ptr [0x4510]
+0423:0931  c41e1045       les    bx, ptr [0x4510]   ; font
 0423:0935  268b87fe00     mov    ax, word ptr es:[bx + 0xfe]
 0423:093A  d1e0           shl    ax, 1
-0423:093C  03061045       add    ax, word ptr [0x4510]
+0423:093C  03061045       add    ax, word ptr [0x4510]   ; font
 0423:0940  8b161245       mov    dx, word ptr [0x4512]
 0423:0944  8956fc         mov    word ptr [bp - 4], dx
 0423:0947  8946fa         mov    word ptr [bp - 6], ax
@@ -8062,7 +8062,7 @@ L_0423_08DF:
 0423:095B  8a879d39       mov    al, byte ptr [bx + 0x399d]
 0423:095F  2ae4           sub    ah, ah
 0423:0961  50             push   ax
-0423:0962  9a00006b09     lcall  f_096B_0000
+0423:0962  9a00006b09     lcall  or_sprite
 0423:0967  83c408         add    sp, 8
 L_0423_096A:
 0423:096A  5e             pop    si
@@ -8073,7 +8073,7 @@ L_0423_096A:
 
 ;================ segment 04BA ================
 
-f_04BA_0000 proc  ; 04BA:0000  callers: f_082C_0268
+ai_turn proc  ; 04BA:0000  callers: month
 04BA:0000  55             push   bp
 04BA:0001  8bec           mov    bp, sp
 04BA:0003  83c4f2         add    sp, -0xe
@@ -8088,7 +8088,7 @@ f_04BA_0000 proc  ; 04BA:0000  callers: f_082C_0268
 04BA:0015  d1e0           shl    ax, 1
 04BA:0017  d1e0           shl    ax, 1
 04BA:0019  8bd8           mov    bx, ax
-04BA:001B  8bbf5044       mov    di, word ptr [bx + 0x4450]
+04BA:001B  8bbf5044       mov    di, word ptr [bx + 0x4450]   ; side.home
 04BA:001F  833e020000     cmp    word ptr [2], 0
 04BA:0024  7403           je     0x29
 04BA:0026  e99100         jmp    0xba
@@ -8101,7 +8101,7 @@ L_04BA_0029:
 04BA:0033  d1e0           shl    ax, 1
 04BA:0035  03c2           add    ax, dx
 04BA:0037  8bd8           mov    bx, ax
-04BA:0039  8a874e36       mov    al, byte ptr [bx + 0x364e]
+04BA:0039  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 04BA:003D  98             cwde   
 04BA:003E  3bc6           cmp    ax, si
 04BA:0040  7578           jne    0xba
@@ -8113,23 +8113,23 @@ L_04BA_0029:
 04BA:004C  d1e0           shl    ax, 1
 04BA:004E  d1e0           shl    ax, 1
 04BA:0050  8bd8           mov    bx, ax
-04BA:0052  8b875c44       mov    ax, word ptr [bx + 0x445c]
-04BA:0056  01875e44       add    word ptr [bx + 0x445e], ax
+04BA:0052  8b875c44       mov    ax, word ptr [bx + 0x445c]   ; side.income
+04BA:0056  01875e44       add    word ptr [bx + 0x445e], ax   ; side.gold
 04BA:005A  56             push   si
-04BA:005B  9a0a03ba04     lcall  f_04BA_030A
+04BA:005B  9a0a03ba04     lcall  ai_reinforce_garrison
 04BA:0060  59             pop    cx
 04BA:0061  b80e00         mov    ax, 0xe
 04BA:0064  50             push   ax
 04BA:0065  57             push   di
-04BA:0066  9ab9052304     lcall  f_0423_05B9
+04BA:0066  9ab9052304     lcall  flash_territory
 04BA:006B  83c404         add    sp, 4
-04BA:006E  9aab070a07     lcall  f_070A_07AB
+04BA:006E  9aab070a07     lcall  get_key
 04BA:0073  b80e00         mov    ax, 0xe
 04BA:0076  50             push   ax
 04BA:0077  57             push   di
-04BA:0078  9ab9052304     lcall  f_0423_05B9
+04BA:0078  9ab9052304     lcall  flash_territory
 04BA:007D  83c404         add    sp, 4
-04BA:0080  9aab070a07     lcall  f_070A_07AB
+04BA:0080  9aab070a07     lcall  get_key
 04BA:0085  16             push   ss
 04BA:0086  8d46f2         lea    ax, [bp - 0xe]
 04BA:0089  50             push   ax
@@ -8137,7 +8137,7 @@ L_04BA_0029:
 04BA:008B  8d46fc         lea    ax, [bp - 4]
 04BA:008E  50             push   ax
 04BA:008F  56             push   si
-04BA:0090  9a8504ba04     lcall  f_04BA_0485
+04BA:0090  9a8504ba04     lcall  ai_choose_order
 04BA:0095  83c40a         add    sp, 0xa
 04BA:0098  8946fe         mov    word ptr [bp - 2], ax
 04BA:009B  16             push   ss
@@ -8146,7 +8146,7 @@ L_04BA_0029:
 04BA:00A0  ff76fc         push   word ptr [bp - 4]
 04BA:00A3  ff76fe         push   word ptr [bp - 2]
 04BA:00A6  56             push   si
-04BA:00A7  9aef03ba04     lcall  f_04BA_03EF
+04BA:00A7  9aef03ba04     lcall  ai_do_order
 04BA:00AC  83c40a         add    sp, 0xa
 04BA:00AF  8bde           mov    bx, si
 04BA:00B1  d1e3           shl    bx, 1
@@ -8159,7 +8159,7 @@ L_04BA_00BA:
 04BA:00BE  5d             pop    bp
 04BA:00BF  cb             retf   
 
-f_04BA_00C0 proc  ; 04BA:00C0  callers: f_04BA_0123
+best_site_for_castle proc  ; 04BA:00C0  callers: ai_buy
 04BA:00C0  55             push   bp
 04BA:00C1  8bec           mov    bp, sp
 04BA:00C3  57             push   di
@@ -8177,11 +8177,11 @@ L_04BA_00C9:
 04BA:00D8  d1e0           shl    ax, 1
 04BA:00DA  03c2           add    ax, dx
 04BA:00DC  8bd8           mov    bx, ax
-04BA:00DE  8a874e36       mov    al, byte ptr [bx + 0x364e]
+04BA:00DE  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 04BA:00E2  98             cwde   
 04BA:00E3  3b4606         cmp    ax, word ptr [bp + 6]
 04BA:00E6  7530           jne    0x118
-04BA:00E8  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0
+04BA:00E8  80bf4f3600     cmp    byte ptr [bx + 0x364f], 0   ; terr.castle
 04BA:00ED  7529           jne    0x118
 04BA:00EF  8bc7           mov    ax, di
 04BA:00F1  99             cdq    
@@ -8190,7 +8190,7 @@ L_04BA_00C9:
 04BA:00F6  8bfe           mov    di, si
 04BA:00F8  eb1e           jmp    0x118
 L_04BA_00FA:
-04BA:00FA  8a875136       mov    al, byte ptr [bx + 0x3651]
+04BA:00FA  8a875136       mov    al, byte ptr [bx + 0x3651]   ; terr.income
 04BA:00FE  50             push   ax
 04BA:00FF  8bc7           mov    ax, di
 04BA:0101  8bd0           mov    dx, ax
@@ -8201,7 +8201,7 @@ L_04BA_00FA:
 04BA:010B  03c2           add    ax, dx
 04BA:010D  8bd8           mov    bx, ax
 04BA:010F  58             pop    ax
-04BA:0110  3a875136       cmp    al, byte ptr [bx + 0x3651]
+04BA:0110  3a875136       cmp    al, byte ptr [bx + 0x3651]   ; terr.income
 04BA:0114  7e02           jle    0x118
 04BA:0116  8bfe           mov    di, si
 L_04BA_0118:
@@ -8215,7 +8215,7 @@ L_04BA_011B:
 04BA:0121  5d             pop    bp
 04BA:0122  cb             retf   
 
-f_04BA_0123 proc  ; 04BA:0123  callers: f_04BA_03EF
+ai_buy proc  ; 04BA:0123  callers: ai_do_order
 04BA:0123  55             push   bp
 04BA:0124  8bec           mov    bp, sp
 04BA:0126  83c4ee         add    sp, -0x12
@@ -8230,7 +8230,7 @@ f_04BA_0123 proc  ; 04BA:0123  callers: f_04BA_03EF
 04BA:0138  d1e0           shl    ax, 1
 04BA:013A  d1e0           shl    ax, 1
 04BA:013C  8bd8           mov    bx, ax
-04BA:013E  8b875044       mov    ax, word ptr [bx + 0x4450]
+04BA:013E  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 04BA:0142  8946f2         mov    word ptr [bp - 0xe], ax
 04BA:0145  8bc6           mov    ax, si
 04BA:0147  8bd0           mov    dx, ax
@@ -8239,8 +8239,8 @@ f_04BA_0123 proc  ; 04BA:0123  callers: f_04BA_03EF
 04BA:014D  03c2           add    ax, dx
 04BA:014F  d1e0           shl    ax, 1
 04BA:0151  8bd8           mov    bx, ax
-04BA:0153  8b874843       mov    ax, word ptr [bx + 0x4348]
-04BA:0157  03878e43       add    ax, word ptr [bx + 0x438e]
+04BA:0153  8b874843       mov    ax, word ptr [bx + 0x4348]   ; army.catapults
+04BA:0157  03878e43       add    ax, word ptr [bx + 0x438e]   ; army.catapults
 04BA:015B  3d0000         cmp    ax, 0
 04BA:015E  7f39           jg     0x199
 04BA:0160  8bc6           mov    ax, si
@@ -8251,10 +8251,10 @@ f_04BA_0123 proc  ; 04BA:0123  callers: f_04BA_03EF
 04BA:016A  d1e0           shl    ax, 1
 04BA:016C  d1e0           shl    ax, 1
 04BA:016E  8bd8           mov    bx, ax
-04BA:0170  8b875e44       mov    ax, word ptr [bx + 0x445e]
+04BA:0170  8b875e44       mov    ax, word ptr [bx + 0x445e]   ; side.gold
 04BA:0174  3d0f00         cmp    ax, 0xf
 04BA:0177  7c1a           jl     0x193
-04BA:0179  83af5e440f     sub    word ptr [bx + 0x445e], 0xf
+04BA:0179  83af5e440f     sub    word ptr [bx + 0x445e], 0xf   ; side.gold
 04BA:017E  8b46f2         mov    ax, word ptr [bp - 0xe]
 04BA:0181  8bd0           mov    dx, ax
 04BA:0183  d1e0           shl    ax, 1
@@ -8262,7 +8262,7 @@ f_04BA_0123 proc  ; 04BA:0123  callers: f_04BA_03EF
 04BA:0187  03c2           add    ax, dx
 04BA:0189  d1e0           shl    ax, 1
 04BA:018B  8bd8           mov    bx, ax
-04BA:018D  ff878e43       inc    word ptr [bx + 0x438e]
+04BA:018D  ff878e43       inc    word ptr [bx + 0x438e]   ; army.catapults
 04BA:0191  eb06           jmp    0x199
 L_04BA_0193:
 04BA:0193  5e             pop    si
@@ -8279,14 +8279,14 @@ L_04BA_0199:
 04BA:01A3  d1e0           shl    ax, 1
 04BA:01A5  d1e0           shl    ax, 1
 04BA:01A7  8bd8           mov    bx, ax
-04BA:01A9  8b875444       mov    ax, word ptr [bx + 0x4454]
-04BA:01AD  f7af5e44       imul   word ptr [bx + 0x445e]
+04BA:01A9  8b875444       mov    ax, word ptr [bx + 0x4454]   ; side.spend
+04BA:01AD  f7af5e44       imul   word ptr [bx + 0x445e]   ; side.gold
 04BA:01B1  b90a00         mov    cx, 0xa
 04BA:01B4  99             cdq    
 04BA:01B5  f7f9           idiv   cx
 04BA:01B7  8bf8           mov    di, ax
 04BA:01B9  8bc7           mov    ax, di
-04BA:01BB  29875e44       sub    word ptr [bx + 0x445e], ax
+04BA:01BB  29875e44       sub    word ptr [bx + 0x445e], ax   ; side.gold
 04BA:01BF  8bc7           mov    ax, di
 04BA:01C1  b90200         mov    cx, 2
 04BA:01C4  99             cdq    
@@ -8304,13 +8304,13 @@ L_04BA_0199:
 04BA:01DC  d1e0           shl    ax, 1
 04BA:01DE  8bd8           mov    bx, ax
 04BA:01E0  58             pop    ax
-04BA:01E1  01878c43       add    word ptr [bx + 0x438c], ax
+04BA:01E1  01878c43       add    word ptr [bx + 0x438c], ax   ; army.knights
 04BA:01E5  d1e0           shl    ax, 1
 04BA:01E7  d1e0           shl    ax, 1
 04BA:01E9  d1e0           shl    ax, 1
 04BA:01EB  2bf8           sub    di, ax
 04BA:01ED  8bc7           mov    ax, di
-04BA:01EF  01878a43       add    word ptr [bx + 0x438a], ax
+04BA:01EF  01878a43       add    word ptr [bx + 0x438a], ax   ; army.soldiers
 L_04BA_01F3:
 04BA:01F3  8bc6           mov    ax, si
 04BA:01F5  8bd0           mov    dx, ax
@@ -8320,11 +8320,11 @@ L_04BA_01F3:
 04BA:01FD  d1e0           shl    ax, 1
 04BA:01FF  d1e0           shl    ax, 1
 04BA:0201  8bd8           mov    bx, ax
-04BA:0203  8b875e44       mov    ax, word ptr [bx + 0x445e]
+04BA:0203  8b875e44       mov    ax, word ptr [bx + 0x445e]   ; side.gold
 04BA:0207  3d1400         cmp    ax, 0x14
 04BA:020A  7c4c           jl     0x258
 04BA:020C  56             push   si
-04BA:020D  9ac000ba04     lcall  f_04BA_00C0
+04BA:020D  9ac000ba04     lcall  best_site_for_castle
 04BA:0212  59             pop    cx
 04BA:0213  8946f0         mov    word ptr [bp - 0x10], ax
 04BA:0216  85c0           test   ax, ax
@@ -8336,7 +8336,7 @@ L_04BA_01F3:
 04BA:0222  d1e0           shl    ax, 1
 04BA:0224  03c2           add    ax, dx
 04BA:0226  8bd8           mov    bx, ax
-04BA:0228  c6874f3623     mov    byte ptr [bx + 0x364f], 0x23
+04BA:0228  c6874f3623     mov    byte ptr [bx + 0x364f], 0x23   ; terr.castle
 04BA:022D  8b46f0         mov    ax, word ptr [bp - 0x10]
 04BA:0230  8bd0           mov    dx, ax
 04BA:0232  d1e0           shl    ax, 1
@@ -8344,7 +8344,7 @@ L_04BA_01F3:
 04BA:0236  03c2           add    ax, dx
 04BA:0238  d1e0           shl    ax, 1
 04BA:023A  8bd8           mov    bx, ax
-04BA:023C  83878a430a     add    word ptr [bx + 0x438a], 0xa
+04BA:023C  83878a430a     add    word ptr [bx + 0x438a], 0xa   ; army.soldiers
 04BA:0241  8bc6           mov    ax, si
 04BA:0243  8bd0           mov    dx, ax
 04BA:0245  b103           mov    cl, 3
@@ -8353,7 +8353,7 @@ L_04BA_01F3:
 04BA:024B  d1e0           shl    ax, 1
 04BA:024D  d1e0           shl    ax, 1
 04BA:024F  8bd8           mov    bx, ax
-04BA:0251  83af5e4414     sub    word ptr [bx + 0x445e], 0x14
+04BA:0251  83af5e4414     sub    word ptr [bx + 0x445e], 0x14   ; side.gold
 04BA:0256  eb9b           jmp    0x1f3
 L_04BA_0258:
 04BA:0258  8bc6           mov    ax, si
@@ -8364,7 +8364,7 @@ L_04BA_0258:
 04BA:0262  d1e0           shl    ax, 1
 04BA:0264  d1e0           shl    ax, 1
 04BA:0266  8bd8           mov    bx, ax
-04BA:0268  8b875244       mov    ax, word ptr [bx + 0x4452]
+04BA:0268  8b875244       mov    ax, word ptr [bx + 0x4452]   ; side.at
 04BA:026C  8bd0           mov    dx, ax
 04BA:026E  d1e0           shl    ax, 1
 04BA:0270  d1e0           shl    ax, 1
@@ -8418,7 +8418,7 @@ L_04BA_0258:
 04BA:0301  26c747080000   mov    word ptr es:[bx + 8], 0
 04BA:0307  e989fe         jmp    0x193
 
-f_04BA_030A proc  ; 04BA:030A  callers: f_04BA_0000
+ai_reinforce_garrison proc  ; 04BA:030A  callers: ai_turn
 04BA:030A  55             push   bp
 04BA:030B  8bec           mov    bp, sp
 04BA:030D  83c4fc         add    sp, -4
@@ -8432,7 +8432,7 @@ f_04BA_030A proc  ; 04BA:030A  callers: f_04BA_0000
 04BA:031D  03c2           add    ax, dx
 04BA:031F  d1e0           shl    ax, 1
 04BA:0321  8bd8           mov    bx, ax
-04BA:0323  8b874043       mov    ax, word ptr [bx + 0x4340]
+04BA:0323  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 04BA:0327  8946fe         mov    word ptr [bp - 2], ax
 04BA:032A  50             push   ax
 04BA:032B  8bc6           mov    ax, si
@@ -8444,7 +8444,7 @@ f_04BA_030A proc  ; 04BA:030A  callers: f_04BA_0000
 04BA:0337  d1e0           shl    ax, 1
 04BA:0339  8bd8           mov    bx, ax
 04BA:033B  58             pop    ax
-04BA:033C  3b875044       cmp    ax, word ptr [bx + 0x4450]
+04BA:033C  3b875044       cmp    ax, word ptr [bx + 0x4450]   ; side.home
 04BA:0340  751d           jne    0x35f
 04BA:0342  8bc6           mov    ax, si
 04BA:0344  8bd0           mov    dx, ax
@@ -8453,7 +8453,7 @@ f_04BA_030A proc  ; 04BA:030A  callers: f_04BA_0000
 04BA:034A  03c2           add    ax, dx
 04BA:034C  d1e0           shl    ax, 1
 04BA:034E  8bd8           mov    bx, ax
-04BA:0350  8b874443       mov    ax, word ptr [bx + 0x4344]
+04BA:0350  8b874443       mov    ax, word ptr [bx + 0x4344]   ; army.soldiers
 04BA:0354  b90200         mov    cx, 2
 04BA:0357  99             cdq    
 04BA:0358  f7f9           idiv   cx
@@ -8467,7 +8467,7 @@ L_04BA_035F:
 04BA:0367  03c2           add    ax, dx
 04BA:0369  d1e0           shl    ax, 1
 04BA:036B  8bd8           mov    bx, ax
-04BA:036D  8b874443       mov    ax, word ptr [bx + 0x4344]
+04BA:036D  8b874443       mov    ax, word ptr [bx + 0x4344]   ; army.soldiers
 04BA:0371  b90500         mov    cx, 5
 04BA:0374  99             cdq    
 04BA:0375  f7f9           idiv   cx
@@ -8480,7 +8480,7 @@ L_04BA_037A:
 04BA:0383  03c2           add    ax, dx
 04BA:0385  d1e0           shl    ax, 1
 04BA:0387  8bd8           mov    bx, ax
-04BA:0389  8b878a43       mov    ax, word ptr [bx + 0x438a]
+04BA:0389  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
 04BA:038D  3b46fc         cmp    ax, word ptr [bp - 4]
 04BA:0390  7d57           jge    0x3e9
 04BA:0392  8b46fc         mov    ax, word ptr [bp - 4]
@@ -8496,7 +8496,7 @@ L_04BA_039E:
 04BA:03A6  03c2           add    ax, dx
 04BA:03A8  d1e0           shl    ax, 1
 04BA:03AA  8bd8           mov    bx, ax
-04BA:03AC  8b874443       mov    ax, word ptr [bx + 0x4344]
+04BA:03AC  8b874443       mov    ax, word ptr [bx + 0x4344]   ; army.soldiers
 04BA:03B0  3d0200         cmp    ax, 2
 04BA:03B3  7e05           jle    0x3ba
 04BA:03B5  bf0200         mov    di, 2
@@ -8514,7 +8514,7 @@ L_04BA_03BC:
 04BA:03C9  d1e0           shl    ax, 1
 04BA:03CB  8bd8           mov    bx, ax
 04BA:03CD  58             pop    ax
-04BA:03CE  29874443       sub    word ptr [bx + 0x4344], ax
+04BA:03CE  29874443       sub    word ptr [bx + 0x4344], ax   ; army.soldiers
 04BA:03D2  8bc7           mov    ax, di
 04BA:03D4  50             push   ax
 04BA:03D5  8b46fe         mov    ax, word ptr [bp - 2]
@@ -8525,7 +8525,7 @@ L_04BA_03BC:
 04BA:03E0  d1e0           shl    ax, 1
 04BA:03E2  8bd8           mov    bx, ax
 04BA:03E4  58             pop    ax
-04BA:03E5  01878a43       add    word ptr [bx + 0x438a], ax
+04BA:03E5  01878a43       add    word ptr [bx + 0x438a], ax   ; army.soldiers
 L_04BA_03E9:
 04BA:03E9  5e             pop    si
 04BA:03EA  5f             pop    di
@@ -8533,20 +8533,20 @@ L_04BA_03E9:
 04BA:03ED  5d             pop    bp
 04BA:03EE  cb             retf   
 
-f_04BA_03EF proc  ; 04BA:03EF  callers: f_04BA_0000
+ai_do_order proc  ; 04BA:03EF  callers: ai_turn
 04BA:03EF  55             push   bp
 04BA:03F0  8bec           mov    bp, sp
 04BA:03F2  8b4608         mov    ax, word ptr [bp + 8]
 04BA:03F5  e97a00         jmp    0x472
 L_04BA_03F8:
 04BA:03F8  ff7606         push   word ptr [bp + 6]
-04BA:03FB  9a0600d302     lcall  f_02D3_0006
+04BA:03FB  9a0600d302     lcall  tournament
 04BA:0400  59             pop    cx
 04BA:0401  e97d00         jmp    0x481
 L_04BA_0404:
 04BA:0404  ff760a         push   word ptr [bp + 0xa]
 04BA:0407  ff7606         push   word ptr [bp + 6]
-04BA:040A  9af1001900     lcall  f_0019_00F1
+04BA:040A  9af1001900     lcall  army_move_to
 04BA:040F  83c404         add    sp, 4
 04BA:0412  ff760a         push   word ptr [bp + 0xa]
 04BA:0415  8b460a         mov    ax, word ptr [bp + 0xa]
@@ -8557,28 +8557,28 @@ L_04BA_0404:
 04BA:0420  d1e0           shl    ax, 1
 04BA:0422  03c2           add    ax, dx
 04BA:0424  8bd8           mov    bx, ax
-04BA:0426  8a874e36       mov    al, byte ptr [bx + 0x364e]
+04BA:0426  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 04BA:042A  98             cwde   
 04BA:042B  50             push   ax
 04BA:042C  ff7606         push   word ptr [bp + 6]
-04BA:042F  9ac200a501     lcall  f_01A5_00C2
+04BA:042F  9ac200a501     lcall  attack
 04BA:0434  83c406         add    sp, 6
 04BA:0437  eb48           jmp    0x481
 L_04BA_0439:
 04BA:0439  ff7606         push   word ptr [bp + 6]
-04BA:043C  9ade070e05     lcall  f_050E_07DE
+04BA:043C  9ade070e05     lcall  ai_raid
 04BA:0441  59             pop    cx
 04BA:0442  eb3d           jmp    0x481
 L_04BA_0444:
 04BA:0444  ff7606         push   word ptr [bp + 6]
-04BA:0447  9a2301ba04     lcall  f_04BA_0123
+04BA:0447  9a2301ba04     lcall  ai_buy
 04BA:044C  59             pop    cx
 04BA:044D  eb32           jmp    0x481
 L_04BA_044F:
 04BA:044F  eb30           jmp    0x481
 L_04BA_0451:
 04BA:0451  ff7606         push   word ptr [bp + 6]
-04BA:0454  9a30011900     lcall  f_0019_0130
+04BA:0454  9a30011900     lcall  army_go_home
 04BA:0459  59             pop    cx
 04BA:045A  eb25           jmp    0x481
 L_04BA_045C:
@@ -8597,7 +8597,7 @@ L_04BA_0481:
 04BA:0483  5d             pop    bp
 04BA:0484  cb             retf   
 
-f_04BA_0485 proc  ; 04BA:0485  callers: f_04BA_0000
+ai_choose_order proc  ; 04BA:0485  callers: ai_turn
 04BA:0485  55             push   bp
 04BA:0486  8bec           mov    bp, sp
 04BA:0488  57             push   di
@@ -8612,12 +8612,12 @@ f_04BA_0485 proc  ; 04BA:0485  callers: f_04BA_0000
 04BA:0499  d1e0           shl    ax, 1
 04BA:049B  d1e0           shl    ax, 1
 04BA:049D  8bd8           mov    bx, ax
-04BA:049F  8b875244       mov    ax, word ptr [bx + 0x4452]
-04BA:04A3  3b875044       cmp    ax, word ptr [bx + 0x4450]
+04BA:049F  8b875244       mov    ax, word ptr [bx + 0x4452]   ; side.at
+04BA:04A3  3b875044       cmp    ax, word ptr [bx + 0x4450]   ; side.home
 04BA:04A7  7411           je     0x4ba
 04BA:04A9  b80300         mov    ax, 3
 04BA:04AC  50             push   ax
-04BA:04AD  9a0d000a07     lcall  f_070A_000D
+04BA:04AD  9a0d000a07     lcall  random
 04BA:04B2  59             pop    cx
 04BA:04B3  85c0           test   ax, ax
 04BA:04B5  7503           jne    0x4ba
@@ -8630,7 +8630,7 @@ L_04BA_04BA:
 04BA:04C5  7413           je     0x4da
 04BA:04C7  b80400         mov    ax, 4
 04BA:04CA  50             push   ax
-04BA:04CB  9a0d000a07     lcall  f_070A_000D
+04BA:04CB  9a0d000a07     lcall  random
 04BA:04D0  59             pop    cx
 04BA:04D1  85c0           test   ax, ax
 04BA:04D3  7505           jne    0x4da
@@ -8639,7 +8639,7 @@ L_04BA_04BA:
 L_04BA_04DA:
 04BA:04DA  b80700         mov    ax, 7
 04BA:04DD  50             push   ax
-04BA:04DE  9a0d000a07     lcall  f_070A_000D
+04BA:04DE  9a0d000a07     lcall  random
 04BA:04E3  59             pop    cx
 04BA:04E4  85c0           test   ax, ax
 04BA:04E6  7436           je     0x51e
@@ -8648,7 +8648,7 @@ L_04BA_04DA:
 04BA:04EE  ff760a         push   word ptr [bp + 0xa]
 04BA:04F1  ff7608         push   word ptr [bp + 8]
 04BA:04F4  56             push   si
-04BA:04F5  9a7c014500     lcall  f_0045_017C
+04BA:04F5  9a7c014500     lcall  ai_find_target
 04BA:04FA  83c40a         add    sp, 0xa
 04BA:04FD  85c0           test   ax, ax
 04BA:04FF  7405           je     0x506
@@ -8657,7 +8657,7 @@ L_04BA_04DA:
 L_04BA_0506:
 04BA:0506  b80200         mov    ax, 2
 04BA:0509  50             push   ax
-04BA:050A  9a0d000a07     lcall  f_070A_000D
+04BA:050A  9a0d000a07     lcall  random
 04BA:050F  59             pop    cx
 04BA:0510  85c0           test   ax, ax
 04BA:0512  7405           je     0x519
@@ -8697,42 +8697,42 @@ L_04BA_053D:
 
 ;================ segment 050E ================
 
-f_050E_000D proc  ; 050E:000D  callers: f_082C_0268
+rescue_offer proc  ; 050E:000D  callers: month
 050E:000D  55             push   bp
 050E:000E  8bec           mov    bp, sp
 050E:0010  57             push   di
 050E:0011  56             push   si
 050E:0012  33f6           xor    si, si
-050E:0014  a11e47         mov    ax, word ptr [0x471e]
+050E:0014  a11e47         mov    ax, word ptr [0x471e]   ; kidnapped
 050E:0017  3dffff         cmp    ax, 0xffff
 050E:001A  7503           jne    0x1f
 050E:001C  e91801         jmp    0x137
 L_050E_001F:
-050E:001F  9ab2042304     lcall  f_0423_04B2
-050E:0024  a11e47         mov    ax, word ptr [0x471e]
+050E:001F  9ab2042304     lcall  redraw_map
+050E:0024  a11e47         mov    ax, word ptr [0x471e]   ; kidnapped
 050E:0027  8bd0           mov    dx, ax
 050E:0029  d1e0           shl    ax, 1
 050E:002B  d1e0           shl    ax, 1
 050E:002D  03c2           add    ax, dx
 050E:002F  d1e0           shl    ax, 1
 050E:0031  8bd8           mov    bx, ax
-050E:0033  ffb7f833       push   word ptr [bx + 0x33f8]
-050E:0037  ffb7f633       push   word ptr [bx + 0x33f6]
+050E:0033  ffb7f833       push   word ptr [bx + 0x33f8]   ; lady+2
+050E:0037  ffb7f633       push   word ptr [bx + 0x33f6]   ; lady.name
 050E:003B  1e             push   ds
 050E:003C  b86a3a         mov    ax, 0x3a6a   ; "Saxon Lady %s"
 050E:003F  50             push   ax
 050E:0040  ff36f418       push   word ptr [0x18f4]
 050E:0044  ff36f218       push   word ptr [0x18f2]
-050E:0048  9a0600f809     lcall  f_09F8_0006
+050E:0048  9a0600f809     lcall  sprintf
 050E:004D  83c40c         add    sp, 0xc
-050E:0050  a11e47         mov    ax, word ptr [0x471e]
+050E:0050  a11e47         mov    ax, word ptr [0x471e]   ; kidnapped
 050E:0053  8bd0           mov    dx, ax
 050E:0055  d1e0           shl    ax, 1
 050E:0057  d1e0           shl    ax, 1
 050E:0059  03c2           add    ax, dx
 050E:005B  d1e0           shl    ax, 1
 050E:005D  8bd8           mov    bx, ax
-050E:005F  8b87fc33       mov    ax, word ptr [bx + 0x33fc]
+050E:005F  8b87fc33       mov    ax, word ptr [bx + 0x33fc]   ; lady.terr
 050E:0063  8bd0           mov    dx, ax
 050E:0065  b103           mov    cl, 3
 050E:0067  d3e0           shl    ax, cl
@@ -8747,7 +8747,7 @@ L_050E_001F:
 050E:007D  50             push   ax
 050E:007E  ff36fc18       push   word ptr [0x18fc]
 050E:0082  ff36fa18       push   word ptr [0x18fa]
-050E:0086  9a0600f809     lcall  f_09F8_0006
+050E:0086  9a0600f809     lcall  sprintf
 050E:008B  83c40c         add    sp, 0xc
 050E:008E  83ec0e         sub    sp, 0xe
 050E:0091  8bc4           mov    ax, sp
@@ -8761,7 +8761,7 @@ L_050E_001F:
 050E:00A2  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:00A4  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:00A5  5e             pop    si
-050E:00A6  9af3020a07     lcall  f_070A_02F3
+050E:00A6  9af3020a07     lcall  dialog
 050E:00AB  83c40e         add    sp, 0xe
 050E:00AE  83ec0e         sub    sp, 0xe
 050E:00B1  8bc4           mov    ax, sp
@@ -8775,7 +8775,7 @@ L_050E_001F:
 050E:00C2  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:00C4  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:00C5  5e             pop    si
-050E:00C6  9af3020a07     lcall  f_070A_02F3
+050E:00C6  9af3020a07     lcall  dialog
 050E:00CB  83c40e         add    sp, 0xe
 050E:00CE  83ec0e         sub    sp, 0xe
 050E:00D1  8bc4           mov    ax, sp
@@ -8789,35 +8789,35 @@ L_050E_001F:
 050E:00E2  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:00E4  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:00E5  5e             pop    si
-050E:00E6  9af3020a07     lcall  f_070A_02F3
+050E:00E6  9af3020a07     lcall  dialog
 050E:00EB  83c40e         add    sp, 0xe
 050E:00EE  3d0100         cmp    ax, 1
 050E:00F1  752e           jne    0x121
-050E:00F3  a11e47         mov    ax, word ptr [0x471e]
+050E:00F3  a11e47         mov    ax, word ptr [0x471e]   ; kidnapped
 050E:00F6  8bd0           mov    dx, ax
 050E:00F8  d1e0           shl    ax, 1
 050E:00FA  d1e0           shl    ax, 1
 050E:00FC  03c2           add    ax, dx
 050E:00FE  d1e0           shl    ax, 1
 050E:0100  8bd8           mov    bx, ax
-050E:0102  ffb7fc33       push   word ptr [bx + 0x33fc]
-050E:0106  9a2c020e05     lcall  f_050E_022C
+050E:0102  ffb7fc33       push   word ptr [bx + 0x33fc]   ; lady.terr
+050E:0106  9a2c020e05     lcall  raid
 050E:010B  59             pop    cx
 050E:010C  b80200         mov    ax, 2
 050E:010F  50             push   ax
-050E:0110  ff360c45       push   word ptr [0x450c]
-050E:0114  9a7110d302     lcall  f_02D3_1071
+050E:0110  ff360c45       push   word ptr [0x450c]   ; player
+050E:0114  9a7110d302     lcall  leadership_add
 050E:0119  83c404         add    sp, 4
 050E:011C  be0100         mov    si, 1
 050E:011F  eb10           jmp    0x131
 L_050E_0121:
 050E:0121  b8feff         mov    ax, 0xfffe
 050E:0124  50             push   ax
-050E:0125  ff360c45       push   word ptr [0x450c]
-050E:0129  9a7110d302     lcall  f_02D3_1071
+050E:0125  ff360c45       push   word ptr [0x450c]   ; player
+050E:0129  9a7110d302     lcall  leadership_add
 050E:012E  83c404         add    sp, 4
 L_050E_0131:
-050E:0131  c7061e47ffff   mov    word ptr [0x471e], 0xffff
+050E:0131  c7061e47ffff   mov    word ptr [0x471e], 0xffff   ; kidnapped
 L_050E_0137:
 050E:0137  8bc6           mov    ax, si
 050E:0139  5e             pop    si
@@ -8826,7 +8826,7 @@ L_050E_0137:
 050E:013D  5d             pop    bp
 050E:013E  cb             retf   
 
-f_050E_013F proc  ; 050E:013F
+kidnap_lady? proc  ; 050E:013F
 050E:013F  55             push   bp
 050E:0140  8bec           mov    bp, sp
 050E:0142  56             push   si
@@ -8838,7 +8838,7 @@ f_050E_013F proc  ; 050E:013F
 050E:014E  d1e0           shl    ax, 1
 050E:0150  d1e0           shl    ax, 1
 050E:0152  8bd8           mov    bx, ax
-050E:0154  8bb75e44       mov    si, word ptr [bx + 0x445e]
+050E:0154  8bb75e44       mov    si, word ptr [bx + 0x445e]   ; side.gold
 050E:0158  83fe0f         cmp    si, 0xf
 050E:015B  7f02           jg     0x15f
 050E:015D  eb18           jmp    0x177
@@ -8857,20 +8857,20 @@ L_050E_0169:
 050E:0175  8bf0           mov    si, ax
 L_050E_0177:
 050E:0177  8bc6           mov    ax, si
-050E:0179  29875e44       sub    word ptr [bx + 0x445e], ax
+050E:0179  29875e44       sub    word ptr [bx + 0x445e], ax   ; side.gold
 050E:017D  8bc6           mov    ax, si
 050E:017F  5e             pop    si
 050E:0180  8be5           mov    sp, bp
 050E:0182  5d             pop    bp
 050E:0183  cb             retf   
 
-f_050E_0184 proc  ; 050E:0184  callers: f_050E_07DE
+choose_raid_victim proc  ; 050E:0184  callers: ai_raid
 050E:0184  55             push   bp
 050E:0185  8bec           mov    bp, sp
 050E:0187  56             push   si
 050E:0188  b80300         mov    ax, 3
 050E:018B  50             push   ax
-050E:018C  9a0d000a07     lcall  f_070A_000D
+050E:018C  9a0d000a07     lcall  random
 050E:0191  59             pop    cx
 050E:0192  8bf0           mov    si, ax
 050E:0194  46             inc    si
@@ -8882,7 +8882,7 @@ f_050E_0184 proc  ; 050E:0184  callers: f_050E_07DE
 050E:019F  d1e0           shl    ax, 1
 050E:01A1  d1e0           shl    ax, 1
 050E:01A3  8bd8           mov    bx, ax
-050E:01A5  8b875044       mov    ax, word ptr [bx + 0x4450]
+050E:01A5  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 050E:01A9  8bd0           mov    dx, ax
 050E:01AB  b103           mov    cl, 3
 050E:01AD  d3e0           shl    ax, cl
@@ -8890,7 +8890,7 @@ f_050E_0184 proc  ; 050E:0184  callers: f_050E_07DE
 050E:01B1  d1e0           shl    ax, 1
 050E:01B3  03c2           add    ax, dx
 050E:01B5  8bd8           mov    bx, ax
-050E:01B7  8a874e36       mov    al, byte ptr [bx + 0x364e]
+050E:01B7  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 050E:01BB  98             cwde   
 050E:01BC  3bc6           cmp    ax, si
 050E:01BE  7403           je     0x1c3
@@ -8902,16 +8902,16 @@ L_050E_01C3:
 050E:01C8  5d             pop    bp
 050E:01C9  cb             retf   
 
-f_050E_01CA proc  ; 050E:01CA  callers: f_082C_0180
+go_raiding proc  ; 050E:01CA  callers: orders_menu
 050E:01CA  55             push   bp
 050E:01CB  8bec           mov    bp, sp
 050E:01CD  83c4fe         add    sp, -2
 050E:01D0  57             push   di
 050E:01D1  56             push   si
-050E:01D2  9a34070e05     lcall  f_050E_0734
+050E:01D2  9a34070e05     lcall  choose_raid_target
 050E:01D7  8946fe         mov    word ptr [bp - 2], ax
 050E:01DA  50             push   ax
-050E:01DB  a10c45         mov    ax, word ptr [0x450c]
+050E:01DB  a10c45         mov    ax, word ptr [0x450c]   ; player
 050E:01DE  8bd0           mov    dx, ax
 050E:01E0  b103           mov    cl, 3
 050E:01E2  d3e0           shl    ax, cl
@@ -8920,7 +8920,7 @@ f_050E_01CA proc  ; 050E:01CA  callers: f_082C_0180
 050E:01E8  d1e0           shl    ax, 1
 050E:01EA  8bd8           mov    bx, ax
 050E:01EC  58             pop    ax
-050E:01ED  3b875044       cmp    ax, word ptr [bx + 0x4450]
+050E:01ED  3b875044       cmp    ax, word ptr [bx + 0x4450]   ; side.home
 050E:01F1  7508           jne    0x1fb
 050E:01F3  33c0           xor    ax, ax
 L_050E_01F5:
@@ -8930,7 +8930,7 @@ L_050E_01F5:
 050E:01F9  5d             pop    bp
 050E:01FA  cb             retf   
 L_050E_01FB:
-050E:01FB  9ab2042304     lcall  f_0423_04B2
+050E:01FB  9ab2042304     lcall  redraw_map
 050E:0200  83ec0e         sub    sp, 0xe
 050E:0203  8bc4           mov    ax, sp
 050E:0205  8cd2           mov    dx, ss
@@ -8941,15 +8941,15 @@ L_050E_01FB:
 050E:0210  b90600         mov    cx, 6
 050E:0213  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:0215  a4             movsb  byte ptr es:[di], byte ptr [si]
-050E:0216  9af3020a07     lcall  f_070A_02F3
+050E:0216  9af3020a07     lcall  dialog
 050E:021B  83c40e         add    sp, 0xe
 050E:021E  ff76fe         push   word ptr [bp - 2]
-050E:0221  9a2c020e05     lcall  f_050E_022C
+050E:0221  9a2c020e05     lcall  raid
 050E:0226  59             pop    cx
 050E:0227  b80100         mov    ax, 1
 050E:022A  ebc9           jmp    0x1f5
 
-f_050E_022C proc  ; 050E:022C  callers: f_050E_000D, f_050E_01CA
+raid proc  ; 050E:022C  callers: go_raiding, rescue_offer
 050E:022C  55             push   bp
 050E:022D  8bec           mov    bp, sp
 050E:022F  83c4fc         add    sp, -4
@@ -8958,11 +8958,11 @@ f_050E_022C proc  ; 050E:022C  callers: f_050E_000D, f_050E_01CA
 050E:0234  b800c0         mov    ax, 0xc000
 050E:0237  50             push   ax
 050E:0238  ff360447       push   word ptr [0x4704]
-050E:023C  ff360247       push   word ptr [0x4702]
+050E:023C  ff360247       push   word ptr [0x4702]   ; lib_scene
 050E:0240  1e             push   ds
 050E:0241  b8843a         mov    ax, 0x3a84   ; "RAID.LIB"
 050E:0244  50             push   ax
-050E:0245  9a5a010a07     lcall  f_070A_015A
+050E:0245  9a5a010a07     lcall  load_lib
 050E:024A  83c40a         add    sp, 0xa
 050E:024D  8b4606         mov    ax, word ptr [bp + 6]
 050E:0250  8bd0           mov    dx, ax
@@ -8972,16 +8972,16 @@ f_050E_022C proc  ; 050E:022C  callers: f_050E_000D, f_050E_01CA
 050E:0258  d1e0           shl    ax, 1
 050E:025A  03c2           add    ax, dx
 050E:025C  8bd8           mov    bx, ax
-050E:025E  8a874e36       mov    al, byte ptr [bx + 0x364e]
+050E:025E  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 050E:0262  98             cwde   
 050E:0263  a3b841         mov    word ptr [0x41b8], ax
 050E:0266  b80100         mov    ax, 1
 050E:0269  50             push   ax
-050E:026A  ff360c45       push   word ptr [0x450c]
+050E:026A  ff360c45       push   word ptr [0x450c]   ; player
 050E:026E  ff36b841       push   word ptr [0x41b8]
-050E:0272  9ab200bb02     lcall  f_02BB_00B2
+050E:0272  9ab200bb02     lcall  enmity_add
 050E:0277  83c406         add    sp, 6
-050E:027A  a10c45         mov    ax, word ptr [0x450c]
+050E:027A  a10c45         mov    ax, word ptr [0x450c]   ; player
 050E:027D  8bd0           mov    dx, ax
 050E:027F  b103           mov    cl, 3
 050E:0281  d3e0           shl    ax, cl
@@ -8989,22 +8989,22 @@ f_050E_022C proc  ; 050E:022C  callers: f_050E_000D, f_050E_01CA
 050E:0285  d1e0           shl    ax, 1
 050E:0287  d1e0           shl    ax, 1
 050E:0289  8bd8           mov    bx, ax
-050E:028B  8b875a44       mov    ax, word ptr [bx + 0x445a]
+050E:028B  8b875a44       mov    ax, word ptr [bx + 0x445a]   ; side.sword
 050E:028F  d1e0           shl    ax, 1
 050E:0291  d1e0           shl    ax, 1
 050E:0293  a37841         mov    word ptr [0x4178], ax
-050E:0296  833e164500     cmp    word ptr [0x4516], 0
+050E:0296  833e164500     cmp    word ptr [0x4516], 0   ; robin_4D
 050E:029B  740c           je     0x2a9
 050E:029D  c70678413200   mov    word ptr [0x4178], 0x32
-050E:02A3  c70616450000   mov    word ptr [0x4516], 0
+050E:02A3  c70616450000   mov    word ptr [0x4516], 0   ; robin_4D
 L_050E_02A9:
 050E:02A9  c70610000200   mov    word ptr [0x10], 2
-050E:02AF  9ab9100e05     lcall  f_050E_10B9
+050E:02AF  9ab9100e05     lcall  raid_attack
 050E:02B4  85c0           test   ax, ax
 050E:02B6  7503           jne    0x2bb
 050E:02B8  e9e700         jmp    0x3a2
 L_050E_02BB:
-050E:02BB  9a8e110e05     lcall  f_050E_118E
+050E:02BB  9a8e110e05     lcall  raid_defense
 050E:02C0  85c0           test   ax, ax
 050E:02C2  7503           jne    0x2c7
 050E:02C4  e9db00         jmp    0x3a2
@@ -9012,33 +9012,33 @@ L_050E_02C7:
 050E:02C7  ff360c00       push   word ptr [0xc]
 050E:02CB  b89b00         mov    ax, 0x9b   ; "my of %s"
 050E:02CE  50             push   ax
-050E:02CF  9ae00d0a07     lcall  f_070A_0DE0
+050E:02CF  9ae00d0a07     lcall  play_tune
 050E:02D4  83c404         add    sp, 4
-050E:02D7  a11e47         mov    ax, word ptr [0x471e]
+050E:02D7  a11e47         mov    ax, word ptr [0x471e]   ; kidnapped
 050E:02DA  3dffff         cmp    ax, 0xffff
 050E:02DD  744a           je     0x329
-050E:02DF  9ab3010a07     lcall  f_070A_01B3
-050E:02E4  a11e47         mov    ax, word ptr [0x471e]
+050E:02DF  9ab3010a07     lcall  show_screen
+050E:02E4  a11e47         mov    ax, word ptr [0x471e]   ; kidnapped
 050E:02E7  8bd0           mov    dx, ax
 050E:02E9  d1e0           shl    ax, 1
 050E:02EB  d1e0           shl    ax, 1
 050E:02ED  03c2           add    ax, dx
 050E:02EF  d1e0           shl    ax, 1
 050E:02F1  8bd8           mov    bx, ax
-050E:02F3  8b87fa33       mov    ax, word ptr [bx + 0x33fa]
+050E:02F3  8b87fa33       mov    ax, word ptr [bx + 0x33fa]   ; lady.side
 050E:02F7  8946fe         mov    word ptr [bp - 2], ax
-050E:02FA  ff361e47       push   word ptr [0x471e]
-050E:02FE  9ad4040e05     lcall  f_050E_04D4
+050E:02FA  ff361e47       push   word ptr [0x471e]   ; kidnapped
+050E:02FE  9ad4040e05     lcall  romance
 050E:0303  59             pop    cx
 050E:0304  b80200         mov    ax, 2
 050E:0307  50             push   ax
-050E:0308  ff360c45       push   word ptr [0x450c]
-050E:030C  ff361e47       push   word ptr [0x471e]
-050E:0310  9a7500de03     lcall  f_03DE_0075
+050E:0308  ff360c45       push   word ptr [0x450c]   ; player
+050E:030C  ff361e47       push   word ptr [0x471e]   ; kidnapped
+050E:0310  9a7500de03     lcall  lady_to_side
 050E:0315  83c406         add    sp, 6
-050E:0318  ff360c45       push   word ptr [0x450c]
+050E:0318  ff360c45       push   word ptr [0x450c]   ; player
 050E:031C  ff76fe         push   word ptr [bp - 2]
-050E:031F  9ae402f103     lcall  f_03F1_02E4
+050E:031F  9ae402f103     lcall  side_falls
 050E:0324  83c404         add    sp, 4
 050E:0327  eb79           jmp    0x3a2
 L_050E_0329:
@@ -9050,16 +9050,16 @@ L_050E_0329:
 050E:0334  d1e0           shl    ax, 1
 050E:0336  d1e0           shl    ax, 1
 050E:0338  8bd8           mov    bx, ax
-050E:033A  8b875e44       mov    ax, word ptr [bx + 0x445e]
+050E:033A  8b875e44       mov    ax, word ptr [bx + 0x445e]   ; side.gold
 050E:033E  b90200         mov    cx, 2
 050E:0341  99             cdq    
 050E:0342  f7f9           idiv   cx
 050E:0344  8946fc         mov    word ptr [bp - 4], ax
-050E:0347  29875e44       sub    word ptr [bx + 0x445e], ax
+050E:0347  29875e44       sub    word ptr [bx + 0x445e], ax   ; side.gold
 050E:034B  8b46fc         mov    ax, word ptr [bp - 4]
 050E:034E  ff46fc         inc    word ptr [bp - 4]
 050E:0351  50             push   ax
-050E:0352  a10c45         mov    ax, word ptr [0x450c]
+050E:0352  a10c45         mov    ax, word ptr [0x450c]   ; player
 050E:0355  8bd0           mov    dx, ax
 050E:0357  b103           mov    cl, 3
 050E:0359  d3e0           shl    ax, cl
@@ -9068,15 +9068,15 @@ L_050E_0329:
 050E:035F  d1e0           shl    ax, 1
 050E:0361  8bf8           mov    di, ax
 050E:0363  58             pop    ax
-050E:0364  01855e44       add    word ptr [di + 0x445e], ax
+050E:0364  01855e44       add    word ptr [di + 0x445e], ax   ; side.gold
 050E:0368  b80100         mov    ax, 1
 050E:036B  50             push   ax
-050E:036C  9ac70e0a07     lcall  f_070A_0EC7
+050E:036C  9ac70e0a07     lcall  morale_add
 050E:0371  59             pop    cx
 050E:0372  b80100         mov    ax, 1
 050E:0375  50             push   ax
-050E:0376  ff360c45       push   word ptr [0x450c]
-050E:037A  9a7110d302     lcall  f_02D3_1071
+050E:0376  ff360c45       push   word ptr [0x450c]   ; player
+050E:037A  9a7110d302     lcall  leadership_add
 050E:037F  83c404         add    sp, 4
 050E:0382  83ec0e         sub    sp, 0xe
 050E:0385  8bc4           mov    ax, sp
@@ -9090,13 +9090,13 @@ L_050E_0329:
 050E:0396  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:0398  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:0399  5e             pop    si
-050E:039A  9af3020a07     lcall  f_070A_02F3
+050E:039A  9af3020a07     lcall  dialog
 050E:039F  83c40e         add    sp, 0xe
 L_050E_03A2:
 050E:03A2  ff360c00       push   word ptr [0xc]
 050E:03A6  b89b00         mov    ax, 0x9b   ; "my of %s"
 050E:03A9  50             push   ax
-050E:03AA  9ae00d0a07     lcall  f_070A_0DE0
+050E:03AA  9ae00d0a07     lcall  play_tune
 050E:03AF  83c404         add    sp, 4
 050E:03B2  c70610000300   mov    word ptr [0x10], 3
 050E:03B8  5e             pop    si
@@ -9105,7 +9105,7 @@ L_050E_03A2:
 050E:03BC  5d             pop    bp
 050E:03BD  cb             retf   
 
-f_050E_03BE proc  ; 050E:03BE  callers: f_050E_04D4
+lady_animate proc  ; 050E:03BE  callers: romance
 050E:03BE  55             push   bp
 050E:03BF  8bec           mov    bp, sp
 050E:03C1  83c4fa         add    sp, -6
@@ -9124,12 +9124,12 @@ L_050E_03DC:
 050E:03DF  7d42           jge    0x423
 050E:03E1  8bdf           mov    bx, di
 050E:03E3  d1e3           shl    bx, 1
-050E:03E5  031e0647       add    bx, word ptr [0x4706]
-050E:03E9  8e060847       mov    es, word ptr [0x4708]
+050E:03E5  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+050E:03E9  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 050E:03ED  268b07         mov    ax, word ptr es:[bx]
 050E:03F0  d1e0           shl    ax, 1
-050E:03F2  03060647       add    ax, word ptr [0x4706]
-050E:03F6  8b160847       mov    dx, word ptr [0x4708]
+050E:03F2  03060647       add    ax, word ptr [0x4706]   ; scene_items
+050E:03F6  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 050E:03FA  8956fe         mov    word ptr [bp - 2], dx
 050E:03FD  8946fc         mov    word ptr [bp - 4], ax
 050E:0400  ff76fe         push   word ptr [bp - 2]
@@ -9138,11 +9138,11 @@ L_050E_03DC:
 050E:0409  50             push   ax
 050E:040A  b82200         mov    ax, 0x22
 050E:040D  50             push   ax
-050E:040E  9a07009b08     lcall  f_089B_0007
+050E:040E  9a07009b08     lcall  put_sprite
 050E:0413  83c408         add    sp, 8
 050E:0416  b80100         mov    ax, 1
 050E:0419  50             push   ax
-050E:041A  9ab2080a07     lcall  f_070A_08B2
+050E:041A  9ab2080a07     lcall  wait_ticks
 050E:041F  59             pop    cx
 050E:0420  47             inc    di
 050E:0421  ebb9           jmp    0x3dc
@@ -9153,12 +9153,12 @@ L_050E_0424:
 050E:0426  7e42           jle    0x46a
 050E:0428  8bdf           mov    bx, di
 050E:042A  d1e3           shl    bx, 1
-050E:042C  031e0647       add    bx, word ptr [0x4706]
-050E:0430  8e060847       mov    es, word ptr [0x4708]
+050E:042C  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+050E:0430  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 050E:0434  268b07         mov    ax, word ptr es:[bx]
 050E:0437  d1e0           shl    ax, 1
-050E:0439  03060647       add    ax, word ptr [0x4706]
-050E:043D  8b160847       mov    dx, word ptr [0x4708]
+050E:0439  03060647       add    ax, word ptr [0x4706]   ; scene_items
+050E:043D  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 050E:0441  8956fe         mov    word ptr [bp - 2], dx
 050E:0444  8946fc         mov    word ptr [bp - 4], ax
 050E:0447  ff76fe         push   word ptr [bp - 2]
@@ -9167,11 +9167,11 @@ L_050E_0424:
 050E:0450  50             push   ax
 050E:0451  b82200         mov    ax, 0x22
 050E:0454  50             push   ax
-050E:0455  9a07009b08     lcall  f_089B_0007
+050E:0455  9a07009b08     lcall  put_sprite
 050E:045A  83c408         add    sp, 8
 050E:045D  b80100         mov    ax, 1
 050E:0460  50             push   ax
-050E:0461  9ab2080a07     lcall  f_070A_08B2
+050E:0461  9ab2080a07     lcall  wait_ticks
 050E:0466  59             pop    cx
 050E:0467  4f             dec    di
 050E:0468  ebba           jmp    0x424
@@ -9182,21 +9182,21 @@ L_050E_046A:
 050E:046E  5d             pop    bp
 050E:046F  cb             retf   
 
-f_050E_0470 proc  ; 050E:0470  callers: f_050E_04D4
+fire_flicker2 proc  ; 050E:0470  callers: romance
 050E:0470  55             push   bp
 050E:0471  8bec           mov    bp, sp
 050E:0473  83c4fc         add    sp, -4
 050E:0476  57             push   di
 050E:0477  56             push   si
-050E:0478  c41e1045       les    bx, ptr [0x4510]
+050E:0478  c41e1045       les    bx, ptr [0x4510]   ; font
 050E:047C  268b876c01     mov    ax, word ptr es:[bx + 0x16c]
 050E:0481  d1e0           shl    ax, 1
-050E:0483  03061045       add    ax, word ptr [0x4510]
+050E:0483  03061045       add    ax, word ptr [0x4510]   ; font
 050E:0487  8b161245       mov    dx, word ptr [0x4512]
 050E:048B  8956fe         mov    word ptr [bp - 2], dx
 050E:048E  8946fc         mov    word ptr [bp - 4], ax
 050E:0491  8b4606         mov    ax, word ptr [bp + 6]
-050E:0494  f72e3643       imul   word ptr [0x4336]
+050E:0494  f72e3643       imul   word ptr [0x4336]   ; speed
 050E:0498  8bf0           mov    si, ax
 L_050E_049A:
 050E:049A  83fe00         cmp    si, 0
@@ -9207,10 +9207,10 @@ L_050E_049A:
 050E:04A8  50             push   ax
 050E:04A9  b82400         mov    ax, 0x24
 050E:04AC  50             push   ax
-050E:04AD  9a0800a608     lcall  f_08A6_0008
+050E:04AD  9a0800a608     lcall  xor_sprite
 050E:04B2  83c408         add    sp, 8
-050E:04B5  9aab070a07     lcall  f_070A_07AB
-050E:04BA  a13643         mov    ax, word ptr [0x4336]
+050E:04B5  9aab070a07     lcall  get_key
+050E:04BA  a13643         mov    ax, word ptr [0x4336]   ; speed
 050E:04BD  b9dc05         mov    cx, 0x5dc
 050E:04C0  f7e9           imul   cx
 050E:04C2  8bf8           mov    di, ax
@@ -9229,7 +9229,7 @@ L_050E_04CE:
 050E:04D2  5d             pop    bp
 050E:04D3  cb             retf   
 
-f_050E_04D4 proc  ; 050E:04D4  callers: f_050E_022C
+romance proc  ; 050E:04D4  callers: raid
 050E:04D4  55             push   bp
 050E:04D5  8bec           mov    bp, sp
 050E:04D7  83c4fc         add    sp, -4
@@ -9247,39 +9247,39 @@ f_050E_04D4 proc  ; 050E:04D4  callers: f_050E_022C
 050E:04F0  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:04F2  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:04F3  5e             pop    si
-050E:04F4  9af3020a07     lcall  f_070A_02F3
+050E:04F4  9af3020a07     lcall  dialog
 050E:04F9  83c40e         add    sp, 0xe
 050E:04FC  b800c0         mov    ax, 0xc000
 050E:04FF  50             push   ax
 050E:0500  ff360447       push   word ptr [0x4704]
-050E:0504  ff360247       push   word ptr [0x4702]
+050E:0504  ff360247       push   word ptr [0x4702]   ; lib_scene
 050E:0508  1e             push   ds
 050E:0509  b88d3a         mov    ax, 0x3a8d   ; "LOVE1.LIB"
 050E:050C  50             push   ax
-050E:050D  9a5a010a07     lcall  f_070A_015A
+050E:050D  9a5a010a07     lcall  load_lib
 050E:0512  83c40a         add    sp, 0xa
 050E:0515  b80100         mov    ax, 1
 050E:0518  50             push   ax
 050E:0519  ff360447       push   word ptr [0x4704]
-050E:051D  ff360247       push   word ptr [0x4702]
-050E:0521  9ab1020a07     lcall  f_070A_02B1
+050E:051D  ff360247       push   word ptr [0x4702]   ; lib_scene
+050E:0521  9ab1020a07     lcall  show_lib_picture
 050E:0526  83c406         add    sp, 6
 050E:0529  ff360800       push   word ptr [8]
 050E:052D  b89900         mov    ax, 0x99   ; "army of %s"
 050E:0530  50             push   ax
-050E:0531  9ae00d0a07     lcall  f_070A_0DE0
+050E:0531  9ae00d0a07     lcall  play_tune
 050E:0536  83c404         add    sp, 4
-050E:0539  9ab3010a07     lcall  f_070A_01B3
+050E:0539  9ab3010a07     lcall  show_screen
 050E:053E  8b5e06         mov    bx, word ptr [bp + 6]
 050E:0541  d1e3           shl    bx, 1
 050E:0543  8b9f363a       mov    bx, word ptr [bx + 0x3a36]
 050E:0547  d1e3           shl    bx, 1
-050E:0549  031e0647       add    bx, word ptr [0x4706]
-050E:054D  8e060847       mov    es, word ptr [0x4708]
+050E:0549  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+050E:054D  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 050E:0551  268b07         mov    ax, word ptr es:[bx]
 050E:0554  d1e0           shl    ax, 1
-050E:0556  03060647       add    ax, word ptr [0x4706]
-050E:055A  8b160847       mov    dx, word ptr [0x4708]
+050E:0556  03060647       add    ax, word ptr [0x4706]   ; scene_items
+050E:055A  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 050E:055E  8956fe         mov    word ptr [bp - 2], dx
 050E:0561  8946fc         mov    word ptr [bp - 4], ax
 050E:0564  ff76fe         push   word ptr [bp - 2]
@@ -9288,42 +9288,42 @@ f_050E_04D4 proc  ; 050E:04D4  callers: f_050E_022C
 050E:056D  50             push   ax
 050E:056E  b81a00         mov    ax, 0x1a
 050E:0571  50             push   ax
-050E:0572  9a04007109     lcall  f_0971_0004
+050E:0572  9a04007109     lcall  put_sprite_w
 050E:0577  83c408         add    sp, 8
 050E:057A  b81200         mov    ax, 0x12
 050E:057D  50             push   ax
-050E:057E  9ab2080a07     lcall  f_070A_08B2
+050E:057E  9ab2080a07     lcall  wait_ticks
 050E:0583  59             pop    cx
 050E:0584  ff7606         push   word ptr [bp + 6]
-050E:0587  9abe030e05     lcall  f_050E_03BE
+050E:0587  9abe030e05     lcall  lady_animate
 050E:058C  59             pop    cx
 050E:058D  b81b00         mov    ax, 0x1b
 050E:0590  50             push   ax
-050E:0591  9ab2080a07     lcall  f_070A_08B2
+050E:0591  9ab2080a07     lcall  wait_ticks
 050E:0596  59             pop    cx
 050E:0597  ff7606         push   word ptr [bp + 6]
-050E:059A  9abe030e05     lcall  f_050E_03BE
+050E:059A  9abe030e05     lcall  lady_animate
 050E:059F  59             pop    cx
 050E:05A0  b80900         mov    ax, 9
 050E:05A3  50             push   ax
-050E:05A4  9ab2080a07     lcall  f_070A_08B2
+050E:05A4  9ab2080a07     lcall  wait_ticks
 050E:05A9  59             pop    cx
 050E:05AA  ff7606         push   word ptr [bp + 6]
-050E:05AD  9abe030e05     lcall  f_050E_03BE
+050E:05AD  9abe030e05     lcall  lady_animate
 050E:05B2  59             pop    cx
 050E:05B3  b81200         mov    ax, 0x12
 050E:05B6  50             push   ax
-050E:05B7  9ab2080a07     lcall  f_070A_08B2
+050E:05B7  9ab2080a07     lcall  wait_ticks
 050E:05BC  59             pop    cx
 050E:05BD  ff7606         push   word ptr [bp + 6]
-050E:05C0  9abe030e05     lcall  f_050E_03BE
+050E:05C0  9abe030e05     lcall  lady_animate
 050E:05C5  59             pop    cx
 050E:05C6  b81b00         mov    ax, 0x1b
 050E:05C9  50             push   ax
-050E:05CA  9ab2080a07     lcall  f_070A_08B2
+050E:05CA  9ab2080a07     lcall  wait_ticks
 050E:05CF  59             pop    cx
 050E:05D0  ff7606         push   word ptr [bp + 6]
-050E:05D3  9abe030e05     lcall  f_050E_03BE
+050E:05D3  9abe030e05     lcall  lady_animate
 050E:05D8  59             pop    cx
 050E:05D9  83ec0e         sub    sp, 0xe
 050E:05DC  8bc4           mov    ax, sp
@@ -9337,29 +9337,29 @@ f_050E_04D4 proc  ; 050E:04D4  callers: f_050E_022C
 050E:05ED  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:05EF  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:05F0  5e             pop    si
-050E:05F1  9af3020a07     lcall  f_070A_02F3
+050E:05F1  9af3020a07     lcall  dialog
 050E:05F6  83c40e         add    sp, 0xe
 050E:05F9  b800c0         mov    ax, 0xc000
 050E:05FC  50             push   ax
 050E:05FD  ff360447       push   word ptr [0x4704]
-050E:0601  ff360247       push   word ptr [0x4702]
+050E:0601  ff360247       push   word ptr [0x4702]   ; lib_scene
 050E:0605  1e             push   ds
 050E:0606  b8973a         mov    ax, 0x3a97   ; "LOVE2.LIB"
 050E:0609  50             push   ax
-050E:060A  9a5a010a07     lcall  f_070A_015A
+050E:060A  9a5a010a07     lcall  load_lib
 050E:060F  83c40a         add    sp, 0xa
 050E:0612  b80100         mov    ax, 1
 050E:0615  50             push   ax
 050E:0616  ff360447       push   word ptr [0x4704]
-050E:061A  ff360247       push   word ptr [0x4702]
-050E:061E  9ab1020a07     lcall  f_070A_02B1
+050E:061A  ff360247       push   word ptr [0x4702]   ; lib_scene
+050E:061E  9ab1020a07     lcall  show_lib_picture
 050E:0623  83c406         add    sp, 6
-050E:0626  c706de461000   mov    word ptr [0x46de], 0x10
-050E:062C  9ab3010a07     lcall  f_070A_01B3
-050E:0631  c706de460000   mov    word ptr [0x46de], 0
+050E:0626  c706de461000   mov    word ptr [0x46de], 0x10   ; bright
+050E:062C  9ab3010a07     lcall  show_screen
+050E:0631  c706de460000   mov    word ptr [0x46de], 0   ; bright
 050E:0637  b85e01         mov    ax, 0x15e
 050E:063A  50             push   ax
-050E:063B  9a70040e05     lcall  f_050E_0470
+050E:063B  9a70040e05     lcall  fire_flicker2
 050E:0640  59             pop    cx
 050E:0641  be0200         mov    si, 2
 L_050E_0644:
@@ -9367,26 +9367,26 @@ L_050E_0644:
 050E:0647  7d48           jge    0x691
 050E:0649  8bde           mov    bx, si
 050E:064B  d1e3           shl    bx, 1
-050E:064D  031e0647       add    bx, word ptr [0x4706]
-050E:0651  8e060847       mov    es, word ptr [0x4708]
+050E:064D  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+050E:0651  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 050E:0655  268b07         mov    ax, word ptr es:[bx]
 050E:0658  d1e0           shl    ax, 1
-050E:065A  03060647       add    ax, word ptr [0x4706]
-050E:065E  8b160847       mov    dx, word ptr [0x4708]
+050E:065A  03060647       add    ax, word ptr [0x4706]   ; scene_items
+050E:065E  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 050E:0662  8956fe         mov    word ptr [bp - 2], dx
 050E:0665  8946fc         mov    word ptr [bp - 4], ax
 050E:0668  b82800         mov    ax, 0x28
 050E:066B  50             push   ax
-050E:066C  9a70040e05     lcall  f_050E_0470
+050E:066C  9a70040e05     lcall  fire_flicker2
 050E:0671  59             pop    cx
 050E:0672  ff76fe         push   word ptr [bp - 2]
 050E:0675  ff76fc         push   word ptr [bp - 4]
 050E:0678  8bde           mov    bx, si
 050E:067A  d1e3           shl    bx, 1
 050E:067C  d1e3           shl    bx, 1
-050E:067E  ffb7403a       push   word ptr [bx + 0x3a40]
-050E:0682  ffb73e3a       push   word ptr [bx + 0x3a3e]
-050E:0686  9a07009b08     lcall  f_089B_0007
+050E:067E  ffb7403a       push   word ptr [bx + 0x3a40]   ; bed_pos+2
+050E:0682  ffb73e3a       push   word ptr [bx + 0x3a3e]   ; bed_pos+0
+050E:0686  9a07009b08     lcall  put_sprite
 050E:068B  83c408         add    sp, 8
 050E:068E  46             inc    si
 050E:068F  ebb3           jmp    0x644
@@ -9394,27 +9394,27 @@ L_050E_0691:
 050E:0691  b80b00         mov    ax, 0xb
 050E:0694  50             push   ax
 050E:0695  ff360447       push   word ptr [0x4704]
-050E:0699  ff360247       push   word ptr [0x4702]
-050E:069D  9ab1020a07     lcall  f_070A_02B1
+050E:0699  ff360247       push   word ptr [0x4702]   ; lib_scene
+050E:069D  9ab1020a07     lcall  show_lib_picture
 050E:06A2  83c406         add    sp, 6
-050E:06A5  9ab3010a07     lcall  f_070A_01B3
+050E:06A5  9ab3010a07     lcall  show_screen
 050E:06AA  be0c00         mov    si, 0xc
 L_050E_06AD:
 050E:06AD  83fe16         cmp    si, 0x16
 050E:06B0  7d42           jge    0x6f4
 050E:06B2  8bde           mov    bx, si
 050E:06B4  d1e3           shl    bx, 1
-050E:06B6  031e0647       add    bx, word ptr [0x4706]
-050E:06BA  8e060847       mov    es, word ptr [0x4708]
+050E:06B6  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+050E:06BA  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 050E:06BE  268b07         mov    ax, word ptr es:[bx]
 050E:06C1  d1e0           shl    ax, 1
-050E:06C3  03060647       add    ax, word ptr [0x4706]
-050E:06C7  8b160847       mov    dx, word ptr [0x4708]
+050E:06C3  03060647       add    ax, word ptr [0x4706]   ; scene_items
+050E:06C7  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 050E:06CB  8956fe         mov    word ptr [bp - 2], dx
 050E:06CE  8946fc         mov    word ptr [bp - 4], ax
 050E:06D1  b80300         mov    ax, 3
 050E:06D4  50             push   ax
-050E:06D5  9ab2080a07     lcall  f_070A_08B2
+050E:06D5  9ab2080a07     lcall  wait_ticks
 050E:06DA  59             pop    cx
 050E:06DB  ff76fe         push   word ptr [bp - 2]
 050E:06DE  ff76fc         push   word ptr [bp - 4]
@@ -9422,14 +9422,14 @@ L_050E_06AD:
 050E:06E4  50             push   ax
 050E:06E5  b82500         mov    ax, 0x25
 050E:06E8  50             push   ax
-050E:06E9  9a07009b08     lcall  f_089B_0007
+050E:06E9  9a07009b08     lcall  put_sprite
 050E:06EE  83c408         add    sp, 8
 050E:06F1  46             inc    si
 050E:06F2  ebb9           jmp    0x6ad
 L_050E_06F4:
 050E:06F4  b81200         mov    ax, 0x12
 050E:06F7  50             push   ax
-050E:06F8  9ab2080a07     lcall  f_070A_08B2
+050E:06F8  9ab2080a07     lcall  wait_ticks
 050E:06FD  59             pop    cx
 050E:06FE  83ec0e         sub    sp, 0xe
 050E:0701  8bc4           mov    ax, sp
@@ -9443,20 +9443,20 @@ L_050E_06F4:
 050E:0712  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:0714  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:0715  5e             pop    si
-050E:0716  9af3020a07     lcall  f_070A_02F3
+050E:0716  9af3020a07     lcall  dialog
 050E:071B  83c40e         add    sp, 0xe
 050E:071E  b89900         mov    ax, 0x99   ; "army of %s"
 050E:0721  50             push   ax
-050E:0722  9a2d0e0a07     lcall  f_070A_0E2D
+050E:0722  9a2d0e0a07     lcall  wait_tune
 050E:0727  59             pop    cx
-050E:0728  c706d6463200   mov    word ptr [0x46d6], 0x32
+050E:0728  c706d6463200   mov    word ptr [0x46d6], 0x32   ; morale
 050E:072E  5e             pop    si
 050E:072F  5f             pop    di
 050E:0730  8be5           mov    sp, bp
 050E:0732  5d             pop    bp
 050E:0733  cb             retf   
 
-f_050E_0734 proc  ; 050E:0734  callers: f_050E_01CA
+choose_raid_target proc  ; 050E:0734  callers: go_raiding
 050E:0734  55             push   bp
 050E:0735  8bec           mov    bp, sp
 050E:0737  57             push   di
@@ -9467,7 +9467,7 @@ L_050E_0739:
 050E:073E  7503           jne    0x743
 050E:0740  e99900         jmp    0x7dc
 L_050E_0743:
-050E:0743  a10c45         mov    ax, word ptr [0x450c]
+050E:0743  a10c45         mov    ax, word ptr [0x450c]   ; player
 050E:0746  8bd0           mov    dx, ax
 050E:0748  b103           mov    cl, 3
 050E:074A  d3e0           shl    ax, cl
@@ -9475,15 +9475,15 @@ L_050E_0743:
 050E:074E  d1e0           shl    ax, 1
 050E:0750  d1e0           shl    ax, 1
 050E:0752  8bd8           mov    bx, ax
-050E:0754  ffb75244       push   word ptr [bx + 0x4452]
-050E:0758  9a3b062304     lcall  f_0423_063B
+050E:0754  ffb75244       push   word ptr [bx + 0x4452]   ; side.at
+050E:0758  9a3b062304     lcall  choose_territory
 050E:075D  59             pop    cx
 050E:075E  8bf8           mov    di, ax
 050E:0760  85ff           test   di, di
 050E:0762  750c           jne    0x770
 050E:0764  b80300         mov    ax, 3
 050E:0767  50             push   ax
-050E:0768  9a0000fd06     lcall  f_06FD_0000
+050E:0768  9a0000fd06     lcall  see_robin
 050E:076D  59             pop    cx
 050E:076E  eb69           jmp    0x7d9
 L_050E_0770:
@@ -9499,7 +9499,7 @@ L_050E_0773:
 050E:0782  d1e0           shl    ax, 1
 050E:0784  d1e0           shl    ax, 1
 050E:0786  8bd8           mov    bx, ax
-050E:0788  8b875044       mov    ax, word ptr [bx + 0x4450]
+050E:0788  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 050E:078C  3bc7           cmp    ax, di
 050E:078E  7521           jne    0x7b1
 050E:0790  8bc7           mov    ax, di
@@ -9510,7 +9510,7 @@ L_050E_0773:
 050E:079A  d1e0           shl    ax, 1
 050E:079C  03c2           add    ax, dx
 050E:079E  8bd8           mov    bx, ax
-050E:07A0  8a874e36       mov    al, byte ptr [bx + 0x364e]
+050E:07A0  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 050E:07A4  98             cwde   
 050E:07A5  3bc6           cmp    ax, si
 050E:07A7  7508           jne    0x7b1
@@ -9540,19 +9540,19 @@ L_050E_07B4:
 050E:07CE  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:07CF  5e             pop    si
 050E:07D0  5f             pop    di
-050E:07D1  9af3020a07     lcall  f_070A_02F3
+050E:07D1  9af3020a07     lcall  dialog
 050E:07D6  83c40e         add    sp, 0xe
 L_050E_07D9:
 050E:07D9  e95dff         jmp    0x739
 L_050E_07DC:
 050E:07DC  ebcd           jmp    0x7ab
 
-f_050E_07DE proc  ; 050E:07DE  callers: f_04BA_03EF
+ai_raid proc  ; 050E:07DE  callers: ai_do_order
 050E:07DE  55             push   bp
 050E:07DF  8bec           mov    bp, sp
 050E:07E1  57             push   di
 050E:07E2  56             push   si
-050E:07E3  9a84010e05     lcall  f_050E_0184
+050E:07E3  9a84010e05     lcall  choose_raid_victim
 050E:07E8  8bf0           mov    si, ax
 050E:07EA  8bc6           mov    ax, si
 050E:07EC  3dffff         cmp    ax, 0xffff
@@ -9568,7 +9568,7 @@ L_050E_07F7:
 050E:07FA  50             push   ax
 050E:07FB  ff7606         push   word ptr [bp + 6]
 050E:07FE  56             push   si
-050E:07FF  9ab200bb02     lcall  f_02BB_00B2
+050E:07FF  9ab200bb02     lcall  enmity_add
 050E:0804  83c406         add    sp, 6
 050E:0807  8bc6           mov    ax, si
 050E:0809  8bd0           mov    dx, ax
@@ -9578,10 +9578,10 @@ L_050E_07F7:
 050E:0811  d1e0           shl    ax, 1
 050E:0813  d1e0           shl    ax, 1
 050E:0815  8bd8           mov    bx, ax
-050E:0817  8b874e44       mov    ax, word ptr [bx + 0x444e]
+050E:0817  8b874e44       mov    ax, word ptr [bx + 0x444e]   ; side.lady
 050E:081B  3dffff         cmp    ax, 0xffff
 050E:081E  7465           je     0x885
-050E:0820  a10c45         mov    ax, word ptr [0x450c]
+050E:0820  a10c45         mov    ax, word ptr [0x450c]   ; player
 050E:0823  8bd0           mov    dx, ax
 050E:0825  b103           mov    cl, 3
 050E:0827  d3e0           shl    ax, cl
@@ -9589,10 +9589,10 @@ L_050E_07F7:
 050E:082B  d1e0           shl    ax, 1
 050E:082D  d1e0           shl    ax, 1
 050E:082F  8bd8           mov    bx, ax
-050E:0831  8b874e44       mov    ax, word ptr [bx + 0x444e]
+050E:0831  8b874e44       mov    ax, word ptr [bx + 0x444e]   ; side.lady
 050E:0835  3dffff         cmp    ax, 0xffff
 050E:0838  754b           jne    0x885
-050E:083A  a1e046         mov    ax, word ptr [0x46e0]
+050E:083A  a1e046         mov    ax, word ptr [0x46e0]   ; month
 050E:083D  3d0a00         cmp    ax, 0xa
 050E:0840  7e43           jle    0x885
 050E:0842  8bc6           mov    ax, si
@@ -9603,8 +9603,8 @@ L_050E_07F7:
 050E:084C  d1e0           shl    ax, 1
 050E:084E  d1e0           shl    ax, 1
 050E:0850  8bd8           mov    bx, ax
-050E:0852  8b874e44       mov    ax, word ptr [bx + 0x444e]
-050E:0856  a31e47         mov    word ptr [0x471e], ax
+050E:0852  8b874e44       mov    ax, word ptr [bx + 0x444e]   ; side.lady
+050E:0856  a31e47         mov    word ptr [0x471e], ax   ; kidnapped
 050E:0859  8b4606         mov    ax, word ptr [bp + 6]
 050E:085C  8bd0           mov    dx, ax
 050E:085E  b103           mov    cl, 3
@@ -9613,9 +9613,9 @@ L_050E_07F7:
 050E:0864  d1e0           shl    ax, 1
 050E:0866  d1e0           shl    ax, 1
 050E:0868  8bd8           mov    bx, ax
-050E:086A  8b875044       mov    ax, word ptr [bx + 0x4450]
+050E:086A  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 050E:086E  50             push   ax
-050E:086F  a11e47         mov    ax, word ptr [0x471e]
+050E:086F  a11e47         mov    ax, word ptr [0x471e]   ; kidnapped
 050E:0872  8bd0           mov    dx, ax
 050E:0874  d1e0           shl    ax, 1
 050E:0876  d1e0           shl    ax, 1
@@ -9623,7 +9623,7 @@ L_050E_07F7:
 050E:087A  d1e0           shl    ax, 1
 050E:087C  8bd8           mov    bx, ax
 050E:087E  58             pop    ax
-050E:087F  8987fc33       mov    word ptr [bx + 0x33fc], ax
+050E:087F  8987fc33       mov    word ptr [bx + 0x33fc], ax   ; lady.terr
 050E:0883  eb6f           jmp    0x8f4
 L_050E_0885:
 050E:0885  8bc6           mov    ax, si
@@ -9634,7 +9634,7 @@ L_050E_0885:
 050E:088F  d1e0           shl    ax, 1
 050E:0891  d1e0           shl    ax, 1
 050E:0893  8bd8           mov    bx, ax
-050E:0895  8b875e44       mov    ax, word ptr [bx + 0x445e]
+050E:0895  8b875e44       mov    ax, word ptr [bx + 0x445e]   ; side.gold
 050E:0899  b90200         mov    cx, 2
 050E:089C  99             cdq    
 050E:089D  f7f9           idiv   cx
@@ -9642,7 +9642,7 @@ L_050E_0885:
 050E:08A1  85ff           test   di, di
 050E:08A3  744f           je     0x8f4
 050E:08A5  8bc7           mov    ax, di
-050E:08A7  29875e44       sub    word ptr [bx + 0x445e], ax
+050E:08A7  29875e44       sub    word ptr [bx + 0x445e], ax   ; side.gold
 050E:08AB  8bc7           mov    ax, di
 050E:08AD  50             push   ax
 050E:08AE  8b4606         mov    ax, word ptr [bp + 6]
@@ -9654,8 +9654,8 @@ L_050E_0885:
 050E:08BB  d1e0           shl    ax, 1
 050E:08BD  8bd8           mov    bx, ax
 050E:08BF  58             pop    ax
-050E:08C0  01875e44       add    word ptr [bx + 0x445e], ax
-050E:08C4  3b360c45       cmp    si, word ptr [0x450c]
+050E:08C0  01875e44       add    word ptr [bx + 0x445e], ax   ; side.gold
+050E:08C4  3b360c45       cmp    si, word ptr [0x450c]   ; player
 050E:08C8  752a           jne    0x8f4
 050E:08CA  83ec0e         sub    sp, 0xe
 050E:08CD  57             push   di
@@ -9672,13 +9672,13 @@ L_050E_0885:
 050E:08E4  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:08E5  5e             pop    si
 050E:08E6  5f             pop    di
-050E:08E7  9af3020a07     lcall  f_070A_02F3
+050E:08E7  9af3020a07     lcall  dialog
 050E:08EC  83c40e         add    sp, 0xe
-050E:08EF  9ab2042304     lcall  f_0423_04B2
+050E:08EF  9ab2042304     lcall  redraw_map
 L_050E_08F4:
 050E:08F4  e9fafe         jmp    0x7f1
 
-f_050E_08F7 proc  ; 050E:08F7  callers: f_050E_0ADB, f_050E_10B9, f_050E_118E
+bar_shorten proc  ; 050E:08F7  callers: raid_attack, raid_defense, sword_fight
 050E:08F7  55             push   bp
 050E:08F8  8bec           mov    bp, sp
 050E:08FA  33c0           xor    ax, ax
@@ -9687,7 +9687,7 @@ f_050E_08F7 proc  ; 050E:08F7  callers: f_050E_0ADB, f_050E_10B9, f_050E_118E
 050E:0900  50             push   ax
 050E:0901  c45e06         les    bx, ptr [bp + 6]
 050E:0904  26ff37         push   word ptr es:[bx]
-050E:0907  9a0f003c09     lcall  f_093C_000F
+050E:0907  9a0f003c09     lcall  put_pixel
 050E:090C  83c406         add    sp, 6
 050E:090F  33c0           xor    ax, ax
 050E:0911  50             push   ax
@@ -9695,7 +9695,7 @@ f_050E_08F7 proc  ; 050E:08F7  callers: f_050E_0ADB, f_050E_10B9, f_050E_118E
 050E:0915  50             push   ax
 050E:0916  c45e06         les    bx, ptr [bp + 6]
 050E:0919  26ff37         push   word ptr es:[bx]
-050E:091C  9a0f003c09     lcall  f_093C_000F
+050E:091C  9a0f003c09     lcall  put_pixel
 050E:0921  83c406         add    sp, 6
 050E:0924  c45e06         les    bx, ptr [bp + 6]
 050E:0927  26832f01       sub    word ptr es:[bx], 1
@@ -9705,7 +9705,7 @@ f_050E_08F7 proc  ; 050E:08F7  callers: f_050E_0ADB, f_050E_10B9, f_050E_118E
 050E:0931  50             push   ax
 050E:0932  c45e06         les    bx, ptr [bp + 6]
 050E:0935  26ff37         push   word ptr es:[bx]
-050E:0938  9a0f003c09     lcall  f_093C_000F
+050E:0938  9a0f003c09     lcall  put_pixel
 050E:093D  83c406         add    sp, 6
 050E:0940  33c0           xor    ax, ax
 050E:0942  50             push   ax
@@ -9713,7 +9713,7 @@ f_050E_08F7 proc  ; 050E:08F7  callers: f_050E_0ADB, f_050E_10B9, f_050E_118E
 050E:0946  50             push   ax
 050E:0947  c45e06         les    bx, ptr [bp + 6]
 050E:094A  26ff37         push   word ptr es:[bx]
-050E:094D  9a0f003c09     lcall  f_093C_000F
+050E:094D  9a0f003c09     lcall  put_pixel
 050E:0952  83c406         add    sp, 6
 050E:0955  c45e06         les    bx, ptr [bp + 6]
 050E:0958  26832f01       sub    word ptr es:[bx], 1
@@ -9721,7 +9721,7 @@ f_050E_08F7 proc  ; 050E:08F7  callers: f_050E_0ADB, f_050E_10B9, f_050E_118E
 050E:095E  5d             pop    bp
 050E:095F  cb             retf   
 
-f_050E_0960 proc  ; 050E:0960  callers: f_050E_0ADB
+sword_pose_a proc  ; 050E:0960  callers: sword_fight
 050E:0960  55             push   bp
 050E:0961  8bec           mov    bp, sp
 050E:0963  57             push   di
@@ -9751,11 +9751,11 @@ f_050E_0960 proc  ; 050E:0960  callers: f_050E_0ADB
 050E:09A0  d1e3           shl    bx, 1
 050E:09A2  8b9f7041       mov    bx, word ptr [bx + 0x4170]
 050E:09A6  d1e3           shl    bx, 1
-050E:09A8  031e1045       add    bx, word ptr [0x4510]
+050E:09A8  031e1045       add    bx, word ptr [0x4510]   ; font
 050E:09AC  8e061245       mov    es, word ptr [0x4512]
 050E:09B0  268b07         mov    ax, word ptr es:[bx]
 050E:09B3  d1e0           shl    ax, 1
-050E:09B5  03061045       add    ax, word ptr [0x4510]
+050E:09B5  03061045       add    ax, word ptr [0x4510]   ; font
 050E:09B9  8b161245       mov    dx, word ptr [0x4512]
 050E:09BD  8916a241       mov    word ptr [0x41a2], dx
 050E:09C1  a3a041         mov    word ptr [0x41a0], ax
@@ -9764,11 +9764,11 @@ f_050E_0960 proc  ; 050E:0960  callers: f_050E_0ADB
 050E:09C9  d1e7           shl    di, 1
 050E:09CB  8bbd7041       mov    di, word ptr [di + 0x4170]
 050E:09CF  d1e7           shl    di, 1
-050E:09D1  033e1045       add    di, word ptr [0x4510]
+050E:09D1  033e1045       add    di, word ptr [0x4510]   ; font
 050E:09D5  8e061245       mov    es, word ptr [0x4512]
 050E:09D9  268b05         mov    ax, word ptr es:[di]
 050E:09DC  d1e0           shl    ax, 1
-050E:09DE  03061045       add    ax, word ptr [0x4510]
+050E:09DE  03061045       add    ax, word ptr [0x4510]   ; font
 050E:09E2  8b161245       mov    dx, word ptr [0x4512]
 050E:09E6  8916a641       mov    word ptr [0x41a6], dx
 050E:09EA  a3a441         mov    word ptr [0x41a4], ax
@@ -9777,11 +9777,11 @@ f_050E_0960 proc  ; 050E:0960  callers: f_050E_0ADB
 050E:09F2  d1e3           shl    bx, 1
 050E:09F4  8b9f7041       mov    bx, word ptr [bx + 0x4170]
 050E:09F8  d1e3           shl    bx, 1
-050E:09FA  031e1045       add    bx, word ptr [0x4510]
+050E:09FA  031e1045       add    bx, word ptr [0x4510]   ; font
 050E:09FE  8e061245       mov    es, word ptr [0x4512]
 050E:0A02  268b07         mov    ax, word ptr es:[bx]
 050E:0A05  d1e0           shl    ax, 1
-050E:0A07  03061045       add    ax, word ptr [0x4510]
+050E:0A07  03061045       add    ax, word ptr [0x4510]   ; font
 050E:0A0B  8b161245       mov    dx, word ptr [0x4512]
 050E:0A0F  8916aa41       mov    word ptr [0x41aa], dx
 050E:0A13  a3a841         mov    word ptr [0x41a8], ax
@@ -9790,16 +9790,16 @@ f_050E_0960 proc  ; 050E:0960  callers: f_050E_0ADB
 050E:0A1B  d1e7           shl    di, 1
 050E:0A1D  8bbd7041       mov    di, word ptr [di + 0x4170]
 050E:0A21  d1e7           shl    di, 1
-050E:0A23  033e1045       add    di, word ptr [0x4510]
+050E:0A23  033e1045       add    di, word ptr [0x4510]   ; font
 050E:0A27  8e061245       mov    es, word ptr [0x4512]
 050E:0A2B  268b05         mov    ax, word ptr es:[di]
 050E:0A2E  d1e0           shl    ax, 1
-050E:0A30  03061045       add    ax, word ptr [0x4510]
+050E:0A30  03061045       add    ax, word ptr [0x4510]   ; font
 050E:0A34  8b161245       mov    dx, word ptr [0x4512]
 050E:0A38  8916ae41       mov    word ptr [0x41ae], dx
 050E:0A3C  a3ac41         mov    word ptr [0x41ac], ax
 050E:0A3F  ff36ec46       push   word ptr [0x46ec]
-050E:0A43  ff36ea46       push   word ptr [0x46ea]
+050E:0A43  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 050E:0A47  a1b441         mov    ax, word ptr [0x41b4]
 050E:0A4A  2b06b041       sub    ax, word ptr [0x41b0]
 050E:0A4E  d1e0           shl    ax, 1
@@ -9811,7 +9811,7 @@ f_050E_0960 proc  ; 050E:0960  callers: f_050E_0ADB
 050E:0A5B  50             push   ax
 050E:0A5C  ff36b241       push   word ptr [0x41b2]
 050E:0A60  ff36b041       push   word ptr [0x41b0]
-050E:0A64  9a0e005e09     lcall  f_095E_000E
+050E:0A64  9a0e005e09     lcall  restore_rect
 050E:0A69  83c40c         add    sp, 0xc
 050E:0A6C  ff36a241       push   word ptr [0x41a2]
 050E:0A70  ff36a041       push   word ptr [0x41a0]
@@ -9819,13 +9819,13 @@ f_050E_0960 proc  ; 050E:0960  callers: f_050E_0ADB
 050E:0A77  051800         add    ax, 0x18
 050E:0A7A  50             push   ax
 050E:0A7B  ff36b041       push   word ptr [0x41b0]
-050E:0A7F  9a00006b09     lcall  f_096B_0000
+050E:0A7F  9a00006b09     lcall  or_sprite
 050E:0A84  83c408         add    sp, 8
 050E:0A87  ff36a641       push   word ptr [0x41a6]
 050E:0A8B  ff36a441       push   word ptr [0x41a4]
 050E:0A8F  ff36b241       push   word ptr [0x41b2]
 050E:0A93  ff36b041       push   word ptr [0x41b0]
-050E:0A97  9a00006b09     lcall  f_096B_0000
+050E:0A97  9a00006b09     lcall  or_sprite
 050E:0A9C  83c408         add    sp, 8
 050E:0A9F  ff36aa41       push   word ptr [0x41aa]
 050E:0AA3  ff36a841       push   word ptr [0x41a8]
@@ -9835,13 +9835,13 @@ f_050E_0960 proc  ; 050E:0960  callers: f_050E_0ADB
 050E:0AAE  a1b441         mov    ax, word ptr [0x41b4]
 050E:0AB1  050800         add    ax, 8
 050E:0AB4  50             push   ax
-050E:0AB5  9a00006b09     lcall  f_096B_0000
+050E:0AB5  9a00006b09     lcall  or_sprite
 050E:0ABA  83c408         add    sp, 8
 050E:0ABD  ff36ae41       push   word ptr [0x41ae]
 050E:0AC1  ff36ac41       push   word ptr [0x41ac]
 050E:0AC5  ff36b641       push   word ptr [0x41b6]
 050E:0AC9  ff36b441       push   word ptr [0x41b4]
-050E:0ACD  9a00006b09     lcall  f_096B_0000
+050E:0ACD  9a00006b09     lcall  or_sprite
 050E:0AD2  83c408         add    sp, 8
 050E:0AD5  5e             pop    si
 050E:0AD6  5f             pop    di
@@ -9849,7 +9849,7 @@ f_050E_0960 proc  ; 050E:0960  callers: f_050E_0ADB
 050E:0AD9  5d             pop    bp
 050E:0ADA  cb             retf   
 
-f_050E_0ADB proc  ; 050E:0ADB  callers: f_050E_10B9, f_050E_118E
+sword_fight proc  ; 050E:0ADB  callers: raid_attack, raid_defense
 050E:0ADB  55             push   bp
 050E:0ADC  8bec           mov    bp, sp
 050E:0ADE  83c4ec         add    sp, -0x14
@@ -9857,11 +9857,11 @@ f_050E_0ADB proc  ; 050E:0ADB  callers: f_050E_10B9, f_050E_118E
 050E:0AE2  56             push   si
 050E:0AE3  be0100         mov    si, 1
 050E:0AE6  c746feffff     mov    word ptr [bp - 2], 0xffff
-050E:0AEB  c41e0647       les    bx, ptr [0x4706]
+050E:0AEB  c41e0647       les    bx, ptr [0x4706]   ; scene_items
 050E:0AEF  268b470e       mov    ax, word ptr es:[bx + 0xe]
 050E:0AF3  d1e0           shl    ax, 1
-050E:0AF5  03060647       add    ax, word ptr [0x4706]
-050E:0AF9  8b160847       mov    dx, word ptr [0x4708]
+050E:0AF5  03060647       add    ax, word ptr [0x4706]   ; scene_items
+050E:0AF9  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 050E:0AFD  8956fa         mov    word ptr [bp - 6], dx
 050E:0B00  8946f8         mov    word ptr [bp - 8], ax
 050E:0B03  268b4710       mov    ax, word ptr es:[bx + 0x10]
@@ -9889,7 +9889,7 @@ L_050E_0B33:
 050E:0B3A  e97905         jmp    0x10b6
 L_050E_0B3D:
 050E:0B3D  50             push   ax
-050E:0B3E  9ae9080a07     lcall  f_070A_08E9
+050E:0B3E  9ae9080a07     lcall  delay_ticks
 050E:0B43  59             pop    cx
 050E:0B44  837e0600       cmp    word ptr [bp + 6], 0
 050E:0B48  7503           jne    0xb4d
@@ -9911,7 +9911,7 @@ L_050E_0B67:
 L_050E_0B73:
 050E:0B73  b80900         mov    ax, 9
 050E:0B76  50             push   ax
-050E:0B77  9a0d000a07     lcall  f_070A_000D
+050E:0B77  9a0d000a07     lcall  random
 050E:0B7C  59             pop    cx
 050E:0B7D  8bf0           mov    si, ax
 050E:0B7F  85f6           test   si, si
@@ -9926,7 +9926,7 @@ L_050E_0B73:
 050E:0B99  c7069241af00   mov    word ptr [0x4192], 0xaf   ; "the garrison army of %s"
 050E:0B9F  b80200         mov    ax, 2
 050E:0BA2  50             push   ax
-050E:0BA3  9a0d000a07     lcall  f_070A_000D
+050E:0BA3  9a0d000a07     lcall  random
 050E:0BA8  59             pop    cx
 050E:0BA9  85c0           test   ax, ax
 050E:0BAB  7414           je     0xbc1
@@ -9963,28 +9963,28 @@ L_050E_0BEB:
 L_050E_0BF7:
 050E:0BF7  b80a00         mov    ax, 0xa
 050E:0BFA  50             push   ax
-050E:0BFB  9a60090e05     lcall  f_050E_0960
+050E:0BFB  9a60090e05     lcall  sword_pose_a
 050E:0C00  59             pop    cx
 L_050E_0C01:
 050E:0C01  b80100         mov    ax, 1
 050E:0C04  50             push   ax
-050E:0C05  9ae9080a07     lcall  f_070A_08E9
+050E:0C05  9ae9080a07     lcall  delay_ticks
 050E:0C0A  59             pop    cx
 050E:0C0B  33c0           xor    ax, ax
 050E:0C0D  50             push   ax
-050E:0C0E  9a60090e05     lcall  f_050E_0960
+050E:0C0E  9a60090e05     lcall  sword_pose_a
 050E:0C13  59             pop    cx
 050E:0C14  a17041         mov    ax, word ptr [0x4170]
 050E:0C17  3b069841       cmp    ax, word ptr [0x4198]
 050E:0C1B  7d42           jge    0xc5f
 050E:0C1D  b8f6ff         mov    ax, 0xfff6
 050E:0C20  50             push   ax
-050E:0C21  ff360c45       push   word ptr [0x450c]
-050E:0C25  9a7110d302     lcall  f_02D3_1071
+050E:0C21  ff360c45       push   word ptr [0x450c]   ; player
+050E:0C25  9a7110d302     lcall  leadership_add
 050E:0C2A  83c404         add    sp, 4
 050E:0C2D  b8feff         mov    ax, 0xfffe
 050E:0C30  50             push   ax
-050E:0C31  9ac70e0a07     lcall  f_070A_0EC7
+050E:0C31  9ac70e0a07     lcall  morale_add
 050E:0C36  59             pop    cx
 050E:0C37  83ec0e         sub    sp, 0xe
 050E:0C3A  8bc4           mov    ax, sp
@@ -9998,7 +9998,7 @@ L_050E_0C01:
 050E:0C4B  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:0C4D  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:0C4E  5e             pop    si
-050E:0C4F  9af3020a07     lcall  f_070A_02F3
+050E:0C4F  9af3020a07     lcall  dialog
 050E:0C54  83c40e         add    sp, 0xe
 050E:0C57  33c0           xor    ax, ax
 L_050E_0C59:
@@ -10013,15 +10013,15 @@ L_050E_0C5F:
 050E:0C65  7e03           jle    0xc6a
 050E:0C67  e94101         jmp    0xdab
 L_050E_0C6A:
-050E:0C6A  c41e1045       les    bx, ptr [0x4510]
+050E:0C6A  c41e1045       les    bx, ptr [0x4510]   ; font
 050E:0C6E  268b876401     mov    ax, word ptr es:[bx + 0x164]
 050E:0C73  d1e0           shl    ax, 1
-050E:0C75  03061045       add    ax, word ptr [0x4510]
+050E:0C75  03061045       add    ax, word ptr [0x4510]   ; font
 050E:0C79  8b161245       mov    dx, word ptr [0x4512]
 050E:0C7D  8916aa41       mov    word ptr [0x41aa], dx
 050E:0C81  a3a841         mov    word ptr [0x41a8], ax
 050E:0C84  ff36ec46       push   word ptr [0x46ec]
-050E:0C88  ff36ea46       push   word ptr [0x46ea]
+050E:0C88  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 050E:0C8C  a1b441         mov    ax, word ptr [0x41b4]
 050E:0C8F  2b06b041       sub    ax, word ptr [0x41b0]
 050E:0C93  d1e0           shl    ax, 1
@@ -10033,7 +10033,7 @@ L_050E_0C6A:
 050E:0CA0  50             push   ax
 050E:0CA1  ff36b241       push   word ptr [0x41b2]
 050E:0CA5  ff36b041       push   word ptr [0x41b0]
-050E:0CA9  9a0e005e09     lcall  f_095E_000E
+050E:0CA9  9a0e005e09     lcall  restore_rect
 050E:0CAE  83c40c         add    sp, 0xc
 050E:0CB1  ff36a241       push   word ptr [0x41a2]
 050E:0CB5  ff36a041       push   word ptr [0x41a0]
@@ -10041,34 +10041,34 @@ L_050E_0C6A:
 050E:0CBC  051800         add    ax, 0x18
 050E:0CBF  50             push   ax
 050E:0CC0  ff36b041       push   word ptr [0x41b0]
-050E:0CC4  9a00006b09     lcall  f_096B_0000
+050E:0CC4  9a00006b09     lcall  or_sprite
 050E:0CC9  83c408         add    sp, 8
 050E:0CCC  ff36a641       push   word ptr [0x41a6]
 050E:0CD0  ff36a441       push   word ptr [0x41a4]
 050E:0CD4  ff36b241       push   word ptr [0x41b2]
 050E:0CD8  ff36b041       push   word ptr [0x41b0]
-050E:0CDC  9a00006b09     lcall  f_096B_0000
+050E:0CDC  9a00006b09     lcall  or_sprite
 050E:0CE1  83c408         add    sp, 8
 050E:0CE4  ff36aa41       push   word ptr [0x41aa]
 050E:0CE8  ff36a841       push   word ptr [0x41a8]
 050E:0CEC  ff36b641       push   word ptr [0x41b6]
 050E:0CF0  ff36b441       push   word ptr [0x41b4]
-050E:0CF4  9a00006b09     lcall  f_096B_0000
+050E:0CF4  9a00006b09     lcall  or_sprite
 050E:0CF9  83c408         add    sp, 8
-050E:0CFC  9a1b090a07     lcall  f_070A_091B
+050E:0CFC  9a1b090a07     lcall  flush_keys
 050E:0D01  b80200         mov    ax, 2
 050E:0D04  50             push   ax
-050E:0D05  9ab2080a07     lcall  f_070A_08B2
+050E:0D05  9ab2080a07     lcall  wait_ticks
 050E:0D0A  59             pop    cx
-050E:0D0B  c41e1045       les    bx, ptr [0x4510]
+050E:0D0B  c41e1045       les    bx, ptr [0x4510]   ; font
 050E:0D0F  268b876601     mov    ax, word ptr es:[bx + 0x166]
 050E:0D14  d1e0           shl    ax, 1
-050E:0D16  03061045       add    ax, word ptr [0x4510]
+050E:0D16  03061045       add    ax, word ptr [0x4510]   ; font
 050E:0D1A  8b161245       mov    dx, word ptr [0x4512]
 050E:0D1E  8916aa41       mov    word ptr [0x41aa], dx
 050E:0D22  a3a841         mov    word ptr [0x41a8], ax
 050E:0D25  ff36ec46       push   word ptr [0x46ec]
-050E:0D29  ff36ea46       push   word ptr [0x46ea]
+050E:0D29  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 050E:0D2D  a1b441         mov    ax, word ptr [0x41b4]
 050E:0D30  2b06b041       sub    ax, word ptr [0x41b0]
 050E:0D34  d1e0           shl    ax, 1
@@ -10080,7 +10080,7 @@ L_050E_0C6A:
 050E:0D41  50             push   ax
 050E:0D42  ff36b241       push   word ptr [0x41b2]
 050E:0D46  ff36b041       push   word ptr [0x41b0]
-050E:0D4A  9a0e005e09     lcall  f_095E_000E
+050E:0D4A  9a0e005e09     lcall  restore_rect
 050E:0D4F  83c40c         add    sp, 0xc
 050E:0D52  ff36a241       push   word ptr [0x41a2]
 050E:0D56  ff36a041       push   word ptr [0x41a0]
@@ -10088,13 +10088,13 @@ L_050E_0C6A:
 050E:0D5D  051800         add    ax, 0x18
 050E:0D60  50             push   ax
 050E:0D61  ff36b041       push   word ptr [0x41b0]
-050E:0D65  9a00006b09     lcall  f_096B_0000
+050E:0D65  9a00006b09     lcall  or_sprite
 050E:0D6A  83c408         add    sp, 8
 050E:0D6D  ff36a641       push   word ptr [0x41a6]
 050E:0D71  ff36a441       push   word ptr [0x41a4]
 050E:0D75  ff36b241       push   word ptr [0x41b2]
 050E:0D79  ff36b041       push   word ptr [0x41b0]
-050E:0D7D  9a00006b09     lcall  f_096B_0000
+050E:0D7D  9a00006b09     lcall  or_sprite
 050E:0D82  83c408         add    sp, 8
 050E:0D85  ff36aa41       push   word ptr [0x41aa]
 050E:0D89  ff36a841       push   word ptr [0x41a8]
@@ -10102,9 +10102,9 @@ L_050E_0C6A:
 050E:0D90  052000         add    ax, 0x20
 050E:0D93  50             push   ax
 050E:0D94  ff36b441       push   word ptr [0x41b4]
-050E:0D98  9a00006b09     lcall  f_096B_0000
+050E:0D98  9a00006b09     lcall  or_sprite
 050E:0D9D  83c408         add    sp, 8
-050E:0DA0  9a1b090a07     lcall  f_070A_091B
+050E:0DA0  9a1b090a07     lcall  flush_keys
 050E:0DA5  b80100         mov    ax, 1
 050E:0DA8  e9aefe         jmp    0xc59
 L_050E_0DAB:
@@ -10115,14 +10115,14 @@ L_050E_0DAB:
 L_050E_0DB6:
 050E:0DB6  b8ffff         mov    ax, 0xffff
 050E:0DB9  50             push   ax
-050E:0DBA  ff360c45       push   word ptr [0x450c]
-050E:0DBE  9a7110d302     lcall  f_02D3_1071
+050E:0DBA  ff360c45       push   word ptr [0x450c]   ; player
+050E:0DBE  9a7110d302     lcall  leadership_add
 050E:0DC3  83c404         add    sp, 4
 050E:0DC6  b8ffff         mov    ax, 0xffff
 050E:0DC9  50             push   ax
-050E:0DCA  9ac70e0a07     lcall  f_070A_0EC7
+050E:0DCA  9ac70e0a07     lcall  morale_add
 050E:0DCF  59             pop    cx
-050E:0DD0  a10c45         mov    ax, word ptr [0x450c]
+050E:0DD0  a10c45         mov    ax, word ptr [0x450c]   ; player
 050E:0DD3  8bd0           mov    dx, ax
 050E:0DD5  b103           mov    cl, 3
 050E:0DD7  d3e0           shl    ax, cl
@@ -10130,14 +10130,14 @@ L_050E_0DB6:
 050E:0DDB  d1e0           shl    ax, 1
 050E:0DDD  d1e0           shl    ax, 1
 050E:0DDF  8bd8           mov    bx, ax
-050E:0DE1  8b875e44       mov    ax, word ptr [bx + 0x445e]
+050E:0DE1  8b875e44       mov    ax, word ptr [bx + 0x445e]   ; side.gold
 050E:0DE5  b90200         mov    cx, 2
 050E:0DE8  99             cdq    
 050E:0DE9  f7f9           idiv   cx
 050E:0DEB  8946fc         mov    word ptr [bp - 4], ax
 050E:0DEE  85c0           test   ax, ax
 050E:0DF0  741e           je     0xe10
-050E:0DF2  29875e44       sub    word ptr [bx + 0x445e], ax
+050E:0DF2  29875e44       sub    word ptr [bx + 0x445e], ax   ; side.gold
 050E:0DF6  8b46fc         mov    ax, word ptr [bp - 4]
 050E:0DF9  50             push   ax
 050E:0DFA  a1b841         mov    ax, word ptr [0x41b8]
@@ -10149,7 +10149,7 @@ L_050E_0DB6:
 050E:0E07  d1e0           shl    ax, 1
 050E:0E09  8bf8           mov    di, ax
 050E:0E0B  58             pop    ax
-050E:0E0C  01855e44       add    word ptr [di + 0x445e], ax
+050E:0E0C  01855e44       add    word ptr [di + 0x445e], ax   ; side.gold
 L_050E_0E10:
 050E:0E10  83ec0e         sub    sp, 0xe
 050E:0E13  8bc4           mov    ax, sp
@@ -10163,7 +10163,7 @@ L_050E_0E10:
 050E:0E24  f3a5           rep movsw word ptr es:[di], word ptr [si]
 050E:0E26  a4             movsb  byte ptr es:[di], byte ptr [si]
 050E:0E27  5e             pop    si
-050E:0E28  9af3020a07     lcall  f_070A_02F3
+050E:0E28  9af3020a07     lcall  dialog
 050E:0E2D  83c40e         add    sp, 0xe
 050E:0E30  33c0           xor    ax, ax
 050E:0E32  e924fe         jmp    0xc59
@@ -10199,16 +10199,16 @@ L_050E_0E52:
 050E:0E86  a1b041         mov    ax, word ptr [0x41b0]
 050E:0E89  050800         add    ax, 8
 050E:0E8C  50             push   ax
-050E:0E8D  9a0c007d09     lcall  f_097D_000C
+050E:0E8D  9a0c007d09     lcall  xor_sprite_w
 050E:0E92  83c408         add    sp, 8
 050E:0E95  1e             push   ds
 050E:0E96  b89e41         mov    ax, 0x419e
 050E:0E99  50             push   ax
-050E:0E9A  9af7080e05     lcall  f_050E_08F7
+050E:0E9A  9af7080e05     lcall  bar_shorten
 050E:0E9F  83c404         add    sp, 4
 050E:0EA2  b80300         mov    ax, 3
 050E:0EA5  50             push   ax
-050E:0EA6  9ab2080a07     lcall  f_070A_08B2
+050E:0EA6  9ab2080a07     lcall  wait_ticks
 050E:0EAB  59             pop    cx
 050E:0EAC  ff76f2         push   word ptr [bp - 0xe]
 050E:0EAF  ff76f0         push   word ptr [bp - 0x10]
@@ -10218,12 +10218,12 @@ L_050E_0E52:
 050E:0EB9  a1b041         mov    ax, word ptr [0x41b0]
 050E:0EBC  050800         add    ax, 8
 050E:0EBF  50             push   ax
-050E:0EC0  9a0c007d09     lcall  f_097D_000C
+050E:0EC0  9a0c007d09     lcall  xor_sprite_w
 050E:0EC5  83c408         add    sp, 8
 L_050E_0EC8:
 050E:0EC8  e9df00         jmp    0xfaa
 L_050E_0ECB:
-050E:0ECB  9aab070a07     lcall  f_070A_07AB
+050E:0ECB  9aab070a07     lcall  get_key
 050E:0ED0  98             cwde   
 050E:0ED1  e99800         jmp    0xf6c
 L_050E_0ED4:
@@ -10302,7 +10302,7 @@ L_050E_0F8C:
 050E:0FA0  3d5100         cmp    ax, 0x51
 050E:0FA3  74b0           je     0xf55
 L_050E_0FA5:
-050E:0FA5  9a1b090a07     lcall  f_070A_091B
+050E:0FA5  9a1b090a07     lcall  flush_keys
 L_050E_0FAA:
 050E:0FAA  a17e41         mov    ax, word ptr [0x417e]
 050E:0FAD  3dae00         cmp    ax, 0xae
@@ -10345,16 +10345,16 @@ L_050E_0FF0:
 050E:1012  050e00         add    ax, 0xe
 050E:1015  50             push   ax
 050E:1016  ff36b441       push   word ptr [0x41b4]
-050E:101A  9a0c007d09     lcall  f_097D_000C
+050E:101A  9a0c007d09     lcall  xor_sprite_w
 050E:101F  83c408         add    sp, 8
 050E:1022  1e             push   ds
 050E:1023  b89c41         mov    ax, 0x419c
 050E:1026  50             push   ax
-050E:1027  9af7080e05     lcall  f_050E_08F7
+050E:1027  9af7080e05     lcall  bar_shorten
 050E:102C  83c404         add    sp, 4
 050E:102F  b80300         mov    ax, 3
 050E:1032  50             push   ax
-050E:1033  9ae9080a07     lcall  f_070A_08E9
+050E:1033  9ae9080a07     lcall  delay_ticks
 050E:1038  59             pop    cx
 050E:1039  ff76ee         push   word ptr [bp - 0x12]
 050E:103C  ff76ec         push   word ptr [bp - 0x14]
@@ -10362,7 +10362,7 @@ L_050E_0FF0:
 050E:1042  050e00         add    ax, 0xe
 050E:1045  50             push   ax
 050E:1046  ff36b441       push   word ptr [0x41b4]
-050E:104A  9a0c007d09     lcall  f_097D_000C
+050E:104A  9a0c007d09     lcall  xor_sprite_w
 050E:104F  83c408         add    sp, 8
 L_050E_1052:
 050E:1052  83fe06         cmp    si, 6
@@ -10370,7 +10370,7 @@ L_050E_1052:
 050E:1057  c7068041ab00   mov    word ptr [0x4180], 0xab   ; "age the garrison army of %s"
 050E:105D  b80200         mov    ax, 2
 050E:1060  50             push   ax
-050E:1061  9a0d000a07     lcall  f_070A_000D
+050E:1061  9a0d000a07     lcall  random
 050E:1066  59             pop    cx
 050E:1067  85c0           test   ax, ax
 050E:1069  740a           je     0x1075
@@ -10391,7 +10391,7 @@ L_050E_1077:
 L_050E_1097:
 050E:1097  b80200         mov    ax, 2
 050E:109A  50             push   ax
-050E:109B  9a0d000a07     lcall  f_070A_000D
+050E:109B  9a0d000a07     lcall  random
 050E:10A0  59             pop    cx
 050E:10A1  85c0           test   ax, ax
 050E:10A3  7408           je     0x10ad
@@ -10404,7 +10404,7 @@ L_050E_10B3:
 L_050E_10B6:
 050E:10B6  e9a0fb         jmp    0xc59
 
-f_050E_10B9 proc  ; 050E:10B9  callers: f_050E_022C
+raid_attack proc  ; 050E:10B9  callers: raid
 050E:10B9  55             push   bp
 050E:10BA  8bec           mov    bp, sp
 050E:10BC  56             push   si
@@ -10412,14 +10412,14 @@ f_050E_10B9 proc  ; 050E:10B9  callers: f_050E_022C
 050E:10C0  b80100         mov    ax, 1
 050E:10C3  50             push   ax
 050E:10C4  ff360447       push   word ptr [0x4704]
-050E:10C8  ff360247       push   word ptr [0x4702]
-050E:10CC  9ab1020a07     lcall  f_070A_02B1
+050E:10C8  ff360247       push   word ptr [0x4702]   ; lib_scene
+050E:10CC  9ab1020a07     lcall  show_lib_picture
 050E:10D1  83c406         add    sp, 6
-050E:10D4  9ab3010a07     lcall  f_070A_01B3
+050E:10D4  9ab3010a07     lcall  show_screen
 050E:10D9  ff360a00       push   word ptr [0xa]
 050E:10DD  b89b00         mov    ax, 0x9b   ; "my of %s"
 050E:10E0  50             push   ax
-050E:10E1  9ae00d0a07     lcall  f_070A_0DE0
+050E:10E1  9ae00d0a07     lcall  play_tune
 050E:10E6  83c404         add    sp, 4
 050E:10E9  c7069c419900   mov    word ptr [0x419c], 0x99   ; "army of %s"
 050E:10EF  c7069e41f200   mov    word ptr [0x419e], 0xf2   ; "ints the green fields of %s."
@@ -10431,7 +10431,7 @@ L_050E_10F5:
 050E:10FE  1e             push   ds
 050E:10FF  b89c41         mov    ax, 0x419c
 050E:1102  50             push   ax
-050E:1103  9af7080e05     lcall  f_050E_08F7
+050E:1103  9af7080e05     lcall  bar_shorten
 050E:1108  83c404         add    sp, 4
 050E:110B  ebe8           jmp    0x10f5
 L_050E_110D:
@@ -10456,22 +10456,22 @@ L_050E_110D:
 050E:1179  c7069441ab00   mov    word ptr [0x4194], 0xab   ; "age the garrison army of %s"
 050E:117F  b80100         mov    ax, 1
 050E:1182  50             push   ax
-050E:1183  9adb0a0e05     lcall  f_050E_0ADB
+050E:1183  9adb0a0e05     lcall  sword_fight
 050E:1188  59             pop    cx
 050E:1189  5e             pop    si
 050E:118A  8be5           mov    sp, bp
 050E:118C  5d             pop    bp
 050E:118D  cb             retf   
 
-f_050E_118E proc  ; 050E:118E  callers: f_050E_022C
+raid_defense proc  ; 050E:118E  callers: raid
 050E:118E  55             push   bp
 050E:118F  8bec           mov    bp, sp
 050E:1191  56             push   si
 050E:1192  b80200         mov    ax, 2
 050E:1195  50             push   ax
 050E:1196  ff360447       push   word ptr [0x4704]
-050E:119A  ff360247       push   word ptr [0x4702]
-050E:119E  9ab1020a07     lcall  f_070A_02B1
+050E:119A  ff360247       push   word ptr [0x4702]   ; lib_scene
+050E:119E  9ab1020a07     lcall  show_lib_picture
 050E:11A3  83c406         add    sp, 6
 050E:11A6  be0100         mov    si, 1
 L_050E_11A9:
@@ -10479,25 +10479,25 @@ L_050E_11A9:
 050E:11AC  7d1e           jge    0x11cc
 050E:11AE  b80100         mov    ax, 1
 050E:11B1  50             push   ax
-050E:11B2  9ab2080a07     lcall  f_070A_08B2
+050E:11B2  9ab2080a07     lcall  wait_ticks
 050E:11B7  59             pop    cx
 050E:11B8  ff36ec46       push   word ptr [0x46ec]
-050E:11BC  ff36ea46       push   word ptr [0x46ea]
+050E:11BC  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 050E:11C0  56             push   si
-050E:11C1  9a06002209     lcall  f_0922_0006
+050E:11C1  9a06002209     lcall  crtc_start
 050E:11C6  83c406         add    sp, 6
 050E:11C9  46             inc    si
 050E:11CA  ebdd           jmp    0x11a9
 L_050E_11CC:
 050E:11CC  ff36ec46       push   word ptr [0x46ec]
-050E:11D0  ff36ea46       push   word ptr [0x46ea]
+050E:11D0  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 050E:11D4  33c0           xor    ax, ax
 050E:11D6  50             push   ax
-050E:11D7  9a06002209     lcall  f_0922_0006
+050E:11D7  9a06002209     lcall  crtc_start
 050E:11DC  83c406         add    sp, 6
-050E:11DF  c706d8460100   mov    word ptr [0x46d8], 1
-050E:11E5  9ab3010a07     lcall  f_070A_01B3
-050E:11EA  c706d8460000   mov    word ptr [0x46d8], 0
+050E:11DF  c706d8460100   mov    word ptr [0x46d8], 1   ; no_wipe
+050E:11E5  9ab3010a07     lcall  show_screen
+050E:11EA  c706d8460000   mov    word ptr [0x46d8], 0   ; no_wipe
 050E:11F0  c7069c419900   mov    word ptr [0x419c], 0x99   ; "army of %s"
 050E:11F6  c7069e411a01   mov    word ptr [0x419e], 0x11a   ; "iers <@@%4d>"
 050E:11FC  be3200         mov    si, 0x32
@@ -10509,7 +10509,7 @@ L_050E_11FF:
 050E:1208  1e             push   ds
 050E:1209  b89c41         mov    ax, 0x419c
 050E:120C  50             push   ax
-050E:120D  9af7080e05     lcall  f_050E_08F7
+050E:120D  9af7080e05     lcall  bar_shorten
 050E:1212  83c404         add    sp, 4
 050E:1215  ebe8           jmp    0x11ff
 L_050E_1217:
@@ -10521,7 +10521,7 @@ L_050E_1217:
 050E:1222  d1e0           shl    ax, 1
 050E:1224  d1e0           shl    ax, 1
 050E:1226  8bd8           mov    bx, ax
-050E:1228  8b875a44       mov    ax, word ptr [bx + 0x445a]
+050E:1228  8b875a44       mov    ax, word ptr [bx + 0x445a]   ; side.sword
 050E:122C  d1e0           shl    ax, 1
 050E:122E  d1e0           shl    ax, 1
 050E:1230  a38241         mov    word ptr [0x4182], ax
@@ -10534,7 +10534,7 @@ L_050E_1236:
 050E:123F  1e             push   ds
 050E:1240  b89e41         mov    ax, 0x419e
 050E:1243  50             push   ax
-050E:1244  9af7080e05     lcall  f_050E_08F7
+050E:1244  9af7080e05     lcall  bar_shorten
 050E:1249  83c404         add    sp, 4
 050E:124C  ebe8           jmp    0x1236
 L_050E_124E:
@@ -10550,7 +10550,7 @@ L_050E_124E:
 050E:1284  c7068041ab00   mov    word ptr [0x4180], 0xab   ; "age the garrison army of %s"
 050E:128A  33c0           xor    ax, ax
 050E:128C  50             push   ax
-050E:128D  9adb0a0e05     lcall  f_050E_0ADB
+050E:128D  9adb0a0e05     lcall  sword_fight
 050E:1292  59             pop    cx
 050E:1293  5e             pop    si
 050E:1294  8be5           mov    sp, bp
@@ -10559,12 +10559,12 @@ L_050E_124E:
 
 ;================ segment 0637 ================
 
-f_0637_0008 proc  ; 0637:0008  callers: f_0637_07BC
+catapult_aim proc  ; 0637:0008  callers: siege_by_player
 0637:0008  55             push   bp
 0637:0009  8bec           mov    bp, sp
 0637:000B  83c4ea         add    sp, -0x16
 0637:000E  c746f48800     mov    word ptr [bp - 0xc], 0x88   ; "age the campaign army of %s"
-0637:0013  9ab3010a07     lcall  f_070A_01B3
+0637:0013  9ab3010a07     lcall  show_screen
 0637:0018  8b4608         mov    ax, word ptr [bp + 8]
 0637:001B  8bd0           mov    dx, ax
 0637:001D  b103           mov    cl, 3
@@ -10574,19 +10574,19 @@ f_0637_0008 proc  ; 0637:0008  callers: f_0637_07BC
 0637:0025  8bd8           mov    bx, ax
 0637:0027  83c3fc         add    bx, -4
 0637:002A  d1e3           shl    bx, 1
-0637:002C  031e0647       add    bx, word ptr [0x4706]
-0637:0030  8e060847       mov    es, word ptr [0x4708]
+0637:002C  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+0637:0030  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 0637:0034  268b07         mov    ax, word ptr es:[bx]
 0637:0037  d1e0           shl    ax, 1
-0637:0039  03060647       add    ax, word ptr [0x4706]
-0637:003D  8b160847       mov    dx, word ptr [0x4708]
+0637:0039  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:003D  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:0041  8956fe         mov    word ptr [bp - 2], dx
 0637:0044  8946fc         mov    word ptr [bp - 4], ax
-0637:0047  c41e0647       les    bx, ptr [0x4706]
+0637:0047  c41e0647       les    bx, ptr [0x4706]   ; scene_items
 0637:004B  268b4768       mov    ax, word ptr es:[bx + 0x68]
 0637:004F  d1e0           shl    ax, 1
-0637:0051  03060647       add    ax, word ptr [0x4706]
-0637:0055  8b160847       mov    dx, word ptr [0x4708]
+0637:0051  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:0055  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:0059  8956fa         mov    word ptr [bp - 6], dx
 0637:005C  8946f8         mov    word ptr [bp - 8], ax
 0637:005F  ff76fe         push   word ptr [bp - 2]
@@ -10594,7 +10594,7 @@ f_0637_0008 proc  ; 0637:0008  callers: f_0637_07BC
 0637:0065  ff76f4         push   word ptr [bp - 0xc]
 0637:0068  b82700         mov    ax, 0x27
 0637:006B  50             push   ax
-0637:006C  9a0d00f408     lcall  f_08F4_000D
+0637:006C  9a0d00f408     lcall  put_key1
 0637:0071  83c408         add    sp, 8
 0637:0074  c45efc         les    bx, ptr [bp - 4]
 0637:0077  268b07         mov    ax, word ptr es:[bx]
@@ -10603,7 +10603,7 @@ f_0637_0008 proc  ; 0637:0008  callers: f_0637_07BC
 0637:0080  268b4702       mov    ax, word ptr es:[bx + 2]
 0637:0084  8946f2         mov    word ptr [bp - 0xe], ax
 L_0637_0087:
-0637:0087  9aab070a07     lcall  f_070A_07AB
+0637:0087  9aab070a07     lcall  get_key
 0637:008C  3d1c00         cmp    ax, 0x1c
 0637:008F  7429           je     0xba
 0637:0091  8b4608         mov    ax, word ptr [bp + 8]
@@ -10614,28 +10614,28 @@ L_0637_0087:
 0637:009F  ff76f4         push   word ptr [bp - 0xc]
 0637:00A2  b82700         mov    ax, 0x27
 0637:00A5  50             push   ax
-0637:00A6  9a0800a608     lcall  f_08A6_0008
+0637:00A6  9a0800a608     lcall  xor_sprite
 0637:00AB  83c408         add    sp, 8
 L_0637_00AE:
 0637:00AE  b80100         mov    ax, 1
 0637:00B1  50             push   ax
-0637:00B2  9ae9080a07     lcall  f_070A_08E9
+0637:00B2  9ae9080a07     lcall  delay_ticks
 0637:00B7  59             pop    cx
 0637:00B8  ebcd           jmp    0x87
 L_0637_00BA:
 0637:00BA  c70610000100   mov    word ptr [0x10], 1
 L_0637_00C0:
-0637:00C0  9aab070a07     lcall  f_070A_07AB
+0637:00C0  9aab070a07     lcall  get_key
 0637:00C5  3d1c00         cmp    ax, 0x1c
 0637:00C8  746e           je     0x138
 0637:00CA  ff36ec46       push   word ptr [0x46ec]
-0637:00CE  ff36ea46       push   word ptr [0x46ea]
+0637:00CE  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:00D2  ff76f0         push   word ptr [bp - 0x10]
 0637:00D5  ff76f2         push   word ptr [bp - 0xe]
 0637:00D8  ff76f4         push   word ptr [bp - 0xc]
 0637:00DB  b82700         mov    ax, 0x27
 0637:00DE  50             push   ax
-0637:00DF  9a0e005e09     lcall  f_095E_000E
+0637:00DF  9a0e005e09     lcall  restore_rect
 0637:00E4  83c40c         add    sp, 0xc
 0637:00E7  ff46f4         inc    word ptr [bp - 0xc]
 0637:00EA  8b46f4         mov    ax, word ptr [bp - 0xc]
@@ -10646,11 +10646,11 @@ L_0637_00C0:
 0637:00F8  50             push   ax
 0637:00F9  b82700         mov    ax, 0x27
 0637:00FC  50             push   ax
-0637:00FD  9a0d00f408     lcall  f_08F4_000D
+0637:00FD  9a0d00f408     lcall  put_key1
 0637:0102  83c408         add    sp, 8
 0637:0105  b80100         mov    ax, 1
 0637:0108  50             push   ax
-0637:0109  9ae9080a07     lcall  f_070A_08E9
+0637:0109  9ae9080a07     lcall  delay_ticks
 0637:010E  59             pop    cx
 0637:010F  8b4608         mov    ax, word ptr [bp + 8]
 0637:0112  3d0100         cmp    ax, 1
@@ -10660,12 +10660,12 @@ L_0637_00C0:
 0637:011D  ff76f4         push   word ptr [bp - 0xc]
 0637:0120  b82700         mov    ax, 0x27
 0637:0123  50             push   ax
-0637:0124  9a0800a608     lcall  f_08A6_0008
+0637:0124  9a0800a608     lcall  xor_sprite
 0637:0129  83c408         add    sp, 8
 L_0637_012C:
 0637:012C  b80100         mov    ax, 1
 0637:012F  50             push   ax
-0637:0130  9ae9080a07     lcall  f_070A_08E9
+0637:0130  9ae9080a07     lcall  delay_ticks
 0637:0135  59             pop    cx
 0637:0136  eb88           jmp    0xc0
 L_0637_0138:
@@ -10690,13 +10690,13 @@ L_0637_0166:
 0637:0169  3d8800         cmp    ax, 0x88
 0637:016C  7e35           jle    0x1a3
 0637:016E  ff36ec46       push   word ptr [0x46ec]
-0637:0172  ff36ea46       push   word ptr [0x46ea]
+0637:0172  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:0176  ff76f0         push   word ptr [bp - 0x10]
 0637:0179  ff76f2         push   word ptr [bp - 0xe]
 0637:017C  50             push   ax
 0637:017D  b82700         mov    ax, 0x27
 0637:0180  50             push   ax
-0637:0181  9a0e005e09     lcall  f_095E_000E
+0637:0181  9a0e005e09     lcall  restore_rect
 0637:0186  83c40c         add    sp, 0xc
 0637:0189  ff4ef4         dec    word ptr [bp - 0xc]
 0637:018C  ff76fe         push   word ptr [bp - 2]
@@ -10704,7 +10704,7 @@ L_0637_0166:
 0637:0192  ff76f4         push   word ptr [bp - 0xc]
 0637:0195  b82700         mov    ax, 0x27
 0637:0198  50             push   ax
-0637:0199  9a0d00f408     lcall  f_08F4_000D
+0637:0199  9a0d00f408     lcall  put_key1
 0637:019E  83c408         add    sp, 8
 0637:01A1  ebc3           jmp    0x166
 L_0637_01A3:
@@ -10717,22 +10717,22 @@ L_0637_01A3:
 0637:01B0  8bd8           mov    bx, ax
 0637:01B2  83c3fd         add    bx, -3
 0637:01B5  d1e3           shl    bx, 1
-0637:01B7  031e0647       add    bx, word ptr [0x4706]
-0637:01BB  8e060847       mov    es, word ptr [0x4708]
+0637:01B7  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+0637:01BB  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 0637:01BF  268b07         mov    ax, word ptr es:[bx]
 0637:01C2  d1e0           shl    ax, 1
-0637:01C4  03060647       add    ax, word ptr [0x4706]
-0637:01C8  8b160847       mov    dx, word ptr [0x4708]
+0637:01C4  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:01C8  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:01CC  8956fe         mov    word ptr [bp - 2], dx
 0637:01CF  8946fc         mov    word ptr [bp - 4], ax
 0637:01D2  ff36ec46       push   word ptr [0x46ec]
-0637:01D6  ff36ea46       push   word ptr [0x46ea]
+0637:01D6  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:01DA  ff76f0         push   word ptr [bp - 0x10]
 0637:01DD  ff76f2         push   word ptr [bp - 0xe]
 0637:01E0  ff76f4         push   word ptr [bp - 0xc]
 0637:01E3  b82700         mov    ax, 0x27
 0637:01E6  50             push   ax
-0637:01E7  9a0e005e09     lcall  f_095E_000E
+0637:01E7  9a0e005e09     lcall  restore_rect
 0637:01EC  83c40c         add    sp, 0xc
 0637:01EF  c45efc         les    bx, ptr [bp - 4]
 0637:01F2  268b4702       mov    ax, word ptr es:[bx + 2]
@@ -10743,24 +10743,24 @@ L_0637_01A3:
 0637:0202  50             push   ax
 0637:0203  b82700         mov    ax, 0x27
 0637:0206  50             push   ax
-0637:0207  9a0d00f408     lcall  f_08F4_000D
+0637:0207  9a0d00f408     lcall  put_key1
 0637:020C  83c408         add    sp, 8
-0637:020F  c41e0647       les    bx, ptr [0x4706]
+0637:020F  c41e0647       les    bx, ptr [0x4706]   ; scene_items
 0637:0213  268b4710       mov    ax, word ptr es:[bx + 0x10]
 0637:0217  d1e0           shl    ax, 1
-0637:0219  03060647       add    ax, word ptr [0x4706]
-0637:021D  8b160847       mov    dx, word ptr [0x4708]
+0637:0219  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:021D  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:0221  8956fe         mov    word ptr [bp - 2], dx
 0637:0224  8946fc         mov    word ptr [bp - 4], ax
 0637:0227  ff36ec46       push   word ptr [0x46ec]
-0637:022B  ff36ea46       push   word ptr [0x46ea]
+0637:022B  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:022F  ff76f0         push   word ptr [bp - 0x10]
 0637:0232  ff76f2         push   word ptr [bp - 0xe]
 0637:0235  b88400         mov    ax, 0x84   ; " engage the campaign army of %s"
 0637:0238  50             push   ax
 0637:0239  b82700         mov    ax, 0x27
 0637:023C  50             push   ax
-0637:023D  9a0e005e09     lcall  f_095E_000E
+0637:023D  9a0e005e09     lcall  restore_rect
 0637:0242  83c40c         add    sp, 0xc
 0637:0245  ff76fe         push   word ptr [bp - 2]
 0637:0248  ff76fc         push   word ptr [bp - 4]
@@ -10768,7 +10768,7 @@ L_0637_01A3:
 0637:024E  50             push   ax
 0637:024F  b82700         mov    ax, 0x27
 0637:0252  50             push   ax
-0637:0253  9a0d00f408     lcall  f_08F4_000D
+0637:0253  9a0d00f408     lcall  put_key1
 0637:0258  83c408         add    sp, 8
 0637:025B  c45efc         les    bx, ptr [bp - 4]
 0637:025E  268b07         mov    ax, word ptr es:[bx]
@@ -10787,12 +10787,12 @@ L_0637_01A3:
 0637:0282  4b             dec    bx
 0637:0283  4b             dec    bx
 0637:0284  d1e3           shl    bx, 1
-0637:0286  031e0647       add    bx, word ptr [0x4706]
-0637:028A  8e060847       mov    es, word ptr [0x4708]
+0637:0286  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+0637:028A  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 0637:028E  268b07         mov    ax, word ptr es:[bx]
 0637:0291  d1e0           shl    ax, 1
-0637:0293  03060647       add    ax, word ptr [0x4706]
-0637:0297  8b160847       mov    dx, word ptr [0x4708]
+0637:0293  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:0297  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:029B  8956fe         mov    word ptr [bp - 2], dx
 0637:029E  8946fc         mov    word ptr [bp - 4], ax
 0637:02A1  8ec2           mov    es, dx
@@ -10807,13 +10807,13 @@ L_0637_02B5:
 0637:02B8  3d7000         cmp    ax, 0x70
 0637:02BB  7e36           jle    0x2f3
 0637:02BD  ff36ec46       push   word ptr [0x46ec]
-0637:02C1  ff36ea46       push   word ptr [0x46ea]
+0637:02C1  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:02C5  ff76f0         push   word ptr [bp - 0x10]
 0637:02C8  ff76f2         push   word ptr [bp - 0xe]
 0637:02CB  50             push   ax
 0637:02CC  b82900         mov    ax, 0x29
 0637:02CF  50             push   ax
-0637:02D0  9a0e005e09     lcall  f_095E_000E
+0637:02D0  9a0e005e09     lcall  restore_rect
 0637:02D5  83c40c         add    sp, 0xc
 0637:02D8  836ef403       sub    word ptr [bp - 0xc], 3
 0637:02DC  ff76fe         push   word ptr [bp - 2]
@@ -10821,18 +10821,18 @@ L_0637_02B5:
 0637:02E2  ff76f4         push   word ptr [bp - 0xc]
 0637:02E5  b82900         mov    ax, 0x29
 0637:02E8  50             push   ax
-0637:02E9  9a0d00f408     lcall  f_08F4_000D
+0637:02E9  9a0d00f408     lcall  put_key1
 0637:02EE  83c408         add    sp, 8
 0637:02F1  ebc2           jmp    0x2b5
 L_0637_02F3:
 0637:02F3  ff36ec46       push   word ptr [0x46ec]
-0637:02F7  ff36ea46       push   word ptr [0x46ea]
+0637:02F7  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:02FB  ff76f0         push   word ptr [bp - 0x10]
 0637:02FE  ff76f2         push   word ptr [bp - 0xe]
 0637:0301  ff76f4         push   word ptr [bp - 0xc]
 0637:0304  b82900         mov    ax, 0x29
 0637:0307  50             push   ax
-0637:0308  9a0e005e09     lcall  f_095E_000E
+0637:0308  9a0e005e09     lcall  restore_rect
 0637:030D  83c40c         add    sp, 0xc
 0637:0310  8b4608         mov    ax, word ptr [bp + 8]
 0637:0313  8bd0           mov    dx, ax
@@ -10843,12 +10843,12 @@ L_0637_02F3:
 0637:031D  8bd8           mov    bx, ax
 0637:031F  4b             dec    bx
 0637:0320  d1e3           shl    bx, 1
-0637:0322  031e0647       add    bx, word ptr [0x4706]
-0637:0326  8e060847       mov    es, word ptr [0x4708]
+0637:0322  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+0637:0326  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 0637:032A  268b07         mov    ax, word ptr es:[bx]
 0637:032D  d1e0           shl    ax, 1
-0637:032F  03060647       add    ax, word ptr [0x4706]
-0637:0333  8b160847       mov    dx, word ptr [0x4708]
+0637:032F  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:0333  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:0337  8956fe         mov    word ptr [bp - 2], dx
 0637:033A  8946fc         mov    word ptr [bp - 4], ax
 0637:033D  8ec2           mov    es, dx
@@ -10863,13 +10863,13 @@ L_0637_0351:
 0637:0354  3d6400         cmp    ax, 0x64
 0637:0357  7e36           jle    0x38f
 0637:0359  ff36ec46       push   word ptr [0x46ec]
-0637:035D  ff36ea46       push   word ptr [0x46ea]
+0637:035D  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:0361  ff76f0         push   word ptr [bp - 0x10]
 0637:0364  ff76f2         push   word ptr [bp - 0xe]
 0637:0367  50             push   ax
 0637:0368  b82900         mov    ax, 0x29
 0637:036B  50             push   ax
-0637:036C  9a0e005e09     lcall  f_095E_000E
+0637:036C  9a0e005e09     lcall  restore_rect
 0637:0371  83c40c         add    sp, 0xc
 0637:0374  836ef403       sub    word ptr [bp - 0xc], 3
 0637:0378  ff76fe         push   word ptr [bp - 2]
@@ -10877,25 +10877,25 @@ L_0637_0351:
 0637:037E  ff76f4         push   word ptr [bp - 0xc]
 0637:0381  b82900         mov    ax, 0x29
 0637:0384  50             push   ax
-0637:0385  9a0d00f408     lcall  f_08F4_000D
+0637:0385  9a0d00f408     lcall  put_key1
 0637:038A  83c408         add    sp, 8
 0637:038D  ebc2           jmp    0x351
 L_0637_038F:
 0637:038F  ff36ec46       push   word ptr [0x46ec]
-0637:0393  ff36ea46       push   word ptr [0x46ea]
+0637:0393  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:0397  ff76ec         push   word ptr [bp - 0x14]
 0637:039A  ff76ee         push   word ptr [bp - 0x12]
 0637:039D  b89200         mov    ax, 0x92   ; "mpaign army of %s"
 0637:03A0  50             push   ax
 0637:03A1  b82700         mov    ax, 0x27
 0637:03A4  50             push   ax
-0637:03A5  9a0e005e09     lcall  f_095E_000E
+0637:03A5  9a0e005e09     lcall  restore_rect
 0637:03AA  83c40c         add    sp, 0xc
-0637:03AD  c41e0647       les    bx, ptr [0x4706]
+0637:03AD  c41e0647       les    bx, ptr [0x4706]   ; scene_items
 0637:03B1  268b4712       mov    ax, word ptr es:[bx + 0x12]
 0637:03B5  d1e0           shl    ax, 1
-0637:03B7  03060647       add    ax, word ptr [0x4706]
-0637:03BB  8b160847       mov    dx, word ptr [0x4708]
+0637:03B7  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:03BB  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:03BF  8956fe         mov    word ptr [bp - 2], dx
 0637:03C2  8946fc         mov    word ptr [bp - 4], ax
 0637:03C5  ff76fe         push   word ptr [bp - 2]
@@ -10904,23 +10904,23 @@ L_0637_038F:
 0637:03CE  50             push   ax
 0637:03CF  b82700         mov    ax, 0x27
 0637:03D2  50             push   ax
-0637:03D3  9a0d00f408     lcall  f_08F4_000D
+0637:03D3  9a0d00f408     lcall  put_key1
 0637:03D8  83c408         add    sp, 8
 0637:03DB  ff36ec46       push   word ptr [0x46ec]
-0637:03DF  ff36ea46       push   word ptr [0x46ea]
+0637:03DF  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:03E3  ff76f0         push   word ptr [bp - 0x10]
 0637:03E6  ff76f2         push   word ptr [bp - 0xe]
 0637:03E9  ff76f4         push   word ptr [bp - 0xc]
 0637:03EC  b82900         mov    ax, 0x29
 0637:03EF  50             push   ax
-0637:03F0  9a0e005e09     lcall  f_095E_000E
+0637:03F0  9a0e005e09     lcall  restore_rect
 0637:03F5  83c40c         add    sp, 0xc
 0637:03F8  8b46ea         mov    ax, word ptr [bp - 0x16]
 0637:03FB  8be5           mov    sp, bp
 0637:03FD  5d             pop    bp
 0637:03FE  cb             retf   
 
-f_0637_03FF proc  ; 0637:03FF  callers: f_0637_07BC
+show_shot proc  ; 0637:03FF  callers: siege_by_player
 0637:03FF  55             push   bp
 0637:0400  8bec           mov    bp, sp
 0637:0402  83c4f0         add    sp, -0x10
@@ -10943,21 +10943,21 @@ L_0637_042E:
 0637:0436  e95201         jmp    0x58b
 L_0637_0439:
 0637:0439  ff36ec46       push   word ptr [0x46ec]
-0637:043D  ff36ea46       push   word ptr [0x46ea]
+0637:043D  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:0441  ff76f4         push   word ptr [bp - 0xc]
 0637:0444  ff76f6         push   word ptr [bp - 0xa]
 0637:0447  ff76f8         push   word ptr [bp - 8]
 0637:044A  ff76fa         push   word ptr [bp - 6]
-0637:044D  9a0e005e09     lcall  f_095E_000E
+0637:044D  9a0e005e09     lcall  restore_rect
 0637:0452  83c40c         add    sp, 0xc
 0637:0455  8b5ef2         mov    bx, word ptr [bp - 0xe]
 0637:0458  d1e3           shl    bx, 1
-0637:045A  031e0647       add    bx, word ptr [0x4706]
-0637:045E  8e060847       mov    es, word ptr [0x4708]
+0637:045A  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+0637:045E  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 0637:0462  268b07         mov    ax, word ptr es:[bx]
 0637:0465  d1e0           shl    ax, 1
-0637:0467  03060647       add    ax, word ptr [0x4706]
-0637:046B  8b160847       mov    dx, word ptr [0x4708]
+0637:0467  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:046B  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:046F  8956fe         mov    word ptr [bp - 2], dx
 0637:0472  8946fc         mov    word ptr [bp - 4], ax
 0637:0475  8b4606         mov    ax, word ptr [bp + 6]
@@ -10975,7 +10975,7 @@ L_0637_0439:
 0637:0493  ff76fc         push   word ptr [bp - 4]
 0637:0496  50             push   ax
 0637:0497  ff76fa         push   word ptr [bp - 6]
-0637:049A  9a0d00f408     lcall  f_08F4_000D
+0637:049A  9a0d00f408     lcall  put_key1
 0637:049F  83c408         add    sp, 8
 0637:04A2  c45efc         les    bx, ptr [bp - 4]
 0637:04A5  268b07         mov    ax, word ptr es:[bx]
@@ -10986,15 +10986,15 @@ L_0637_0439:
 0637:04B5  ff46f0         inc    word ptr [bp - 0x10]
 0637:04B8  b80100         mov    ax, 1
 0637:04BB  50             push   ax
-0637:04BC  9ab2080a07     lcall  f_070A_08B2
+0637:04BC  9ab2080a07     lcall  wait_ticks
 0637:04C1  59             pop    cx
 0637:04C2  ff36ec46       push   word ptr [0x46ec]
-0637:04C6  ff36ea46       push   word ptr [0x46ea]
+0637:04C6  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:04CA  ff76f4         push   word ptr [bp - 0xc]
 0637:04CD  ff76f6         push   word ptr [bp - 0xa]
 0637:04D0  ff76f8         push   word ptr [bp - 8]
 0637:04D3  ff76fa         push   word ptr [bp - 6]
-0637:04D6  9a0e005e09     lcall  f_095E_000E
+0637:04D6  9a0e005e09     lcall  restore_rect
 0637:04DB  83c40c         add    sp, 0xc
 0637:04DE  8b4606         mov    ax, word ptr [bp + 6]
 0637:04E1  8bd0           mov    dx, ax
@@ -11011,20 +11011,20 @@ L_0637_0439:
 0637:04FC  ff76fc         push   word ptr [bp - 4]
 0637:04FF  50             push   ax
 0637:0500  ff76fa         push   word ptr [bp - 6]
-0637:0503  9a0d00f408     lcall  f_08F4_000D
+0637:0503  9a0d00f408     lcall  put_key1
 0637:0508  83c408         add    sp, 8
 0637:050B  ff46f0         inc    word ptr [bp - 0x10]
 0637:050E  b80100         mov    ax, 1
 0637:0511  50             push   ax
-0637:0512  9ab2080a07     lcall  f_070A_08B2
+0637:0512  9ab2080a07     lcall  wait_ticks
 0637:0517  59             pop    cx
 0637:0518  ff36ec46       push   word ptr [0x46ec]
-0637:051C  ff36ea46       push   word ptr [0x46ea]
+0637:051C  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:0520  ff76f4         push   word ptr [bp - 0xc]
 0637:0523  ff76f6         push   word ptr [bp - 0xa]
 0637:0526  ff76f8         push   word ptr [bp - 8]
 0637:0529  ff76fa         push   word ptr [bp - 6]
-0637:052C  9a0e005e09     lcall  f_095E_000E
+0637:052C  9a0e005e09     lcall  restore_rect
 0637:0531  83c40c         add    sp, 0xc
 0637:0534  8b4606         mov    ax, word ptr [bp + 6]
 0637:0537  8bd0           mov    dx, ax
@@ -11051,41 +11051,41 @@ L_0637_0564:
 0637:0567  ff76fc         push   word ptr [bp - 4]
 0637:056A  ff76f8         push   word ptr [bp - 8]
 0637:056D  ff76fa         push   word ptr [bp - 6]
-0637:0570  9a0d00f408     lcall  f_08F4_000D
+0637:0570  9a0d00f408     lcall  put_key1
 0637:0575  83c408         add    sp, 8
 0637:0578  ff46f0         inc    word ptr [bp - 0x10]
 0637:057B  ff46f2         inc    word ptr [bp - 0xe]
 0637:057E  b80100         mov    ax, 1
 0637:0581  50             push   ax
-0637:0582  9ab2080a07     lcall  f_070A_08B2
+0637:0582  9ab2080a07     lcall  wait_ticks
 0637:0587  59             pop    cx
 0637:0588  e9a3fe         jmp    0x42e
 L_0637_058B:
 0637:058B  ff36ec46       push   word ptr [0x46ec]
-0637:058F  ff36ea46       push   word ptr [0x46ea]
+0637:058F  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:0593  ff76f4         push   word ptr [bp - 0xc]
 0637:0596  ff76f6         push   word ptr [bp - 0xa]
 0637:0599  ff76f8         push   word ptr [bp - 8]
 0637:059C  ff76fa         push   word ptr [bp - 6]
-0637:059F  9a0e005e09     lcall  f_095E_000E
+0637:059F  9a0e005e09     lcall  restore_rect
 0637:05A4  83c40c         add    sp, 0xc
 0637:05A7  8be5           mov    sp, bp
 0637:05A9  5d             pop    bp
 0637:05AA  cb             retf   
 
-f_0637_05AB proc  ; 0637:05AB
+siege_hole? proc  ; 0637:05AB
 0637:05AB  55             push   bp
 0637:05AC  8bec           mov    bp, sp
 0637:05AE  83c4fc         add    sp, -4
-0637:05B1  ff06c241       inc    word ptr [0x41c2]
-0637:05B5  8b1ec241       mov    bx, word ptr [0x41c2]
+0637:05B1  ff06c241       inc    word ptr [0x41c2]   ; siege_0A8E
+0637:05B5  8b1ec241       mov    bx, word ptr [0x41c2]   ; siege_0A8E
 0637:05B9  d1e3           shl    bx, 1
-0637:05BB  031e0647       add    bx, word ptr [0x4706]
-0637:05BF  8e060847       mov    es, word ptr [0x4708]
+0637:05BB  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+0637:05BF  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 0637:05C3  268b07         mov    ax, word ptr es:[bx]
 0637:05C6  d1e0           shl    ax, 1
-0637:05C8  03060647       add    ax, word ptr [0x4706]
-0637:05CC  8b160847       mov    dx, word ptr [0x4708]
+0637:05C8  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:05CC  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:05D0  8956fe         mov    word ptr [bp - 2], dx
 0637:05D3  8946fc         mov    word ptr [bp - 4], ax
 0637:05D6  ff76fe         push   word ptr [bp - 2]
@@ -11094,10 +11094,10 @@ f_0637_05AB proc  ; 0637:05AB
 0637:05DF  50             push   ax
 0637:05E0  b82700         mov    ax, 0x27
 0637:05E3  50             push   ax
-0637:05E4  9a0d00f408     lcall  f_08F4_000D
+0637:05E4  9a0d00f408     lcall  put_key1
 0637:05E9  83c408         add    sp, 8
 0637:05EC  ff36ec46       push   word ptr [0x46ec]
-0637:05F0  ff36ea46       push   word ptr [0x46ea]
+0637:05F0  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:05F4  c45efc         les    bx, ptr [bp - 4]
 0637:05F7  268b07         mov    ax, word ptr es:[bx]
 0637:05FA  050800         add    ax, 8
@@ -11107,27 +11107,27 @@ f_0637_05AB proc  ; 0637:05AB
 0637:0605  50             push   ax
 0637:0606  b82700         mov    ax, 0x27
 0637:0609  50             push   ax
-0637:060A  9a0f006409     lcall  f_0964_000F
+0637:060A  9a0f006409     lcall  save_rect
 0637:060F  83c40c         add    sp, 0xc
 0637:0612  8be5           mov    sp, bp
 0637:0614  5d             pop    bp
 0637:0615  cb             retf   
 
-f_0637_0616 proc  ; 0637:0616  callers: f_01A5_00C2
+siege proc  ; 0637:0616  callers: attack
 0637:0616  55             push   bp
 0637:0617  8bec           mov    bp, sp
-0637:0619  c706ba410600   mov    word ptr [0x41ba], 6
-0637:061F  c706bc410200   mov    word ptr [0x41bc], 2
-0637:0625  c706be410100   mov    word ptr [0x41be], 1
-0637:062B  c706c6410600   mov    word ptr [0x41c6], 6
-0637:0631  c706c2410200   mov    word ptr [0x41c2], 2
-0637:0637  c706c4410600   mov    word ptr [0x41c4], 6
+0637:0619  c706ba410600   mov    word ptr [0x41ba], 6   ; siege_boulders
+0637:061F  c706bc410200   mov    word ptr [0x41bc], 2   ; siege_fire
+0637:0625  c706be410100   mov    word ptr [0x41be], 1   ; siege_disease
+0637:062B  c706c6410600   mov    word ptr [0x41c6], 6   ; siege_days
+0637:0631  c706c2410200   mov    word ptr [0x41c2], 2   ; siege_0A8E
+0637:0637  c706c4410600   mov    word ptr [0x41c4], 6   ; siege_wall
 0637:063D  8b4606         mov    ax, word ptr [bp + 6]
-0637:0640  3b060c45       cmp    ax, word ptr [0x450c]
+0637:0640  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 0637:0644  7512           jne    0x658
 0637:0646  ff760a         push   word ptr [bp + 0xa]
 0637:0649  ff7608         push   word ptr [bp + 8]
-0637:064C  9abc073706     lcall  f_0637_07BC
+0637:064C  9abc073706     lcall  siege_by_player
 0637:0651  83c404         add    sp, 4
 L_0637_0654:
 0637:0654  8be5           mov    sp, bp
@@ -11138,11 +11138,11 @@ L_0637_0658:
 0637:065B  ff760a         push   word ptr [bp + 0xa]
 0637:065E  ff7608         push   word ptr [bp + 8]
 0637:0661  ff7606         push   word ptr [bp + 6]
-0637:0664  9a3a0a3706     lcall  f_0637_0A3A
+0637:0664  9a3a0a3706     lcall  siege_of_player
 0637:0669  83c408         add    sp, 8
 0637:066C  ebe6           jmp    0x654
 
-f_0637_066E proc  ; 0637:066E  callers: f_0637_07BC
+choose_ammo proc  ; 0637:066E  callers: siege_by_player
 0637:066E  55             push   bp
 0637:066F  8bec           mov    bp, sp
 0637:0671  83c4fe         add    sp, -2
@@ -11156,22 +11156,22 @@ f_0637_066E proc  ; 0637:066E  callers: f_0637_07BC
 0637:0684  03c2           add    ax, dx
 0637:0686  d1e0           shl    ax, 1
 0637:0688  8bd8           mov    bx, ax
-0637:068A  8b878a43       mov    ax, word ptr [bx + 0x438a]
+0637:068A  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
 0637:068E  3d0000         cmp    ax, 0
 0637:0691  7f06           jg     0x699
-0637:0693  c7878a430100   mov    word ptr [bx + 0x438a], 1
+0637:0693  c7878a430100   mov    word ptr [bx + 0x438a], 1   ; army.soldiers
 L_0637_0699:
 0637:0699  837efe00       cmp    word ptr [bp - 2], 0
 0637:069D  7403           je     0x6a2
 0637:069F  e91101         jmp    0x7b3
 L_0637_06A2:
-0637:06A2  ff36c641       push   word ptr [0x41c6]
+0637:06A2  ff36c641       push   word ptr [0x41c6]   ; siege_days
 0637:06A6  1e             push   ds
 0637:06A7  b8923b         mov    ax, 0x3b92   ; "Days remaining in Siege: %1d"
 0637:06AA  50             push   ax
 0637:06AB  ff365128       push   word ptr [0x2851]
 0637:06AF  ff364f28       push   word ptr [0x284f]
-0637:06B3  9a0600f809     lcall  f_09F8_0006
+0637:06B3  9a0600f809     lcall  sprintf
 0637:06B8  83c40a         add    sp, 0xa
 0637:06BB  8b4606         mov    ax, word ptr [bp + 6]
 0637:06BE  8bd0           mov    dx, ax
@@ -11180,39 +11180,39 @@ L_0637_06A2:
 0637:06C4  03c2           add    ax, dx
 0637:06C6  d1e0           shl    ax, 1
 0637:06C8  8bd8           mov    bx, ax
-0637:06CA  8b878a43       mov    ax, word ptr [bx + 0x438a]
-0637:06CE  03878c43       add    ax, word ptr [bx + 0x438c]
+0637:06CA  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
+0637:06CE  03878c43       add    ax, word ptr [bx + 0x438c]   ; army.knights
 0637:06D2  50             push   ax
 0637:06D3  1e             push   ds
 0637:06D4  b8af3b         mov    ax, 0x3baf   ; "Enemy Garrison: %d"
 0637:06D7  50             push   ax
 0637:06D8  ff365528       push   word ptr [0x2855]
 0637:06DC  ff365328       push   word ptr [0x2853]
-0637:06E0  9a0600f809     lcall  f_09F8_0006
+0637:06E0  9a0600f809     lcall  sprintf
 0637:06E5  83c40a         add    sp, 0xa
-0637:06E8  ff36bc41       push   word ptr [0x41bc]
+0637:06E8  ff36bc41       push   word ptr [0x41bc]   ; siege_fire
 0637:06EC  1e             push   ds
 0637:06ED  b8c23b         mov    ax, 0x3bc2   ; "      Greek Fire: %1d"
 0637:06F0  50             push   ax
 0637:06F1  ff365d28       push   word ptr [0x285d]
 0637:06F5  ff365b28       push   word ptr [0x285b]
-0637:06F9  9a0600f809     lcall  f_09F8_0006
+0637:06F9  9a0600f809     lcall  sprintf
 0637:06FE  83c40a         add    sp, 0xa
-0637:0701  ff36be41       push   word ptr [0x41be]
+0637:0701  ff36be41       push   word ptr [0x41be]   ; siege_disease
 0637:0705  1e             push   ds
 0637:0706  b8d83b         mov    ax, 0x3bd8   ; "      Disease:@>  %1d"
 0637:0709  50             push   ax
 0637:070A  ff366128       push   word ptr [0x2861]
 0637:070E  ff365f28       push   word ptr [0x285f]
-0637:0712  9a0600f809     lcall  f_09F8_0006
+0637:0712  9a0600f809     lcall  sprintf
 0637:0717  83c40a         add    sp, 0xa
-0637:071A  ff36ba41       push   word ptr [0x41ba]
+0637:071A  ff36ba41       push   word ptr [0x41ba]   ; siege_boulders
 0637:071E  1e             push   ds
 0637:071F  b8ee3b         mov    ax, 0x3bee   ; "      Boulders:=  %1d"
 0637:0722  50             push   ax
 0637:0723  ff366528       push   word ptr [0x2865]
 0637:0727  ff366328       push   word ptr [0x2863]
-0637:072B  9a0600f809     lcall  f_09F8_0006
+0637:072B  9a0600f809     lcall  sprintf
 0637:0730  83c40a         add    sp, 0xa
 0637:0733  a1c041         mov    ax, word ptr [0x41c0]
 0637:0736  050400         add    ax, 4
@@ -11227,28 +11227,28 @@ L_0637_06A2:
 0637:074C  b90600         mov    cx, 6
 0637:074F  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0637:0751  a4             movsb  byte ptr es:[di], byte ptr [si]
-0637:0752  9af3020a07     lcall  f_070A_02F3
+0637:0752  9af3020a07     lcall  dialog
 0637:0757  83c40e         add    sp, 0xe
 0637:075A  a3c041         mov    word ptr [0x41c0], ax
 0637:075D  eb3d           jmp    0x79c
 L_0637_075F:
-0637:075F  833ebc4100     cmp    word ptr [0x41bc], 0
+0637:075F  833ebc4100     cmp    word ptr [0x41bc], 0   ; siege_fire
 0637:0764  7409           je     0x76f
-0637:0766  ff0ebc41       dec    word ptr [0x41bc]
+0637:0766  ff0ebc41       dec    word ptr [0x41bc]   ; siege_fire
 0637:076A  c746fe0100     mov    word ptr [bp - 2], 1
 L_0637_076F:
 0637:076F  eb3f           jmp    0x7b0
 L_0637_0771:
-0637:0771  833ebe4100     cmp    word ptr [0x41be], 0
+0637:0771  833ebe4100     cmp    word ptr [0x41be], 0   ; siege_disease
 0637:0776  7409           je     0x781
-0637:0778  ff0ebe41       dec    word ptr [0x41be]
+0637:0778  ff0ebe41       dec    word ptr [0x41be]   ; siege_disease
 0637:077C  c746fe0100     mov    word ptr [bp - 2], 1
 L_0637_0781:
 0637:0781  eb2d           jmp    0x7b0
 L_0637_0783:
-0637:0783  833eba4100     cmp    word ptr [0x41ba], 0
+0637:0783  833eba4100     cmp    word ptr [0x41ba], 0   ; siege_boulders
 0637:0788  7409           je     0x793
-0637:078A  ff0eba41       dec    word ptr [0x41ba]
+0637:078A  ff0eba41       dec    word ptr [0x41ba]   ; siege_boulders
 0637:078E  c746fe0100     mov    word ptr [bp - 2], 1
 L_0637_0793:
 0637:0793  eb1b           jmp    0x7b0
@@ -11274,22 +11274,22 @@ L_0637_07B3:
 0637:07BA  5d             pop    bp
 0637:07BB  cb             retf   
 
-f_0637_07BC proc  ; 0637:07BC  callers: f_0637_0616
+siege_by_player proc  ; 0637:07BC  callers: siege
 0637:07BC  55             push   bp
 0637:07BD  8bec           mov    bp, sp
 0637:07BF  83c4f6         add    sp, -0xa
 0637:07C2  57             push   di
 0637:07C3  56             push   si
 0637:07C4  c746fe5a00     mov    word ptr [bp - 2], 0x5a   ; "ts  <>@%4d>"
-0637:07C9  9ab2042304     lcall  f_0423_04B2
-0637:07CE  a10c45         mov    ax, word ptr [0x450c]
+0637:07C9  9ab2042304     lcall  redraw_map
+0637:07CE  a10c45         mov    ax, word ptr [0x450c]   ; player
 0637:07D1  8bd0           mov    dx, ax
 0637:07D3  d1e0           shl    ax, 1
 0637:07D5  d1e0           shl    ax, 1
 0637:07D7  03c2           add    ax, dx
 0637:07D9  d1e0           shl    ax, 1
 0637:07DB  8bd8           mov    bx, ax
-0637:07DD  83bf484300     cmp    word ptr [bx + 0x4348], 0
+0637:07DD  83bf484300     cmp    word ptr [bx + 0x4348], 0   ; army.catapults
 0637:07E2  7527           jne    0x80b
 0637:07E4  83ec0e         sub    sp, 0xe
 0637:07E7  8bc4           mov    ax, sp
@@ -11301,7 +11301,7 @@ f_0637_07BC proc  ; 0637:07BC  callers: f_0637_0616
 0637:07F4  b90600         mov    cx, 6
 0637:07F7  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0637:07F9  a4             movsb  byte ptr es:[di], byte ptr [si]
-0637:07FA  9af3020a07     lcall  f_070A_02F3
+0637:07FA  9af3020a07     lcall  dialog
 0637:07FF  83c40e         add    sp, 0xe
 0637:0802  b80300         mov    ax, 3
 L_0637_0805:
@@ -11321,21 +11321,21 @@ L_0637_080B:
 0637:081B  b90600         mov    cx, 6
 0637:081E  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0637:0820  a4             movsb  byte ptr es:[di], byte ptr [si]
-0637:0821  9af3020a07     lcall  f_070A_02F3
+0637:0821  9af3020a07     lcall  dialog
 0637:0826  83c40e         add    sp, 0xe
 0637:0829  b800c0         mov    ax, 0xc000
 0637:082C  50             push   ax
 0637:082D  ff360447       push   word ptr [0x4704]
-0637:0831  ff360247       push   word ptr [0x4702]
+0637:0831  ff360247       push   word ptr [0x4702]   ; lib_scene
 0637:0835  1e             push   ds
 0637:0836  b8043c         mov    ax, 0x3c04   ; "SIEGE.LIB"
 0637:0839  50             push   ax
-0637:083A  9a5a010a07     lcall  f_070A_015A
+0637:083A  9a5a010a07     lcall  load_lib
 0637:083F  83c40a         add    sp, 0xa
 0637:0842  ff360a00       push   word ptr [0xa]
 0637:0846  b89c00         mov    ax, 0x9c   ; "y of %s"
 0637:0849  50             push   ax
-0637:084A  9ae00d0a07     lcall  f_070A_0DE0
+0637:084A  9ae00d0a07     lcall  play_tune
 0637:084F  83c404         add    sp, 4
 0637:0852  8b4608         mov    ax, word ptr [bp + 8]
 0637:0855  8bd0           mov    dx, ax
@@ -11345,32 +11345,32 @@ L_0637_080B:
 0637:085D  d1e0           shl    ax, 1
 0637:085F  03c2           add    ax, dx
 0637:0861  8bd8           mov    bx, ax
-0637:0863  80bf4e3604     cmp    byte ptr [bx + 0x364e], 4
+0637:0863  80bf4e3604     cmp    byte ptr [bx + 0x364e], 4   ; terr.owner
 0637:0868  7d16           jge    0x880
 0637:086A  b80200         mov    ax, 2
 0637:086D  50             push   ax
 0637:086E  ff360447       push   word ptr [0x4704]
-0637:0872  ff360247       push   word ptr [0x4702]
-0637:0876  9ab1020a07     lcall  f_070A_02B1
+0637:0872  ff360247       push   word ptr [0x4702]   ; lib_scene
+0637:0876  9ab1020a07     lcall  show_lib_picture
 0637:087B  83c406         add    sp, 6
 0637:087E  eb14           jmp    0x894
 L_0637_0880:
 0637:0880  b80100         mov    ax, 1
 0637:0883  50             push   ax
 0637:0884  ff360447       push   word ptr [0x4704]
-0637:0888  ff360247       push   word ptr [0x4702]
-0637:088C  9ab1020a07     lcall  f_070A_02B1
+0637:0888  ff360247       push   word ptr [0x4702]   ; lib_scene
+0637:088C  9ab1020a07     lcall  show_lib_picture
 0637:0891  83c406         add    sp, 6
 L_0637_0894:
-0637:0894  9ab3010a07     lcall  f_070A_01B3
+0637:0894  9ab3010a07     lcall  show_screen
 0637:0899  c706c0410100   mov    word ptr [0x41c0], 1
 L_0637_089F:
-0637:089F  833ec64100     cmp    word ptr [0x41c6], 0
+0637:089F  833ec64100     cmp    word ptr [0x41c6], 0   ; siege_days
 0637:08A4  7503           jne    0x8a9
 0637:08A6  e96f01         jmp    0xa18
 L_0637_08A9:
 0637:08A9  ff7608         push   word ptr [bp + 8]
-0637:08AC  9a6e063706     lcall  f_0637_066E
+0637:08AC  9a6e063706     lcall  choose_ammo
 0637:08B1  59             pop    cx
 0637:08B2  8946fa         mov    word ptr [bp - 6], ax
 0637:08B5  3d0400         cmp    ax, 4
@@ -11378,13 +11378,13 @@ L_0637_08A9:
 0637:08BA  e94401         jmp    0xa01
 L_0637_08BD:
 0637:08BD  50             push   ax
-0637:08BE  ff360c45       push   word ptr [0x450c]
-0637:08C2  9a08003706     lcall  f_0637_0008
+0637:08BE  ff360c45       push   word ptr [0x450c]   ; player
+0637:08C2  9a08003706     lcall  catapult_aim
 0637:08C7  83c404         add    sp, 4
 0637:08CA  8946fc         mov    word ptr [bp - 4], ax
 0637:08CD  ff76fa         push   word ptr [bp - 6]
 0637:08D0  50             push   ax
-0637:08D1  9aff033706     lcall  f_0637_03FF
+0637:08D1  9aff033706     lcall  show_shot
 0637:08D6  83c404         add    sp, 4
 0637:08D9  837efc00       cmp    word ptr [bp - 4], 0
 0637:08DD  7503           jne    0x8e2
@@ -11399,11 +11399,11 @@ L_0637_08ED:
 0637:08F0  e9d600         jmp    0x9c9
 L_0637_08F3:
 0637:08F3  8b46fc         mov    ax, word ptr [bp - 4]
-0637:08F6  3b06c441       cmp    ax, word ptr [0x41c4]
+0637:08F6  3b06c441       cmp    ax, word ptr [0x41c4]   ; siege_wall
 0637:08FA  7e29           jle    0x925
 0637:08FC  b81900         mov    ax, 0x19
 0637:08FF  50             push   ax
-0637:0900  9a0d000a07     lcall  f_070A_000D
+0637:0900  9a0d000a07     lcall  random
 0637:0905  59             pop    cx
 0637:0906  8bc8           mov    cx, ax
 0637:0908  83c106         add    cx, 6
@@ -11414,15 +11414,15 @@ L_0637_08F3:
 0637:0914  03c2           add    ax, dx
 0637:0916  d1e0           shl    ax, 1
 0637:0918  8bd8           mov    bx, ax
-0637:091A  8b878a43       mov    ax, word ptr [bx + 0x438a]
+0637:091A  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
 0637:091E  99             cdq    
 0637:091F  f7f9           idiv   cx
-0637:0921  29878a43       sub    word ptr [bx + 0x438a], ax
+0637:0921  29878a43       sub    word ptr [bx + 0x438a], ax   ; army.soldiers
 L_0637_0925:
 0637:0925  e9b900         jmp    0x9e1
 L_0637_0928:
 0637:0928  8b46fc         mov    ax, word ptr [bp - 4]
-0637:092B  3b06c441       cmp    ax, word ptr [0x41c4]
+0637:092B  3b06c441       cmp    ax, word ptr [0x41c4]   ; siege_wall
 0637:092F  7e21           jle    0x952
 0637:0931  8b4608         mov    ax, word ptr [bp + 8]
 0637:0934  8bd0           mov    dx, ax
@@ -11431,29 +11431,29 @@ L_0637_0928:
 0637:093A  03c2           add    ax, dx
 0637:093C  d1e0           shl    ax, 1
 0637:093E  8bd8           mov    bx, ax
-0637:0940  8b878a43       mov    ax, word ptr [bx + 0x438a]
-0637:0944  f72ec641       imul   word ptr [0x41c6]
+0637:0940  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
+0637:0944  f72ec641       imul   word ptr [0x41c6]   ; siege_days
 0637:0948  b90f00         mov    cx, 0xf
 0637:094B  99             cdq    
 0637:094C  f7f9           idiv   cx
-0637:094E  29878a43       sub    word ptr [bx + 0x438a], ax
+0637:094E  29878a43       sub    word ptr [bx + 0x438a], ax   ; army.soldiers
 L_0637_0952:
 0637:0952  e98c00         jmp    0x9e1
 L_0637_0955:
 0637:0955  8b46fc         mov    ax, word ptr [bp - 4]
-0637:0958  3b06c441       cmp    ax, word ptr [0x41c4]
+0637:0958  3b06c441       cmp    ax, word ptr [0x41c4]   ; siege_wall
 0637:095C  7569           jne    0x9c7
-0637:095E  ff0ec441       dec    word ptr [0x41c4]
+0637:095E  ff0ec441       dec    word ptr [0x41c4]   ; siege_wall
 0637:0962  836efe0f       sub    word ptr [bp - 2], 0xf
-0637:0966  ff06c241       inc    word ptr [0x41c2]
-0637:096A  8b1ec241       mov    bx, word ptr [0x41c2]
+0637:0966  ff06c241       inc    word ptr [0x41c2]   ; siege_0A8E
+0637:096A  8b1ec241       mov    bx, word ptr [0x41c2]   ; siege_0A8E
 0637:096E  d1e3           shl    bx, 1
-0637:0970  031e0647       add    bx, word ptr [0x4706]
-0637:0974  8e060847       mov    es, word ptr [0x4708]
+0637:0970  031e0647       add    bx, word ptr [0x4706]   ; scene_items
+0637:0974  8e060847       mov    es, word ptr [0x4708]   ; scene_items_seg
 0637:0978  268b07         mov    ax, word ptr es:[bx]
 0637:097B  d1e0           shl    ax, 1
-0637:097D  03060647       add    ax, word ptr [0x4706]
-0637:0981  8b160847       mov    dx, word ptr [0x4708]
+0637:097D  03060647       add    ax, word ptr [0x4706]   ; scene_items
+0637:0981  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 0637:0985  8956f8         mov    word ptr [bp - 8], dx
 0637:0988  8946f6         mov    word ptr [bp - 0xa], ax
 0637:098B  ff76f8         push   word ptr [bp - 8]
@@ -11462,10 +11462,10 @@ L_0637_0955:
 0637:0994  50             push   ax
 0637:0995  b82700         mov    ax, 0x27
 0637:0998  50             push   ax
-0637:0999  9a0d00f408     lcall  f_08F4_000D
+0637:0999  9a0d00f408     lcall  put_key1
 0637:099E  83c408         add    sp, 8
 0637:09A1  ff36ec46       push   word ptr [0x46ec]
-0637:09A5  ff36ea46       push   word ptr [0x46ea]
+0637:09A5  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 0637:09A9  c45ef6         les    bx, ptr [bp - 0xa]
 0637:09AC  268b07         mov    ax, word ptr es:[bx]
 0637:09AF  050800         add    ax, 8
@@ -11475,7 +11475,7 @@ L_0637_0955:
 0637:09BA  50             push   ax
 0637:09BB  b82700         mov    ax, 0x27
 0637:09BE  50             push   ax
-0637:09BF  9a0f006409     lcall  f_0964_000F
+0637:09BF  9a0f006409     lcall  save_rect
 0637:09C4  83c40c         add    sp, 0xc
 L_0637_09C7:
 0637:09C7  eb18           jmp    0x9e1
@@ -11499,19 +11499,19 @@ L_0637_09E1:
 0637:09EA  03c2           add    ax, dx
 0637:09EC  d1e0           shl    ax, 1
 0637:09EE  8bd8           mov    bx, ax
-0637:09F0  8b878a43       mov    ax, word ptr [bx + 0x438a]
+0637:09F0  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
 0637:09F4  3d0000         cmp    ax, 0
 0637:09F7  7f06           jg     0x9ff
-0637:09F9  c7878a430100   mov    word ptr [bx + 0x438a], 1
+0637:09F9  c7878a430100   mov    word ptr [bx + 0x438a], 1   ; army.soldiers
 L_0637_09FF:
 0637:09FF  eb06           jmp    0xa07
 L_0637_0A01:
-0637:0A01  c706c6410100   mov    word ptr [0x41c6], 1
+0637:0A01  c706c6410100   mov    word ptr [0x41c6], 1   ; siege_days
 L_0637_0A07:
-0637:0A07  ff0ec641       dec    word ptr [0x41c6]
+0637:0A07  ff0ec641       dec    word ptr [0x41c6]   ; siege_days
 0637:0A0B  b81b00         mov    ax, 0x1b
 0637:0A0E  50             push   ax
-0637:0A0F  9ae9080a07     lcall  f_070A_08E9
+0637:0A0F  9ae9080a07     lcall  delay_ticks
 0637:0A14  59             pop    cx
 0637:0A15  e987fe         jmp    0x89f
 L_0637_0A18:
@@ -11521,12 +11521,12 @@ L_0637_0A18:
 0637:0A22  ff76fe         push   word ptr [bp - 2]
 0637:0A25  ff7608         push   word ptr [bp + 8]
 0637:0A28  ff7606         push   word ptr [bp + 6]
-0637:0A2B  ff360c45       push   word ptr [0x450c]
-0637:0A2F  9ac6007900     lcall  f_0079_00C6
+0637:0A2B  ff360c45       push   word ptr [0x450c]   ; player
+0637:0A2F  9ac6007900     lcall  battle
 0637:0A34  83c40a         add    sp, 0xa
 0637:0A37  e9cbfd         jmp    0x805
 
-f_0637_0A3A proc  ; 0637:0A3A  callers: f_0637_0616
+siege_of_player proc  ; 0637:0A3A  callers: siege
 0637:0A3A  55             push   bp
 0637:0A3B  8bec           mov    bp, sp
 0637:0A3D  83c4fc         add    sp, -4
@@ -11539,7 +11539,7 @@ f_0637_0A3A proc  ; 0637:0A3A  callers: f_0637_0616
 0637:0A4B  03c2           add    ax, dx
 0637:0A4D  d1e0           shl    ax, 1
 0637:0A4F  8bd8           mov    bx, ax
-0637:0A51  83bf484300     cmp    word ptr [bx + 0x4348], 0
+0637:0A51  83bf484300     cmp    word ptr [bx + 0x4348], 0   ; army.catapults
 0637:0A56  7509           jne    0xa61
 0637:0A58  b80600         mov    ax, 6
 L_0637_0A5B:
@@ -11549,7 +11549,7 @@ L_0637_0A5B:
 0637:0A5F  5d             pop    bp
 0637:0A60  cb             retf   
 L_0637_0A61:
-0637:0A61  a10c45         mov    ax, word ptr [0x450c]
+0637:0A61  a10c45         mov    ax, word ptr [0x450c]   ; player
 0637:0A64  3b4608         cmp    ax, word ptr [bp + 8]
 0637:0A67  7403           je     0xa6c
 0637:0A69  e9f800         jmp    0xb64
@@ -11558,9 +11558,9 @@ L_0637_0A6C:
 0637:0A72  ff360a00       push   word ptr [0xa]
 0637:0A76  b89c00         mov    ax, 0x9c   ; "y of %s"
 0637:0A79  50             push   ax
-0637:0A7A  9ae00d0a07     lcall  f_070A_0DE0
+0637:0A7A  9ae00d0a07     lcall  play_tune
 0637:0A7F  83c404         add    sp, 4
-0637:0A82  a10c45         mov    ax, word ptr [0x450c]
+0637:0A82  a10c45         mov    ax, word ptr [0x450c]   ; player
 0637:0A85  8bd0           mov    dx, ax
 0637:0A87  b103           mov    cl, 3
 0637:0A89  d3e0           shl    ax, cl
@@ -11568,7 +11568,7 @@ L_0637_0A6C:
 0637:0A8D  d1e0           shl    ax, 1
 0637:0A8F  d1e0           shl    ax, 1
 0637:0A91  8bd8           mov    bx, ax
-0637:0A93  8b875044       mov    ax, word ptr [bx + 0x4450]
+0637:0A93  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 0637:0A97  3b460a         cmp    ax, word ptr [bp + 0xa]
 0637:0A9A  754e           jne    0xaea
 0637:0A9C  8b4606         mov    ax, word ptr [bp + 6]
@@ -11579,14 +11579,14 @@ L_0637_0A6C:
 0637:0AA7  d1e0           shl    ax, 1
 0637:0AA9  d1e0           shl    ax, 1
 0637:0AAB  8bd8           mov    bx, ax
-0637:0AAD  ffb74644       push   word ptr [bx + 0x4446]
-0637:0AB1  ffb74444       push   word ptr [bx + 0x4444]
+0637:0AAD  ffb74644       push   word ptr [bx + 0x4446]   ; side+2
+0637:0AB1  ffb74444       push   word ptr [bx + 0x4444]   ; side.name
 0637:0AB5  1e             push   ds
 0637:0AB6  b80e3c         mov    ax, 0x3c0e   ; "Suddenly your home castle is attacked!  %s"
 0637:0AB9  50             push   ax
 0637:0ABA  ff36501a       push   word ptr [0x1a50]
 0637:0ABE  ff364e1a       push   word ptr [0x1a4e]
-0637:0AC2  9a0600f809     lcall  f_09F8_0006
+0637:0AC2  9a0600f809     lcall  sprintf
 0637:0AC7  83c40c         add    sp, 0xc
 0637:0ACA  83ec0e         sub    sp, 0xe
 0637:0ACD  8bc4           mov    ax, sp
@@ -11598,7 +11598,7 @@ L_0637_0A6C:
 0637:0ADA  b90600         mov    cx, 6
 0637:0ADD  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0637:0ADF  a4             movsb  byte ptr es:[di], byte ptr [si]
-0637:0AE0  9af3020a07     lcall  f_070A_02F3
+0637:0AE0  9af3020a07     lcall  dialog
 0637:0AE5  83c40e         add    sp, 0xe
 0637:0AE8  eb7a           jmp    0xb64
 L_0637_0AEA:
@@ -11617,7 +11617,7 @@ L_0637_0AEA:
 0637:0B07  50             push   ax
 0637:0B08  ff36021b       push   word ptr [0x1b02]
 0637:0B0C  ff36001b       push   word ptr [0x1b00]
-0637:0B10  9a0600f809     lcall  f_09F8_0006
+0637:0B10  9a0600f809     lcall  sprintf
 0637:0B15  83c40c         add    sp, 0xc
 0637:0B18  8b4606         mov    ax, word ptr [bp + 6]
 0637:0B1B  8bd0           mov    dx, ax
@@ -11627,14 +11627,14 @@ L_0637_0AEA:
 0637:0B23  d1e0           shl    ax, 1
 0637:0B25  d1e0           shl    ax, 1
 0637:0B27  8bd8           mov    bx, ax
-0637:0B29  ffb74644       push   word ptr [bx + 0x4446]
-0637:0B2D  ffb74444       push   word ptr [bx + 0x4444]
+0637:0B29  ffb74644       push   word ptr [bx + 0x4446]   ; side+2
+0637:0B2D  ffb74444       push   word ptr [bx + 0x4444]   ; side.name
 0637:0B31  1e             push   ds
 0637:0B32  b86b3c         mov    ax, 0x3c6b   ; "The attackers are led by %s."
 0637:0B35  50             push   ax
 0637:0B36  ff36061b       push   word ptr [0x1b06]
 0637:0B3A  ff36041b       push   word ptr [0x1b04]
-0637:0B3E  9a0600f809     lcall  f_09F8_0006
+0637:0B3E  9a0600f809     lcall  sprintf
 0637:0B43  83c40c         add    sp, 0xc
 0637:0B46  83ec0e         sub    sp, 0xe
 0637:0B49  8bc4           mov    ax, sp
@@ -11646,12 +11646,12 @@ L_0637_0AEA:
 0637:0B56  b90600         mov    cx, 6
 0637:0B59  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0637:0B5B  a4             movsb  byte ptr es:[di], byte ptr [si]
-0637:0B5C  9af3020a07     lcall  f_070A_02F3
+0637:0B5C  9af3020a07     lcall  dialog
 0637:0B61  83c40e         add    sp, 0xe
 L_0637_0B64:
 0637:0B64  b80300         mov    ax, 3
 0637:0B67  50             push   ax
-0637:0B68  9a0d000a07     lcall  f_070A_000D
+0637:0B68  9a0d000a07     lcall  random
 0637:0B6D  59             pop    cx
 0637:0B6E  050300         add    ax, 3
 0637:0B71  8bd0           mov    dx, ax
@@ -11664,7 +11664,7 @@ L_0637_0B64:
 0637:0B80  8946fe         mov    word ptr [bp - 2], ax
 0637:0B83  b80700         mov    ax, 7
 0637:0B86  50             push   ax
-0637:0B87  9a0d000a07     lcall  f_070A_000D
+0637:0B87  9a0d000a07     lcall  random
 0637:0B8C  59             pop    cx
 0637:0B8D  8bc8           mov    cx, ax
 0637:0B8F  83c102         add    cx, 2
@@ -11675,7 +11675,7 @@ L_0637_0B64:
 0637:0B9B  03c2           add    ax, dx
 0637:0B9D  d1e0           shl    ax, 1
 0637:0B9F  8bd8           mov    bx, ax
-0637:0BA1  8b878a43       mov    ax, word ptr [bx + 0x438a]
+0637:0BA1  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
 0637:0BA5  99             cdq    
 0637:0BA6  f7f9           idiv   cx
 0637:0BA8  8946fc         mov    word ptr [bp - 4], ax
@@ -11684,23 +11684,23 @@ L_0637_0B64:
 0637:0BB1  c746fc0100     mov    word ptr [bp - 4], 1
 L_0637_0BB6:
 0637:0BB6  8b46fc         mov    ax, word ptr [bp - 4]
-0637:0BB9  29878a43       sub    word ptr [bx + 0x438a], ax
-0637:0BBD  8b878a43       mov    ax, word ptr [bx + 0x438a]
+0637:0BB9  29878a43       sub    word ptr [bx + 0x438a], ax   ; army.soldiers
+0637:0BBD  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
 0637:0BC1  3d0000         cmp    ax, 0
 0637:0BC4  7f06           jg     0xbcc
-0637:0BC6  c7878a430100   mov    word ptr [bx + 0x438a], 1
+0637:0BC6  c7878a430100   mov    word ptr [bx + 0x438a], 1   ; army.soldiers
 L_0637_0BCC:
-0637:0BCC  a10c45         mov    ax, word ptr [0x450c]
+0637:0BCC  a10c45         mov    ax, word ptr [0x450c]   ; player
 0637:0BCF  3b4608         cmp    ax, word ptr [bp + 8]
 0637:0BD2  7572           jne    0xc46
-0637:0BD4  9ab2042304     lcall  f_0423_04B2
+0637:0BD4  9ab2042304     lcall  redraw_map
 0637:0BD9  ff76fe         push   word ptr [bp - 2]
 0637:0BDC  1e             push   ds
 0637:0BDD  b8883c         mov    ax, 0x3c88   ; "Your castle strength is %d percent."
 0637:0BE0  50             push   ax
 0637:0BE1  ff36431b       push   word ptr [0x1b43]
 0637:0BE5  ff36411b       push   word ptr [0x1b41]
-0637:0BE9  9a0600f809     lcall  f_09F8_0006
+0637:0BE9  9a0600f809     lcall  sprintf
 0637:0BEE  83c40a         add    sp, 0xa
 0637:0BF1  8b46fc         mov    ax, word ptr [bp - 4]
 0637:0BF4  3d0100         cmp    ax, 1
@@ -11710,7 +11710,7 @@ L_0637_0BCC:
 0637:0BFD  50             push   ax
 0637:0BFE  ff36471b       push   word ptr [0x1b47]
 0637:0C02  ff36451b       push   word ptr [0x1b45]
-0637:0C06  9a0600f809     lcall  f_09F8_0006
+0637:0C06  9a0600f809     lcall  sprintf
 0637:0C0B  83c408         add    sp, 8
 0637:0C0E  eb18           jmp    0xc28
 L_0637_0C10:
@@ -11720,7 +11720,7 @@ L_0637_0C10:
 0637:0C17  50             push   ax
 0637:0C18  ff36471b       push   word ptr [0x1b47]
 0637:0C1C  ff36451b       push   word ptr [0x1b45]
-0637:0C20  9a0600f809     lcall  f_09F8_0006
+0637:0C20  9a0600f809     lcall  sprintf
 0637:0C25  83c40a         add    sp, 0xa
 L_0637_0C28:
 0637:0C28  83ec0e         sub    sp, 0xe
@@ -11733,7 +11733,7 @@ L_0637_0C28:
 0637:0C38  b90600         mov    cx, 6
 0637:0C3B  f3a5           rep movsw word ptr es:[di], word ptr [si]
 0637:0C3D  a4             movsb  byte ptr es:[di], byte ptr [si]
-0637:0C3E  9af3020a07     lcall  f_070A_02F3
+0637:0C3E  9af3020a07     lcall  dialog
 0637:0C43  83c40e         add    sp, 0xe
 L_0637_0C46:
 0637:0C46  ff760c         push   word ptr [bp + 0xc]
@@ -11741,28 +11741,28 @@ L_0637_0C46:
 0637:0C4C  ff760a         push   word ptr [bp + 0xa]
 0637:0C4F  ff7608         push   word ptr [bp + 8]
 0637:0C52  ff7606         push   word ptr [bp + 6]
-0637:0C55  9ac6007900     lcall  f_0079_00C6
+0637:0C55  9ac6007900     lcall  battle
 0637:0C5A  83c40a         add    sp, 0xa
 0637:0C5D  e9fbfd         jmp    0xa5b
 
 ;================ segment 06FD ================
 
-f_06FD_0000 proc  ; 06FD:0000  callers: f_01A5_054C, f_01A5_05D3, f_050E_0734
+see_robin proc  ; 06FD:0000  callers: choose_destination, choose_raid_target, seek_conquest
 06FD:0000  55             push   bp
 06FD:0001  8bec           mov    bp, sp
 06FD:0003  57             push   di
 06FD:0004  56             push   si
-06FD:0005  9ab2042304     lcall  f_0423_04B2
-06FD:000A  833e164500     cmp    word ptr [0x4516], 0
+06FD:0005  9ab2042304     lcall  redraw_map
+06FD:000A  833e164500     cmp    word ptr [0x4516], 0   ; robin_4D
 06FD:000F  7508           jne    0x19
-06FD:0011  a10c47         mov    ax, word ptr [0x470c]
+06FD:0011  a10c47         mov    ax, word ptr [0x470c]   ; robin_4B
 06FD:0014  3d0300         cmp    ax, 3
 06FD:0017  7d31           jge    0x4a
 L_06FD_0019:
-06FD:0019  833e164500     cmp    word ptr [0x4516], 0
+06FD:0019  833e164500     cmp    word ptr [0x4516], 0   ; robin_4D
 06FD:001E  750a           jne    0x2a
-06FD:0020  c70616450100   mov    word ptr [0x4516], 1
-06FD:0026  ff060c47       inc    word ptr [0x470c]
+06FD:0020  c70616450100   mov    word ptr [0x4516], 1   ; robin_4D
+06FD:0026  ff060c47       inc    word ptr [0x470c]   ; robin_4B
 L_06FD_002A:
 06FD:002A  83ec0e         sub    sp, 0xe
 06FD:002D  8bc4           mov    ax, sp
@@ -11774,7 +11774,7 @@ L_06FD_002A:
 06FD:003A  b90600         mov    cx, 6
 06FD:003D  f3a5           rep movsw word ptr es:[di], word ptr [si]
 06FD:003F  a4             movsb  byte ptr es:[di], byte ptr [si]
-06FD:0040  9af3020a07     lcall  f_070A_02F3
+06FD:0040  9af3020a07     lcall  dialog
 06FD:0045  83c40e         add    sp, 0xe
 06FD:0048  eb1e           jmp    0x68
 L_06FD_004A:
@@ -11788,7 +11788,7 @@ L_06FD_004A:
 06FD:005A  b90600         mov    cx, 6
 06FD:005D  f3a5           rep movsw word ptr es:[di], word ptr [si]
 06FD:005F  a4             movsb  byte ptr es:[di], byte ptr [si]
-06FD:0060  9af3020a07     lcall  f_070A_02F3
+06FD:0060  9af3020a07     lcall  dialog
 06FD:0065  83c40e         add    sp, 0xe
 L_06FD_0068:
 06FD:0068  5e             pop    si
@@ -11797,7 +11797,7 @@ L_06FD_0068:
 06FD:006C  5d             pop    bp
 06FD:006D  cb             retf   
 
-f_06FD_006E proc  ; 06FD:006E  callers: f_01A5_000D
+robin_men proc  ; 06FD:006E  callers: send_army
 06FD:006E  55             push   bp
 06FD:006F  8bec           mov    bp, sp
 06FD:0071  57             push   di
@@ -11809,7 +11809,7 @@ f_06FD_006E proc  ; 06FD:006E  callers: f_01A5_000D
 06FD:007C  03c2           add    ax, dx
 06FD:007E  d1e0           shl    ax, 1
 06FD:0080  8bd8           mov    bx, ax
-06FD:0082  8bb78a43       mov    si, word ptr [bx + 0x438a]
+06FD:0082  8bb78a43       mov    si, word ptr [bx + 0x438a]   ; army.soldiers
 06FD:0086  8b4606         mov    ax, word ptr [bp + 6]
 06FD:0089  8bd0           mov    dx, ax
 06FD:008B  d1e0           shl    ax, 1
@@ -11817,10 +11817,10 @@ f_06FD_006E proc  ; 06FD:006E  callers: f_01A5_000D
 06FD:008F  03c2           add    ax, dx
 06FD:0091  d1e0           shl    ax, 1
 06FD:0093  8bf8           mov    di, ax
-06FD:0095  8b854043       mov    ax, word ptr [di + 0x4340]
+06FD:0095  8b854043       mov    ax, word ptr [di + 0x4340]   ; army.at
 06FD:0099  3b4608         cmp    ax, word ptr [bp + 8]
 06FD:009C  7504           jne    0xa2
-06FD:009E  03b54443       add    si, word ptr [di + 0x4344]
+06FD:009E  03b54443       add    si, word ptr [di + 0x4344]   ; army.soldiers
 L_06FD_00A2:
 06FD:00A2  8bc6           mov    ax, si
 06FD:00A4  b90200         mov    cx, 2
@@ -11828,7 +11828,7 @@ L_06FD_00A2:
 06FD:00A8  f7f9           idiv   cx
 06FD:00AA  03c6           add    ax, si
 06FD:00AC  50             push   ax
-06FD:00AD  a10c45         mov    ax, word ptr [0x450c]
+06FD:00AD  a10c45         mov    ax, word ptr [0x450c]   ; player
 06FD:00B0  8bd0           mov    dx, ax
 06FD:00B2  d1e0           shl    ax, 1
 06FD:00B4  d1e0           shl    ax, 1
@@ -11836,7 +11836,7 @@ L_06FD_00A2:
 06FD:00B8  d1e0           shl    ax, 1
 06FD:00BA  8bd8           mov    bx, ax
 06FD:00BC  58             pop    ax
-06FD:00BD  2b874443       sub    ax, word ptr [bx + 0x4344]
+06FD:00BD  2b874443       sub    ax, word ptr [bx + 0x4344]   ; army.soldiers
 06FD:00C1  8bf0           mov    si, ax
 06FD:00C3  83fe32         cmp    si, 0x32
 06FD:00C6  7e05           jle    0xcd
@@ -11856,7 +11856,7 @@ L_06FD_00D5:
 
 ;================ segment 070A ================
 
-f_070A_000D proc  ; 070A:000D  callers: f_0079_010E, f_0079_0B9E, f_0079_0D00, f_021C_0996, f_02D3_0DF4, f_04BA_0485 ...
+random proc  ; 070A:000D  callers: ai_choose_order, army_damage, battle_round, battle_shown, fire_flicker, joust ...
 070A:000D  55             push   bp
 070A:000E  8bec           mov    bp, sp
 070A:0010  83c4fe         add    sp, -2
@@ -11868,7 +11868,7 @@ L_070A_001B:
 070A:001D  5d             pop    bp
 070A:001E  cb             retf   
 L_070A_001F:
-070A:001F  9a0900ff0a     lcall  f_0AFF_0009
+070A:001F  9a0900ff0a     lcall  ran_float
 070A:0024  9a2901480b     lcall  f_0B48_0129
 070A:0029  0000           add    byte ptr [bx + si], al
 070A:002B  0000           add    byte ptr [bx + si], al
@@ -11891,7 +11891,7 @@ L_070A_0050:
 070A:0058  8bc2           mov    ax, dx
 070A:005A  ebbf           jmp    0x1b
 
-f_070A_005C proc  ; 070A:005C  callers: f_03DE_0002, f_03F1_000B
+shuffle proc  ; 070A:005C  callers: setup_ladies, setup_sides
 070A:005C  55             push   bp
 070A:005D  8bec           mov    bp, sp
 070A:005F  83c4fe         add    sp, -2
@@ -11913,7 +11913,7 @@ L_070A_007B:
 L_070A_007D:
 070A:007D  3b760a         cmp    si, word ptr [bp + 0xa]
 070A:0080  7d5f           jge    0xe1
-070A:0082  9a0900ff0a     lcall  f_0AFF_0009
+070A:0082  9a0900ff0a     lcall  ran_float
 070A:0087  9a2901480b     lcall  f_0B48_0129
 070A:008C  0000           add    byte ptr [bx + si], al
 070A:008E  0000           add    byte ptr [bx + si], al
@@ -11955,7 +11955,7 @@ L_070A_00E1:
 070A:00E5  5d             pop    bp
 070A:00E6  cb             retf   
 
-f_070A_00E7 proc  ; 070A:00E7  callers: f_021C_0002
+far_alloc proc  ; 070A:00E7  callers: new_game
 070A:00E7  55             push   bp
 070A:00E8  8bec           mov    bp, sp
 070A:00EA  83c4f8         add    sp, -8
@@ -11968,7 +11968,7 @@ f_070A_00E7 proc  ; 070A:00E7  callers: f_021C_0002
 070A:00FD  c74606ffff     mov    word ptr [bp + 6], 0xffff
 L_070A_0102:
 070A:0102  ff7606         push   word ptr [bp + 6]
-070A:0105  9a2101050a     lcall  f_0A05_0121
+070A:0105  9a2101050a     lcall  malloc
 070A:010A  59             pop    cx
 070A:010B  8956fe         mov    word ptr [bp - 2], dx
 070A:010E  8946fc         mov    word ptr [bp - 4], ax
@@ -12000,7 +12000,7 @@ L_070A_0150:
 070A:0158  5d             pop    bp
 070A:0159  cb             retf   
 
-f_070A_015A proc  ; 070A:015A  callers: f_021C_0002, f_02D3_0006, f_050E_022C, f_050E_04D4 ...
+load_lib proc  ; 070A:015A  callers: new_game, raid, romance, tournament ...
 070A:015A  55             push   bp
 070A:015B  8bec           mov    bp, sp
 070A:015D  83c4fc         add    sp, -4
@@ -12008,7 +12008,7 @@ f_070A_015A proc  ; 070A:015A  callers: f_021C_0002, f_02D3_0006, f_050E_022C, f
 070A:0162  50             push   ax
 070A:0163  ff7608         push   word ptr [bp + 8]
 070A:0166  ff7606         push   word ptr [bp + 6]
-070A:0169  9a2b00810a     lcall  f_0A81_002B
+070A:0169  9a2b00810a     lcall  open
 070A:016E  83c406         add    sp, 6
 070A:0171  8946fe         mov    word ptr [bp - 2], ax
 070A:0174  b80700         mov    ax, 7
@@ -12016,37 +12016,37 @@ f_070A_015A proc  ; 070A:015A  callers: f_021C_0002, f_02D3_0006, f_050E_022C, f
 070A:0178  ff760c         push   word ptr [bp + 0xc]
 070A:017B  ff760a         push   word ptr [bp + 0xa]
 070A:017E  ff76fe         push   word ptr [bp - 2]
-070A:0181  9a1900cd0a     lcall  f_0ACD_0019
+070A:0181  9a1900cd0a     lcall  dos_read
 070A:0186  83c408         add    sp, 8
 070A:0189  8946fc         mov    word ptr [bp - 4], ax
 070A:018C  ff760e         push   word ptr [bp + 0xe]
 070A:018F  ff760c         push   word ptr [bp + 0xc]
 070A:0192  ff760a         push   word ptr [bp + 0xa]
 070A:0195  ff76fe         push   word ptr [bp - 2]
-070A:0198  9a1900cd0a     lcall  f_0ACD_0019
+070A:0198  9a1900cd0a     lcall  dos_read
 070A:019D  83c408         add    sp, 8
 070A:01A0  8946fc         mov    word ptr [bp - 4], ax
 070A:01A3  ff76fe         push   word ptr [bp - 2]
-070A:01A6  9a5100cd0a     lcall  f_0ACD_0051
+070A:01A6  9a5100cd0a     lcall  dos_close
 070A:01AB  59             pop    cx
 070A:01AC  8946fc         mov    word ptr [bp - 4], ax
 070A:01AF  8be5           mov    sp, bp
 070A:01B1  5d             pop    bp
 070A:01B2  cb             retf   
 
-f_070A_01B3 proc  ; 070A:01B3  callers: f_021C_0002 ...
+show_screen proc  ; 070A:01B3  callers: new_game ...
 070A:01B3  55             push   bp
 070A:01B4  8bec           mov    bp, sp
 070A:01B6  83c4f8         add    sp, -8
-070A:01B9  9a1b090a07     lcall  f_070A_091B
-070A:01BE  ff36de46       push   word ptr [0x46de]
-070A:01C2  9a67018409     lcall  f_0984_0167
+070A:01B9  9a1b090a07     lcall  flush_keys
+070A:01BE  ff36de46       push   word ptr [0x46de]   ; bright
+070A:01C2  9a67018409     lcall  palette_restore
 070A:01C7  59             pop    cx
 070A:01C8  33c0           xor    ax, ax
 070A:01CA  50             push   ax
-070A:01CB  9a30018409     lcall  f_0984_0130
+070A:01CB  9a30018409     lcall  palette_set
 070A:01D0  59             pop    cx
-070A:01D1  833ed84600     cmp    word ptr [0x46d8], 0
+070A:01D1  833ed84600     cmp    word ptr [0x46d8], 0   ; no_wipe
 070A:01D6  7421           je     0x1f9
 070A:01D8  b8403f         mov    ax, 0x3f40
 070A:01DB  50             push   ax
@@ -12057,7 +12057,7 @@ f_070A_01B3 proc  ; 070A:01B3  callers: f_021C_0002 ...
 070A:01E3  c41eb632       les    bx, ptr [0x32b6]
 070A:01E7  26ff7702       push   word ptr es:[bx + 2]
 070A:01EB  26ff37         push   word ptr es:[bx]
-070A:01EE  9a0d00fd09     lcall  f_09FD_000D
+070A:01EE  9a0d00fd09     lcall  copy_to_screen
 070A:01F3  83c40a         add    sp, 0xa
 070A:01F6  e9b400         jmp    0x2ad
 L_070A_01F9:
@@ -12071,7 +12071,7 @@ L_070A_0203:
 L_070A_020E:
 070A:020E  b80100         mov    ax, 1
 070A:0211  50             push   ax
-070A:0212  9ab2080a07     lcall  f_070A_08B2
+070A:0212  9ab2080a07     lcall  wait_ticks
 070A:0217  59             pop    cx
 070A:0218  8b46fe         mov    ax, word ptr [bp - 2]
 070A:021B  8946fc         mov    word ptr [bp - 4], ax
@@ -12090,7 +12090,7 @@ L_070A_0223:
 070A:023E  268b07         mov    ax, word ptr es:[bx]
 070A:0241  0346fc         add    ax, word ptr [bp - 4]
 070A:0244  50             push   ax
-070A:0245  9a0d00fd09     lcall  f_09FD_000D
+070A:0245  9a0d00fd09     lcall  copy_to_screen
 070A:024A  83c40a         add    sp, 0xa
 070A:024D  8146fc4001     add    word ptr [bp - 4], 0x140
 070A:0252  ff46f8         inc    word ptr [bp - 8]
@@ -12098,7 +12098,7 @@ L_070A_0223:
 L_070A_0257:
 070A:0257  b80100         mov    ax, 1
 070A:025A  50             push   ax
-070A:025B  9ab2080a07     lcall  f_070A_08B2
+070A:025B  9ab2080a07     lcall  wait_ticks
 070A:0260  59             pop    cx
 070A:0261  8b46fe         mov    ax, word ptr [bp - 2]
 070A:0264  050020         add    ax, 0x2000
@@ -12118,7 +12118,7 @@ L_070A_026F:
 070A:028A  268b07         mov    ax, word ptr es:[bx]
 070A:028D  0346fc         add    ax, word ptr [bp - 4]
 070A:0290  50             push   ax
-070A:0291  9a0d00fd09     lcall  f_09FD_000D
+070A:0291  9a0d00fd09     lcall  copy_to_screen
 070A:0296  83c40a         add    sp, 0xa
 070A:0299  8146fc4001     add    word ptr [bp - 4], 0x140
 070A:029E  ff46f8         inc    word ptr [bp - 8]
@@ -12132,7 +12132,7 @@ L_070A_02AD:
 070A:02AF  5d             pop    bp
 070A:02B0  cb             retf   
 
-f_070A_02B1 proc  ; 070A:02B1  callers: f_021C_0002 ...
+show_lib_picture proc  ; 070A:02B1  callers: new_game ...
 070A:02B1  55             push   bp
 070A:02B2  8bec           mov    bp, sp
 070A:02B4  83c4fc         add    sp, -4
@@ -12147,17 +12147,17 @@ f_070A_02B1 proc  ; 070A:02B1  callers: f_021C_0002 ...
 070A:02CD  8956fe         mov    word ptr [bp - 2], dx
 070A:02D0  8946fc         mov    word ptr [bp - 4], ax
 070A:02D3  ff36ec46       push   word ptr [0x46ec]
-070A:02D7  ff36ea46       push   word ptr [0x46ea]
+070A:02D7  ff36ea46       push   word ptr [0x46ea]   ; screen_buffer
 070A:02DB  ff76fe         push   word ptr [bp - 2]
 070A:02DE  ff76fc         push   word ptr [bp - 4]
-070A:02E1  9a00004609     lcall  f_0946_0000
+070A:02E1  9a00004609     lcall  decompress
 070A:02E6  83c408         add    sp, 8
 070A:02E9  c70644360000   mov    word ptr [0x3644], 0
 070A:02EF  8be5           mov    sp, bp
 070A:02F1  5d             pop    bp
 070A:02F2  cb             retf   
 
-f_070A_02F3 proc  ; 070A:02F3  callers: f_0079_0000, f_0079_010E, f_0155_0008, f_0176_000B ...
+dialog proc  ; 070A:02F3  callers: battle_shown, buy_army, show_armies, transfer_forces ...
 070A:02F3  55             push   bp
 070A:02F4  8bec           mov    bp, sp
 070A:02F6  81c42ffd       add    sp, 0xfd2f
@@ -12336,7 +12336,7 @@ L_070A_04A2:
 070A:04BF  8b46fc         mov    ax, word ptr [bp - 4]
 070A:04C2  050400         add    ax, 4
 070A:04C5  50             push   ax
-070A:04C6  9a02005909     lcall  f_0959_0002
+070A:04C6  9a02005909     lcall  fill_rect
 070A:04CB  83c40a         add    sp, 0xa
 070A:04CE  807e0afd       cmp    byte ptr [bp + 0xa], 0xfd
 070A:04D2  7461           je     0x535
@@ -12351,11 +12351,11 @@ L_070A_04D6:
 070A:04E5  03d8           add    bx, ax
 070A:04E7  368b1f         mov    bx, word ptr ss:[bx]
 070A:04EA  d1e3           shl    bx, 1
-070A:04EC  031e1045       add    bx, word ptr [0x4510]
+070A:04EC  031e1045       add    bx, word ptr [0x4510]   ; font
 070A:04F0  8e061245       mov    es, word ptr [0x4512]
 070A:04F4  268b07         mov    ax, word ptr es:[bx]
 070A:04F7  d1e0           shl    ax, 1
-070A:04F9  03061045       add    ax, word ptr [0x4510]
+070A:04F9  03061045       add    ax, word ptr [0x4510]   ; font
 070A:04FD  8b161245       mov    dx, word ptr [0x4512]
 070A:0501  899638fd       mov    word ptr [bp - 0x2c8], dx
 070A:0505  898636fd       mov    word ptr [bp - 0x2ca], ax
@@ -12371,7 +12371,7 @@ L_070A_04D6:
 070A:0521  d1e3           shl    bx, 1
 070A:0523  03d8           add    bx, ax
 070A:0525  36ff37         push   word ptr ss:[bx]
-070A:0528  9a03009408     lcall  f_0894_0003
+070A:0528  9a03009408     lcall  put_key0
 070A:052D  83c408         add    sp, 8
 070A:0530  83c703         add    di, 3
 070A:0533  eba1           jmp    0x4d6
@@ -12419,11 +12419,11 @@ L_070A_058D:
 070A:05A1  98             cwde   
 070A:05A2  8bd8           mov    bx, ax
 070A:05A4  d1e3           shl    bx, 1
-070A:05A6  031e1045       add    bx, word ptr [0x4510]
+070A:05A6  031e1045       add    bx, word ptr [0x4510]   ; font
 070A:05AA  8e061245       mov    es, word ptr [0x4512]
 070A:05AE  268b07         mov    ax, word ptr es:[bx]
 070A:05B1  d1e0           shl    ax, 1
-070A:05B3  03061045       add    ax, word ptr [0x4510]
+070A:05B3  03061045       add    ax, word ptr [0x4510]   ; font
 070A:05B7  8b161245       mov    dx, word ptr [0x4512]
 070A:05BB  899638fd       mov    word ptr [bp - 0x2c8], dx
 070A:05BF  898636fd       mov    word ptr [bp - 0x2ca], ax
@@ -12431,7 +12431,7 @@ L_070A_058D:
 070A:05C7  ffb636fd       push   word ptr [bp - 0x2ca]
 070A:05CB  ff76f6         push   word ptr [bp - 0xa]
 070A:05CE  ff76fc         push   word ptr [bp - 4]
-070A:05D1  9a03001009     lcall  f_0910_0003
+070A:05D1  9a03001009     lcall  put_glyph
 070A:05D6  83c408         add    sp, 8
 070A:05D9  c49e36fd       les    bx, ptr [bp - 0x2ca]
 070A:05DD  268b07         mov    ax, word ptr es:[bx]
@@ -12454,7 +12454,7 @@ L_070A_05F6:
 070A:0601  7d03           jge    0x606
 070A:0603  e94601         jmp    0x74c
 L_070A_0606:
-070A:0606  9a1b090a07     lcall  f_070A_091B
+070A:0606  9a1b090a07     lcall  flush_keys
 070A:060B  807e0d00       cmp    byte ptr [bp + 0xd], 0
 070A:060F  7c06           jl     0x617
 070A:0611  8a460d         mov    al, byte ptr [bp + 0xd]
@@ -12548,7 +12548,7 @@ L_070A_06A0:
 070A:06CD  ff76fa         push   word ptr [bp - 6]
 070A:06D0  ff76f6         push   word ptr [bp - 0xa]
 070A:06D3  ff76fc         push   word ptr [bp - 4]
-070A:06D6  9a0700a108     lcall  f_08A1_0007
+070A:06D6  9a0700a108     lcall  xor_rect_ff
 070A:06DB  83c408         add    sp, 8
 L_070A_06DE:
 070A:06DE  89b62ffd       mov    word ptr [bp - 0x2d1], si
@@ -12569,12 +12569,12 @@ L_070A_06DE:
 070A:0700  ff76fa         push   word ptr [bp - 6]
 070A:0703  ff76f6         push   word ptr [bp - 0xa]
 070A:0706  ff76fc         push   word ptr [bp - 4]
-070A:0709  9a0700a108     lcall  f_08A1_0007
+070A:0709  9a0700a108     lcall  xor_rect_ff
 070A:070E  83c408         add    sp, 8
 L_070A_0711:
 070A:0711  833e144500     cmp    word ptr [0x4514], 0
 070A:0716  7512           jne    0x72a
-070A:0718  9a61070a07     lcall  f_070A_0761
+070A:0718  9a61070a07     lcall  wait_key
 070A:071D  98             cwde   
 070A:071E  8bf8           mov    di, ax
 070A:0720  8bc7           mov    ax, di
@@ -12587,7 +12587,7 @@ L_070A_072A:
 070A:072E  ff76fa         push   word ptr [bp - 6]
 070A:0731  ff76f6         push   word ptr [bp - 0xa]
 070A:0734  ff76fc         push   word ptr [bp - 4]
-070A:0737  9a0700a108     lcall  f_08A1_0007
+070A:0737  9a0700a108     lcall  xor_rect_ff
 070A:073C  83c408         add    sp, 8
 070A:073F  8a460b         mov    al, byte ptr [bp + 0xb]
 070A:0742  98             cwde   
@@ -12600,7 +12600,7 @@ L_070A_074C:
 070A:074C  8a460e         mov    al, byte ptr [bp + 0xe]
 070A:074F  2ae4           sub    ah, ah
 070A:0751  50             push   ax
-070A:0752  9ab2080a07     lcall  f_070A_08B2
+070A:0752  9ab2080a07     lcall  wait_ticks
 070A:0757  59             pop    cx
 070A:0758  8bc6           mov    ax, si
 070A:075A  98             cwde   
@@ -12610,16 +12610,16 @@ L_070A_074C:
 070A:075F  5d             pop    bp
 070A:0760  cb             retf   
 
-f_070A_0761 proc  ; 070A:0761  callers: f_021C_0002, f_02D3_0DF4, f_070A_02F3
+wait_key proc  ; 070A:0761  callers: dialog, joust, new_game
 070A:0761  55             push   bp
 070A:0762  8bec           mov    bp, sp
 070A:0764  83c4fe         add    sp, -2
 L_070A_0767:
-070A:0767  9a0b002009     lcall  f_0920_000B
+070A:0767  9a0b002009     lcall  bios_key
 070A:076C  8946fe         mov    word ptr [bp - 2], ax
 070A:076F  85c0           test   ax, ax
 070A:0771  750e           jne    0x781
-070A:0773  9aef070a07     lcall  f_070A_07EF
+070A:0773  9aef070a07     lcall  joystick_key
 070A:0778  8946fe         mov    word ptr [bp - 2], ax
 070A:077B  85c0           test   ax, ax
 070A:077D  7502           jne    0x781
@@ -12644,15 +12644,15 @@ L_070A_07A3:
 070A:07A9  5d             pop    bp
 070A:07AA  cb             retf   
 
-f_070A_07AB proc  ; 070A:07AB  callers: f_0079_010E, f_021C_0002, f_021C_086F, f_021C_0996, f_02D3_0737, f_02D3_0A16, f_02D3_0BA7 ...
+get_key proc  ; 070A:07AB  callers: battle_shown, fire_flicker, joust_approach, joust_outcome, lance_step, new_game, title_twinkle ...
 070A:07AB  55             push   bp
 070A:07AC  8bec           mov    bp, sp
 070A:07AE  83c4fe         add    sp, -2
-070A:07B1  9a0b002009     lcall  f_0920_000B
+070A:07B1  9a0b002009     lcall  bios_key
 070A:07B6  8946fe         mov    word ptr [bp - 2], ax
 070A:07B9  85c0           test   ax, ax
 070A:07BB  7508           jne    0x7c5
-070A:07BD  9aef070a07     lcall  f_070A_07EF
+070A:07BD  9aef070a07     lcall  joystick_key
 070A:07C2  8946fe         mov    word ptr [bp - 2], ax
 L_070A_07C5:
 070A:07C5  8b46fe         mov    ax, word ptr [bp - 2]
@@ -12674,13 +12674,13 @@ L_070A_07E7:
 070A:07ED  5d             pop    bp
 070A:07EE  cb             retf   
 
-f_070A_07EF proc  ; 070A:07EF  callers: f_070A_0761, f_070A_07AB
+joystick_key proc  ; 070A:07EF  callers: get_key, wait_key
 070A:07EF  55             push   bp
 070A:07F0  8bec           mov    bp, sp
 070A:07F2  83c4fc         add    sp, -4
 070A:07F5  56             push   si
 070A:07F6  33f6           xor    si, si
-070A:07F8  9a0300010a     lcall  f_0A01_0003
+070A:07F8  9a0300010a     lcall  get_ticks
 070A:07FD  99             cdq    
 070A:07FE  8956fe         mov    word ptr [bp - 2], dx
 070A:0801  8946fc         mov    word ptr [bp - 4], ax
@@ -12706,7 +12706,7 @@ L_070A_0833:
 070A:0833  1e             push   ds
 070A:0834  b80a43         mov    ax, 0x430a
 070A:0837  50             push   ax
-070A:0838  9a07001b09     lcall  f_091B_0007
+070A:0838  9a07001b09     lcall  joystick_read
 070A:083D  83c404         add    sp, 4
 070A:0840  85c0           test   ax, ax
 070A:0842  7406           je     0x84a
@@ -12761,14 +12761,14 @@ L_070A_08AB:
 070A:08B0  5d             pop    bp
 070A:08B1  cb             retf   
 
-f_070A_08B2 proc  ; 070A:08B2  callers: f_0079_010E, f_021C_0002, f_02D3_029E, f_02D3_0737 ...
+wait_ticks proc  ; 070A:08B2  callers: battle_shown, joust_approach, joust_round, new_game ...
 070A:08B2  55             push   bp
 070A:08B3  8bec           mov    bp, sp
 L_070A_08B5:
 070A:08B5  837e0600       cmp    word ptr [bp + 6], 0
 070A:08B9  742a           je     0x8e5
-070A:08BB  9aab070a07     lcall  f_070A_07AB
-070A:08C0  9a0300010a     lcall  f_0A01_0003
+070A:08BB  9aab070a07     lcall  get_key
+070A:08C0  9a0300010a     lcall  get_ticks
 070A:08C5  99             cdq    
 070A:08C6  8916d441       mov    word ptr [0x41d4], dx
 070A:08CA  a3d241         mov    word ptr [0x41d2], ax
@@ -12787,13 +12787,13 @@ L_070A_08E5:
 070A:08E7  5d             pop    bp
 070A:08E8  cb             retf   
 
-f_070A_08E9 proc  ; 070A:08E9  callers: f_021C_0002, f_021C_086F, f_050E_0ADB, f_0637_0008 ...
+delay_ticks proc  ; 070A:08E9  callers: catapult_aim, new_game, sword_fight, title_twinkle ...
 070A:08E9  55             push   bp
 070A:08EA  8bec           mov    bp, sp
 L_070A_08EC:
 070A:08EC  837e0600       cmp    word ptr [bp + 6], 0
 070A:08F0  7425           je     0x917
-070A:08F2  9a0300010a     lcall  f_0A01_0003
+070A:08F2  9a0300010a     lcall  get_ticks
 070A:08F7  99             cdq    
 070A:08F8  8916dc41       mov    word ptr [0x41dc], dx
 070A:08FC  a3da41         mov    word ptr [0x41da], ax
@@ -12812,11 +12812,11 @@ L_070A_0917:
 070A:0919  5d             pop    bp
 070A:091A  cb             retf   
 
-f_070A_091B proc  ; 070A:091B  callers: f_0079_010E, f_02D3_0BA7, f_0423_063B, f_050E_0ADB, f_070A_01B3, f_070A_02F3
+flush_keys proc  ; 070A:091B  callers: battle_shown, choose_territory, dialog, joust_outcome, show_screen, sword_fight
 070A:091B  55             push   bp
 070A:091C  8bec           mov    bp, sp
 L_070A_091E:
-070A:091E  9aab070a07     lcall  f_070A_07AB
+070A:091E  9aab070a07     lcall  get_key
 070A:0923  84c0           test   al, al
 070A:0925  7402           je     0x929
 070A:0927  ebf5           jmp    0x91e
@@ -12825,27 +12825,27 @@ L_070A_0929:
 070A:092B  5d             pop    bp
 070A:092C  cb             retf   
 
-f_070A_092D proc  ; 070A:092D  callers: f_02D3_0A16, f_02D3_0BA7, f_070A_094B
+beep proc  ; 070A:092D  callers: joust_outcome, lance_step, month_status
 070A:092D  55             push   bp
 070A:092E  8bec           mov    bp, sp
 070A:0930  ff7606         push   word ptr [bp + 6]
-070A:0933  9a0500f308     lcall  f_08F3_0005
+070A:0933  9a0500f308     lcall  speaker_tone
 070A:0938  59             pop    cx
 070A:0939  ff7608         push   word ptr [bp + 8]
-070A:093C  9ae9080a07     lcall  f_070A_08E9
+070A:093C  9ae9080a07     lcall  delay_ticks
 070A:0941  59             pop    cx
-070A:0942  9a0800ac08     lcall  f_08AC_0008
+070A:0942  9a0800ac08     lcall  speaker_off
 070A:0947  8be5           mov    sp, bp
 070A:0949  5d             pop    bp
 070A:094A  cb             retf   
 
-f_070A_094B proc  ; 070A:094B  callers: f_082C_0268
+month_status proc  ; 070A:094B  callers: month
 070A:094B  55             push   bp
 070A:094C  8bec           mov    bp, sp
 070A:094E  83c4f6         add    sp, -0xa
 070A:0951  57             push   di
 070A:0952  56             push   si
-070A:0953  a10c45         mov    ax, word ptr [0x450c]
+070A:0953  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:0956  8bd0           mov    dx, ax
 070A:0958  b103           mov    cl, 3
 070A:095A  d3e0           shl    ax, cl
@@ -12853,7 +12853,7 @@ f_070A_094B proc  ; 070A:094B  callers: f_082C_0268
 070A:095E  d1e0           shl    ax, 1
 070A:0960  d1e0           shl    ax, 1
 070A:0962  8bd8           mov    bx, ax
-070A:0964  8b875c44       mov    ax, word ptr [bx + 0x445c]
+070A:0964  8b875c44       mov    ax, word ptr [bx + 0x445c]   ; side.income
 070A:0968  2b062447       sub    ax, word ptr [0x4724]
 070A:096C  8946fa         mov    word ptr [bp - 6], ax
 070A:096F  3d0000         cmp    ax, 0
@@ -12861,7 +12861,7 @@ f_070A_094B proc  ; 070A:094B  callers: f_082C_0268
 070A:0974  c746fa0000     mov    word ptr [bp - 6], 0
 L_070A_0979:
 070A:0979  c70624470000   mov    word ptr [0x4724], 0
-070A:097F  8b9f5844       mov    bx, word ptr [bx + 0x4458]
+070A:097F  8b9f5844       mov    bx, word ptr [bx + 0x4458]   ; side.lead
 070A:0983  d1e3           shl    bx, 1
 070A:0985  d1e3           shl    bx, 1
 070A:0987  8b879329       mov    ax, word ptr [bx + 0x2993]
@@ -12875,9 +12875,9 @@ L_070A_0979:
 070A:099F  50             push   ax
 070A:09A0  ff369d0b       push   word ptr [0xb9d]
 070A:09A4  ff369b0b       push   word ptr [0xb9b]
-070A:09A8  9a0600f809     lcall  f_09F8_0006
+070A:09A8  9a0600f809     lcall  sprintf
 070A:09AD  83c40c         add    sp, 0xc
-070A:09B0  a10c45         mov    ax, word ptr [0x450c]
+070A:09B0  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:09B3  8bd0           mov    dx, ax
 070A:09B5  b103           mov    cl, 3
 070A:09B7  d3e0           shl    ax, cl
@@ -12885,7 +12885,7 @@ L_070A_0979:
 070A:09BB  d1e0           shl    ax, 1
 070A:09BD  d1e0           shl    ax, 1
 070A:09BF  8bd8           mov    bx, ax
-070A:09C1  8b9f5644       mov    bx, word ptr [bx + 0x4456]
+070A:09C1  8b9f5644       mov    bx, word ptr [bx + 0x4456]   ; side.joust
 070A:09C5  d1e3           shl    bx, 1
 070A:09C7  d1e3           shl    bx, 1
 070A:09C9  8b879329       mov    ax, word ptr [bx + 0x2993]
@@ -12899,9 +12899,9 @@ L_070A_0979:
 070A:09E1  50             push   ax
 070A:09E2  ff36a10b       push   word ptr [0xba1]
 070A:09E6  ff369f0b       push   word ptr [0xb9f]
-070A:09EA  9a0600f809     lcall  f_09F8_0006
+070A:09EA  9a0600f809     lcall  sprintf
 070A:09EF  83c40c         add    sp, 0xc
-070A:09F2  a10c45         mov    ax, word ptr [0x450c]
+070A:09F2  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:09F5  8bd0           mov    dx, ax
 070A:09F7  b103           mov    cl, 3
 070A:09F9  d3e0           shl    ax, cl
@@ -12909,7 +12909,7 @@ L_070A_0979:
 070A:09FD  d1e0           shl    ax, 1
 070A:09FF  d1e0           shl    ax, 1
 070A:0A01  8bd8           mov    bx, ax
-070A:0A03  8b9f5a44       mov    bx, word ptr [bx + 0x445a]
+070A:0A03  8b9f5a44       mov    bx, word ptr [bx + 0x445a]   ; side.sword
 070A:0A07  d1e3           shl    bx, 1
 070A:0A09  d1e3           shl    bx, 1
 070A:0A0B  8b879329       mov    ax, word ptr [bx + 0x2993]
@@ -12923,16 +12923,16 @@ L_070A_0979:
 070A:0A23  50             push   ax
 070A:0A24  ff36a50b       push   word ptr [0xba5]
 070A:0A28  ff36a30b       push   word ptr [0xba3]
-070A:0A2C  9a0600f809     lcall  f_09F8_0006
+070A:0A2C  9a0600f809     lcall  sprintf
 070A:0A31  83c40c         add    sp, 0xc
-070A:0A34  a10c45         mov    ax, word ptr [0x450c]
+070A:0A34  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:0A37  8bd0           mov    dx, ax
 070A:0A39  d1e0           shl    ax, 1
 070A:0A3B  d1e0           shl    ax, 1
 070A:0A3D  03c2           add    ax, dx
 070A:0A3F  d1e0           shl    ax, 1
 070A:0A41  8bd8           mov    bx, ax
-070A:0A43  8b874043       mov    ax, word ptr [bx + 0x4340]
+070A:0A43  8b874043       mov    ax, word ptr [bx + 0x4340]   ; army.at
 070A:0A47  8bd0           mov    dx, ax
 070A:0A49  b103           mov    cl, 3
 070A:0A4B  d3e0           shl    ax, cl
@@ -12947,52 +12947,52 @@ L_070A_0979:
 070A:0A61  50             push   ax
 070A:0A62  ff36ad0b       push   word ptr [0xbad]
 070A:0A66  ff36ab0b       push   word ptr [0xbab]
-070A:0A6A  9a0600f809     lcall  f_09F8_0006
+070A:0A6A  9a0600f809     lcall  sprintf
 070A:0A6F  83c40c         add    sp, 0xc
-070A:0A72  a10c45         mov    ax, word ptr [0x450c]
+070A:0A72  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:0A75  8bd0           mov    dx, ax
 070A:0A77  d1e0           shl    ax, 1
 070A:0A79  d1e0           shl    ax, 1
 070A:0A7B  03c2           add    ax, dx
 070A:0A7D  d1e0           shl    ax, 1
 070A:0A7F  8bd8           mov    bx, ax
-070A:0A81  ffb74443       push   word ptr [bx + 0x4344]
+070A:0A81  ffb74443       push   word ptr [bx + 0x4344]   ; army.soldiers
 070A:0A85  1e             push   ds
 070A:0A86  b8303d         mov    ax, 0x3d30   ; "<       Men:  %d"
 070A:0A89  50             push   ax
 070A:0A8A  ff36b10b       push   word ptr [0xbb1]
 070A:0A8E  ff36af0b       push   word ptr [0xbaf]
-070A:0A92  9a0600f809     lcall  f_09F8_0006
+070A:0A92  9a0600f809     lcall  sprintf
 070A:0A97  83c40a         add    sp, 0xa
-070A:0A9A  a10c45         mov    ax, word ptr [0x450c]
+070A:0A9A  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:0A9D  8bd0           mov    dx, ax
 070A:0A9F  d1e0           shl    ax, 1
 070A:0AA1  d1e0           shl    ax, 1
 070A:0AA3  03c2           add    ax, dx
 070A:0AA5  d1e0           shl    ax, 1
 070A:0AA7  8bd8           mov    bx, ax
-070A:0AA9  ffb74643       push   word ptr [bx + 0x4346]
+070A:0AA9  ffb74643       push   word ptr [bx + 0x4346]   ; army.knights
 070A:0AAD  1e             push   ds
 070A:0AAE  b8413d         mov    ax, 0x3d41   ; "=   Knights:  %d"
 070A:0AB1  50             push   ax
 070A:0AB2  ff36b50b       push   word ptr [0xbb5]
 070A:0AB6  ff36b30b       push   word ptr [0xbb3]
-070A:0ABA  9a0600f809     lcall  f_09F8_0006
+070A:0ABA  9a0600f809     lcall  sprintf
 070A:0ABF  83c40a         add    sp, 0xa
-070A:0AC2  a10c45         mov    ax, word ptr [0x450c]
+070A:0AC2  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:0AC5  8bd0           mov    dx, ax
 070A:0AC7  d1e0           shl    ax, 1
 070A:0AC9  d1e0           shl    ax, 1
 070A:0ACB  03c2           add    ax, dx
 070A:0ACD  d1e0           shl    ax, 1
 070A:0ACF  8bd8           mov    bx, ax
-070A:0AD1  ffb74843       push   word ptr [bx + 0x4348]
+070A:0AD1  ffb74843       push   word ptr [bx + 0x4348]   ; army.catapults
 070A:0AD5  1e             push   ds
 070A:0AD6  b8523d         mov    ax, 0x3d52   ; " Catapults:  %d"
 070A:0AD9  50             push   ax
 070A:0ADA  ff36b90b       push   word ptr [0xbb9]
 070A:0ADE  ff36b70b       push   word ptr [0xbb7]
-070A:0AE2  9a0600f809     lcall  f_09F8_0006
+070A:0AE2  9a0600f809     lcall  sprintf
 070A:0AE7  83c40a         add    sp, 0xa
 070A:0AEA  ff76fa         push   word ptr [bp - 6]
 070A:0AED  1e             push   ds
@@ -13000,9 +13000,9 @@ L_070A_0979:
 070A:0AF1  50             push   ax
 070A:0AF2  ff36c10b       push   word ptr [0xbc1]
 070A:0AF6  ff36bf0b       push   word ptr [0xbbf]
-070A:0AFA  9a0600f809     lcall  f_09F8_0006
+070A:0AFA  9a0600f809     lcall  sprintf
 070A:0AFF  83c40a         add    sp, 0xa
-070A:0B02  a10c45         mov    ax, word ptr [0x450c]
+070A:0B02  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:0B05  8bd0           mov    dx, ax
 070A:0B07  b103           mov    cl, 3
 070A:0B09  d3e0           shl    ax, cl
@@ -13010,15 +13010,15 @@ L_070A_0979:
 070A:0B0D  d1e0           shl    ax, 1
 070A:0B0F  d1e0           shl    ax, 1
 070A:0B11  8bd8           mov    bx, ax
-070A:0B13  ffb75e44       push   word ptr [bx + 0x445e]
+070A:0B13  ffb75e44       push   word ptr [bx + 0x445e]   ; side.gold
 070A:0B17  1e             push   ds
 070A:0B18  b8783d         mov    ax, 0x3d78   ; "Your treasure is %d"
 070A:0B1B  50             push   ax
 070A:0B1C  ff36c50b       push   word ptr [0xbc5]
 070A:0B20  ff36c30b       push   word ptr [0xbc3]
-070A:0B24  9a0600f809     lcall  f_09F8_0006
+070A:0B24  9a0600f809     lcall  sprintf
 070A:0B29  83c40a         add    sp, 0xa
-070A:0B2C  9ab2042304     lcall  f_0423_04B2
+070A:0B2C  9ab2042304     lcall  redraw_map
 070A:0B31  83ec0e         sub    sp, 0xe
 070A:0B34  8bc4           mov    ax, sp
 070A:0B36  8cd2           mov    dx, ss
@@ -13029,7 +13029,7 @@ L_070A_0979:
 070A:0B41  b90600         mov    cx, 6
 070A:0B44  f3a5           rep movsw word ptr es:[di], word ptr [si]
 070A:0B46  a4             movsb  byte ptr es:[di], byte ptr [si]
-070A:0B47  9af3020a07     lcall  f_070A_02F3
+070A:0B47  9af3020a07     lcall  dialog
 070A:0B4C  83c40e         add    sp, 0xe
 070A:0B4F  83ec0e         sub    sp, 0xe
 070A:0B52  8bc4           mov    ax, sp
@@ -13041,19 +13041,19 @@ L_070A_0979:
 070A:0B5F  b90600         mov    cx, 6
 070A:0B62  f3a5           rep movsw word ptr es:[di], word ptr [si]
 070A:0B64  a4             movsb  byte ptr es:[di], byte ptr [si]
-070A:0B65  9af3020a07     lcall  f_070A_02F3
+070A:0B65  9af3020a07     lcall  dialog
 070A:0B6A  83c40e         add    sp, 0xe
-070A:0B6D  a1d646         mov    ax, word ptr [0x46d6]
+070A:0B6D  a1d646         mov    ax, word ptr [0x46d6]   ; morale
 070A:0B70  3d1d00         cmp    ax, 0x1d
 070A:0B73  7e13           jle    0xb88
 070A:0B75  c7061c470000   mov    word ptr [0x471c], 0
 070A:0B7B  3d3200         cmp    ax, 0x32
 070A:0B7E  7e06           jle    0xb86
-070A:0B80  c706d6463200   mov    word ptr [0x46d6], 0x32
+070A:0B80  c706d6463200   mov    word ptr [0x46d6], 0x32   ; morale
 L_070A_0B86:
 070A:0B86  eb16           jmp    0xb9e
 L_070A_0B88:
-070A:0B88  a1d646         mov    ax, word ptr [0x46d6]
+070A:0B88  a1d646         mov    ax, word ptr [0x46d6]   ; morale
 070A:0B8B  3d1300         cmp    ax, 0x13
 070A:0B8E  7e08           jle    0xb98
 070A:0B90  c7061c470100   mov    word ptr [0x471c], 1
@@ -13065,7 +13065,7 @@ L_070A_0B9E:
 070A:0BA1  50             push   ax
 070A:0BA2  b82400         mov    ax, 0x24
 070A:0BA5  50             push   ax
-070A:0BA6  a10c45         mov    ax, word ptr [0x450c]
+070A:0BA6  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:0BA9  8bd0           mov    dx, ax
 070A:0BAB  b103           mov    cl, 3
 070A:0BAD  d3e0           shl    ax, cl
@@ -13073,12 +13073,12 @@ L_070A_0B9E:
 070A:0BB1  d1e0           shl    ax, 1
 070A:0BB3  d1e0           shl    ax, 1
 070A:0BB5  8bd8           mov    bx, ax
-070A:0BB7  8b874c44       mov    ax, word ptr [bx + 0x444c]
+070A:0BB7  8b874c44       mov    ax, word ptr [bx + 0x444c]   ; side.portrait
 070A:0BBB  03061c47       add    ax, word ptr [0x471c]
 070A:0BBF  50             push   ax
-070A:0BC0  9a650d0a07     lcall  f_070A_0D65
+070A:0BC0  9a650d0a07     lcall  show_portrait
 070A:0BC5  83c406         add    sp, 6
-070A:0BC8  a10c45         mov    ax, word ptr [0x450c]
+070A:0BC8  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:0BCB  8bd0           mov    dx, ax
 070A:0BCD  b103           mov    cl, 3
 070A:0BCF  d3e0           shl    ax, cl
@@ -13086,11 +13086,11 @@ L_070A_0B9E:
 070A:0BD3  d1e0           shl    ax, 1
 070A:0BD5  d1e0           shl    ax, 1
 070A:0BD7  8bd8           mov    bx, ax
-070A:0BD9  8b874e44       mov    ax, word ptr [bx + 0x444e]
+070A:0BD9  8b874e44       mov    ax, word ptr [bx + 0x444e]   ; side.lady
 070A:0BDD  8946fe         mov    word ptr [bp - 2], ax
 070A:0BE0  3dffff         cmp    ax, 0xffff
 070A:0BE3  7434           je     0xc19
-070A:0BE5  8b875044       mov    ax, word ptr [bx + 0x4450]
+070A:0BE5  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 070A:0BE9  50             push   ax
 070A:0BEA  8b46fe         mov    ax, word ptr [bp - 2]
 070A:0BED  8bd0           mov    dx, ax
@@ -13100,7 +13100,7 @@ L_070A_0B9E:
 070A:0BF5  d1e0           shl    ax, 1
 070A:0BF7  8bd8           mov    bx, ax
 070A:0BF9  58             pop    ax
-070A:0BFA  8987fc33       mov    word ptr [bx + 0x33fc], ax
+070A:0BFA  8987fc33       mov    word ptr [bx + 0x33fc], ax   ; lady.terr
 070A:0BFE  85c0           test   ax, ax
 070A:0C00  7417           je     0xc19
 070A:0C02  b80300         mov    ax, 3
@@ -13110,12 +13110,12 @@ L_070A_0B9E:
 070A:0C0A  8b46fe         mov    ax, word ptr [bp - 2]
 070A:0C0D  059200         add    ax, 0x92
 070A:0C10  50             push   ax
-070A:0C11  9a650d0a07     lcall  f_070A_0D65
+070A:0C11  9a650d0a07     lcall  show_portrait
 070A:0C16  83c406         add    sp, 6
 L_070A_0C19:
 070A:0C19  b81200         mov    ax, 0x12
 070A:0C1C  50             push   ax
-070A:0C1D  9ab2080a07     lcall  f_070A_08B2
+070A:0C1D  9ab2080a07     lcall  wait_ticks
 070A:0C22  59             pop    cx
 070A:0C23  ff06da46       inc    word ptr [0x46da]
 070A:0C27  a1da46         mov    ax, word ptr [0x46da]
@@ -13135,13 +13135,13 @@ L_070A_0C39:
 070A:0C51  50             push   ax
 070A:0C52  ff36d90b       push   word ptr [0xbd9]
 070A:0C56  ff36d70b       push   word ptr [0xbd7]
-070A:0C5A  9a0600f809     lcall  f_09F8_0006
+070A:0C5A  9a0600f809     lcall  sprintf
 070A:0C5F  83c40e         add    sp, 0xe
 070A:0C62  b80200         mov    ax, 2
 070A:0C65  50             push   ax
 070A:0C66  b8e803         mov    ax, 0x3e8   ; "                     "
 070A:0C69  50             push   ax
-070A:0C6A  9a2d090a07     lcall  f_070A_092D
+070A:0C6A  9a2d090a07     lcall  beep
 070A:0C6F  83c404         add    sp, 4
 070A:0C72  83ec0e         sub    sp, 0xe
 070A:0C75  8bc4           mov    ax, sp
@@ -13153,11 +13153,11 @@ L_070A_0C39:
 070A:0C82  b90600         mov    cx, 6
 070A:0C85  f3a5           rep movsw word ptr es:[di], word ptr [si]
 070A:0C87  a4             movsb  byte ptr es:[di], byte ptr [si]
-070A:0C88  9af3020a07     lcall  f_070A_02F3
+070A:0C88  9af3020a07     lcall  dialog
 070A:0C8D  83c40e         add    sp, 0xe
 070A:0C90  b81200         mov    ax, 0x12
 070A:0C93  50             push   ax
-070A:0C94  9ab2080a07     lcall  f_070A_08B2
+070A:0C94  9ab2080a07     lcall  wait_ticks
 070A:0C99  59             pop    cx
 L_070A_0C9A:
 070A:0C9A  837efa00       cmp    word ptr [bp - 6], 0
@@ -13171,13 +13171,13 @@ L_070A_0CA3:
 070A:0CAD  50             push   ax
 070A:0CAE  ff36fb0b       push   word ptr [0xbfb]
 070A:0CB2  ff36f90b       push   word ptr [0xbf9]
-070A:0CB6  9a0600f809     lcall  f_09F8_0006
+070A:0CB6  9a0600f809     lcall  sprintf
 070A:0CBB  83c40a         add    sp, 0xa
 070A:0CBE  b80100         mov    ax, 1
 070A:0CC1  50             push   ax
 070A:0CC2  b8fa00         mov    ax, 0xfa   ; " green fields of %s."
 070A:0CC5  50             push   ax
-070A:0CC6  9a2d090a07     lcall  f_070A_092D
+070A:0CC6  9a2d090a07     lcall  beep
 070A:0CCB  83c404         add    sp, 4
 070A:0CCE  83ec0e         sub    sp, 0xe
 070A:0CD1  8bc4           mov    ax, sp
@@ -13189,9 +13189,9 @@ L_070A_0CA3:
 070A:0CDE  b90600         mov    cx, 6
 070A:0CE1  f3a5           rep movsw word ptr es:[di], word ptr [si]
 070A:0CE3  a4             movsb  byte ptr es:[di], byte ptr [si]
-070A:0CE4  9af3020a07     lcall  f_070A_02F3
+070A:0CE4  9af3020a07     lcall  dialog
 070A:0CE9  83c40e         add    sp, 0xe
-070A:0CEC  a10c45         mov    ax, word ptr [0x450c]
+070A:0CEC  a10c45         mov    ax, word ptr [0x450c]   ; player
 070A:0CEF  8bd0           mov    dx, ax
 070A:0CF1  b103           mov    cl, 3
 070A:0CF3  d3e0           shl    ax, cl
@@ -13199,20 +13199,20 @@ L_070A_0CA3:
 070A:0CF7  d1e0           shl    ax, 1
 070A:0CF9  d1e0           shl    ax, 1
 070A:0CFB  8bd8           mov    bx, ax
-070A:0CFD  ff875e44       inc    word ptr [bx + 0x445e]
-070A:0D01  ffb75e44       push   word ptr [bx + 0x445e]
+070A:0CFD  ff875e44       inc    word ptr [bx + 0x445e]   ; side.gold
+070A:0D01  ffb75e44       push   word ptr [bx + 0x445e]   ; side.gold
 070A:0D05  1e             push   ds
 070A:0D06  b8a93d         mov    ax, 0x3da9   ; "Your treasure is %d"
 070A:0D09  50             push   ax
 070A:0D0A  ff36ff0b       push   word ptr [0xbff]
 070A:0D0E  ff36fd0b       push   word ptr [0xbfd]
-070A:0D12  9a0600f809     lcall  f_09F8_0006
+070A:0D12  9a0600f809     lcall  sprintf
 070A:0D17  83c40a         add    sp, 0xa
 070A:0D1A  b80100         mov    ax, 1
 070A:0D1D  50             push   ax
 070A:0D1E  b8f401         mov    ax, 0x1f4   ; "        and"
 070A:0D21  50             push   ax
-070A:0D22  9a2d090a07     lcall  f_070A_092D
+070A:0D22  9a2d090a07     lcall  beep
 070A:0D27  83c404         add    sp, 4
 070A:0D2A  83ec0e         sub    sp, 0xe
 070A:0D2D  8bc4           mov    ax, sp
@@ -13224,17 +13224,17 @@ L_070A_0CA3:
 070A:0D3A  b90600         mov    cx, 6
 070A:0D3D  f3a5           rep movsw word ptr es:[di], word ptr [si]
 070A:0D3F  a4             movsb  byte ptr es:[di], byte ptr [si]
-070A:0D40  9af3020a07     lcall  f_070A_02F3
+070A:0D40  9af3020a07     lcall  dialog
 070A:0D45  83c40e         add    sp, 0xe
 070A:0D48  b80100         mov    ax, 1
 070A:0D4B  50             push   ax
-070A:0D4C  9ab2080a07     lcall  f_070A_08B2
+070A:0D4C  9ab2080a07     lcall  wait_ticks
 070A:0D51  59             pop    cx
 070A:0D52  e945ff         jmp    0xc9a
 L_070A_0D55:
 070A:0D55  b83600         mov    ax, 0x36
 070A:0D58  50             push   ax
-070A:0D59  9ab2080a07     lcall  f_070A_08B2
+070A:0D59  9ab2080a07     lcall  wait_ticks
 070A:0D5E  59             pop    cx
 070A:0D5F  5e             pop    si
 070A:0D60  5f             pop    di
@@ -13242,7 +13242,7 @@ L_070A_0D55:
 070A:0D63  5d             pop    bp
 070A:0D64  cb             retf   
 
-f_070A_0D65 proc  ; 070A:0D65  callers: f_01A5_023A, f_02D3_0737, f_0423_0130, f_070A_094B
+show_portrait proc  ; 070A:0D65  callers: ask_passage, joust_approach, month_status, territory_info
 070A:0D65  55             push   bp
 070A:0D66  8bec           mov    bp, sp
 070A:0D68  83c4fc         add    sp, -4
@@ -13258,11 +13258,11 @@ f_070A_0D65 proc  ; 070A:0D65  callers: f_01A5_023A, f_02D3_0737, f_0423_0130, f
 070A:0D82  83c707         add    di, 7
 070A:0D85  8b5e06         mov    bx, word ptr [bp + 6]
 070A:0D88  d1e3           shl    bx, 1
-070A:0D8A  031e1045       add    bx, word ptr [0x4510]
+070A:0D8A  031e1045       add    bx, word ptr [0x4510]   ; font
 070A:0D8E  8e061245       mov    es, word ptr [0x4512]
 070A:0D92  268b07         mov    ax, word ptr es:[bx]
 070A:0D95  d1e0           shl    ax, 1
-070A:0D97  03061045       add    ax, word ptr [0x4510]
+070A:0D97  03061045       add    ax, word ptr [0x4510]   ; font
 070A:0D9B  8b161245       mov    dx, word ptr [0x4512]
 070A:0D9F  8956fe         mov    word ptr [bp - 2], dx
 070A:0DA2  8946fc         mov    word ptr [bp - 4], ax
@@ -13281,13 +13281,13 @@ f_070A_0D65 proc  ; 070A:0D65  callers: f_01A5_023A, f_02D3_0737, f_0423_0130, f
 070A:0DBF  a4             movsb  byte ptr es:[di], byte ptr [si]
 070A:0DC0  5e             pop    si
 070A:0DC1  5f             pop    di
-070A:0DC2  9af3020a07     lcall  f_070A_02F3
+070A:0DC2  9af3020a07     lcall  dialog
 070A:0DC7  83c40e         add    sp, 0xe
 070A:0DCA  ff76fe         push   word ptr [bp - 2]
 070A:0DCD  ff76fc         push   word ptr [bp - 4]
 070A:0DD0  57             push   di
 070A:0DD1  56             push   si
-070A:0DD2  9a07009b08     lcall  f_089B_0007
+070A:0DD2  9a07009b08     lcall  put_sprite
 070A:0DD7  83c408         add    sp, 8
 070A:0DDA  5e             pop    si
 070A:0DDB  5f             pop    di
@@ -13295,23 +13295,23 @@ f_070A_0D65 proc  ; 070A:0D65  callers: f_01A5_023A, f_02D3_0737, f_0423_0130, f
 070A:0DDE  5d             pop    bp
 070A:0DDF  cb             retf   
 
-f_070A_0DE0 proc  ; 070A:0DE0  callers: f_0079_010E, f_021C_0002 ...
+play_tune proc  ; 070A:0DE0  callers: battle_shown, new_game ...
 070A:0DE0  55             push   bp
 070A:0DE1  8bec           mov    bp, sp
 070A:0DE3  83c4fc         add    sp, -4
 070A:0DE6  8b5e06         mov    bx, word ptr [bp + 6]
 070A:0DE9  d1e3           shl    bx, 1
-070A:0DEB  031e1045       add    bx, word ptr [0x4510]
+070A:0DEB  031e1045       add    bx, word ptr [0x4510]   ; font
 070A:0DEF  8e061245       mov    es, word ptr [0x4512]
 070A:0DF3  268b07         mov    ax, word ptr es:[bx]
 070A:0DF6  d1e0           shl    ax, 1
-070A:0DF8  03061045       add    ax, word ptr [0x4510]
+070A:0DF8  03061045       add    ax, word ptr [0x4510]   ; font
 070A:0DFC  8b161245       mov    dx, word ptr [0x4512]
 070A:0E00  8956fe         mov    word ptr [bp - 2], dx
 070A:0E03  8946fc         mov    word ptr [bp - 4], ax
 070A:0E06  ff76fe         push   word ptr [bp - 2]
 070A:0E09  ff76fc         push   word ptr [bp - 4]
-070A:0E0C  9a06002909     lcall  f_0929_0006
+070A:0E0C  9a06002909     lcall  tune_hook?
 070A:0E11  83c404         add    sp, 4
 070A:0E14  c45efc         les    bx, ptr [bp - 4]
 070A:0E17  26c747040000   mov    word ptr es:[bx + 4], 0
@@ -13322,17 +13322,17 @@ f_070A_0DE0 proc  ; 070A:0DE0  callers: f_0079_010E, f_021C_0002 ...
 070A:0E2B  5d             pop    bp
 070A:0E2C  cb             retf   
 
-f_070A_0E2D proc  ; 070A:0E2D  callers: f_021C_0002, f_02D3_0006, f_02D3_029E, f_050E_04D4, f_082C_0268
+wait_tune proc  ; 070A:0E2D  callers: joust_round, month, new_game, romance, tournament
 070A:0E2D  55             push   bp
 070A:0E2E  8bec           mov    bp, sp
 070A:0E30  83c4fc         add    sp, -4
 070A:0E33  8b5e06         mov    bx, word ptr [bp + 6]
 070A:0E36  d1e3           shl    bx, 1
-070A:0E38  031e1045       add    bx, word ptr [0x4510]
+070A:0E38  031e1045       add    bx, word ptr [0x4510]   ; font
 070A:0E3C  8e061245       mov    es, word ptr [0x4512]
 070A:0E40  268b07         mov    ax, word ptr es:[bx]
 070A:0E43  d1e0           shl    ax, 1
-070A:0E45  03061045       add    ax, word ptr [0x4510]
+070A:0E45  03061045       add    ax, word ptr [0x4510]   ; font
 070A:0E49  8b161245       mov    dx, word ptr [0x4512]
 070A:0E4D  8956fe         mov    word ptr [bp - 2], dx
 070A:0E50  8946fc         mov    word ptr [bp - 4], ax
@@ -13343,28 +13343,28 @@ L_070A_0E5C:
 070A:0E5C  c45efc         les    bx, ptr [bp - 4]
 070A:0E5F  26f7070100     test   word ptr es:[bx], 1
 070A:0E64  7507           jne    0xe6d
-070A:0E66  9aab070a07     lcall  f_070A_07AB
+070A:0E66  9aab070a07     lcall  get_key
 070A:0E6B  ebef           jmp    0xe5c
 L_070A_0E6D:
 070A:0E6D  8be5           mov    sp, bp
 070A:0E6F  5d             pop    bp
 070A:0E70  cb             retf   
 
-f_070A_0E71 proc  ; 070A:0E71  callers: f_021C_0002
+tune_playing proc  ; 070A:0E71  callers: new_game
 070A:0E71  55             push   bp
 070A:0E72  8bec           mov    bp, sp
 070A:0E74  83c4fc         add    sp, -4
 070A:0E77  8b5e06         mov    bx, word ptr [bp + 6]
 070A:0E7A  d1e3           shl    bx, 1
-070A:0E7C  031e1045       add    bx, word ptr [0x4510]
+070A:0E7C  031e1045       add    bx, word ptr [0x4510]   ; font
 070A:0E80  8e061245       mov    es, word ptr [0x4512]
 070A:0E84  268b07         mov    ax, word ptr es:[bx]
 070A:0E87  d1e0           shl    ax, 1
-070A:0E89  03061045       add    ax, word ptr [0x4510]
+070A:0E89  03061045       add    ax, word ptr [0x4510]   ; font
 070A:0E8D  8b161245       mov    dx, word ptr [0x4512]
 070A:0E91  8956fe         mov    word ptr [bp - 2], dx
 070A:0E94  8946fc         mov    word ptr [bp - 4], ax
-070A:0E97  9aab070a07     lcall  f_070A_07AB
+070A:0E97  9aab070a07     lcall  get_key
 070A:0E9C  837e0800       cmp    word ptr [bp + 8], 0
 070A:0EA0  7412           je     0xeb4
 070A:0EA2  c45efc         les    bx, ptr [bp - 4]
@@ -13387,21 +13387,21 @@ L_070A_0EC2:
 L_070A_0EC5:
 070A:0EC5  ebe9           jmp    0xeb0
 
-f_070A_0EC7 proc  ; 070A:0EC7  callers: f_0079_010E, f_02D3_029E, f_050E_022C, f_050E_0ADB
+morale_add proc  ; 070A:0EC7  callers: battle_shown, joust_round, raid, sword_fight
 070A:0EC7  55             push   bp
 070A:0EC8  8bec           mov    bp, sp
-070A:0ECA  a1d646         mov    ax, word ptr [0x46d6]
+070A:0ECA  a1d646         mov    ax, word ptr [0x46d6]   ; morale
 070A:0ECD  034606         add    ax, word ptr [bp + 6]
-070A:0ED0  a3d646         mov    word ptr [0x46d6], ax
+070A:0ED0  a3d646         mov    word ptr [0x46d6], ax   ; morale
 070A:0ED3  3d0100         cmp    ax, 1
 070A:0ED6  7d08           jge    0xee0
-070A:0ED8  c706d6460100   mov    word ptr [0x46d6], 1
+070A:0ED8  c706d6460100   mov    word ptr [0x46d6], 1   ; morale
 070A:0EDE  eb0e           jmp    0xeee
 L_070A_0EE0:
-070A:0EE0  a1d646         mov    ax, word ptr [0x46d6]
+070A:0EE0  a1d646         mov    ax, word ptr [0x46d6]   ; morale
 070A:0EE3  3d3200         cmp    ax, 0x32
 070A:0EE6  7e06           jle    0xeee
-070A:0EE8  c706d6463200   mov    word ptr [0x46d6], 0x32
+070A:0EE8  c706d6463200   mov    word ptr [0x46d6], 0x32   ; morale
 L_070A_0EEE:
 070A:0EEE  8be5           mov    sp, bp
 070A:0EF0  5d             pop    bp
@@ -13409,43 +13409,43 @@ L_070A_0EEE:
 
 ;================ segment 07F9 ================
 
-f_07F9_0002 proc  ; 07F9:0002  callers: f_021C_0002, f_07F9_009C
+next_event_in proc  ; 07F9:0002  callers: monthly_event, new_game
 07F9:0002  55             push   bp
 07F9:0003  8bec           mov    bp, sp
 07F9:0005  b80800         mov    ax, 8
 07F9:0008  50             push   ax
-07F9:0009  9a0d000a07     lcall  f_070A_000D
+07F9:0009  9a0d000a07     lcall  random
 07F9:000E  59             pop    cx
 07F9:000F  050500         add    ax, 5
-07F9:0012  a3e241         mov    word ptr [0x41e2], ax
+07F9:0012  a3e241         mov    word ptr [0x41e2], ax   ; event_in
 07F9:0015  8be5           mov    sp, bp
 07F9:0017  5d             pop    bp
 07F9:0018  cb             retf   
 
-f_07F9_0019 proc  ; 07F9:0019  callers: f_07F9_009C
+show_plotters proc  ; 07F9:0019  callers: monthly_event
 07F9:0019  55             push   bp
 07F9:001A  8bec           mov    bp, sp
 07F9:001C  b800c0         mov    ax, 0xc000
 07F9:001F  50             push   ax
 07F9:0020  ff360447       push   word ptr [0x4704]
-07F9:0024  ff360247       push   word ptr [0x4702]
+07F9:0024  ff360247       push   word ptr [0x4702]   ; lib_scene
 07F9:0028  1e             push   ds
 07F9:0029  b8be3d         mov    ax, 0x3dbe   ; "RAID.LIB"
 07F9:002C  50             push   ax
-07F9:002D  9a5a010a07     lcall  f_070A_015A
+07F9:002D  9a5a010a07     lcall  load_lib
 07F9:0032  83c40a         add    sp, 0xa
 07F9:0035  b80300         mov    ax, 3
 07F9:0038  50             push   ax
 07F9:0039  ff360447       push   word ptr [0x4704]
-07F9:003D  ff360247       push   word ptr [0x4702]
-07F9:0041  9ab1020a07     lcall  f_070A_02B1
+07F9:003D  ff360247       push   word ptr [0x4702]   ; lib_scene
+07F9:0041  9ab1020a07     lcall  show_lib_picture
 07F9:0046  83c406         add    sp, 6
-07F9:0049  9ab3010a07     lcall  f_070A_01B3
+07F9:0049  9ab3010a07     lcall  show_screen
 07F9:004E  8be5           mov    sp, bp
 07F9:0050  5d             pop    bp
 07F9:0051  cb             retf   
 
-f_07F9_0052 proc  ; 07F9:0052  callers: f_07F9_009C
+side_last_territory proc  ; 07F9:0052  callers: monthly_event
 07F9:0052  55             push   bp
 07F9:0053  8bec           mov    bp, sp
 07F9:0055  57             push   di
@@ -13462,7 +13462,7 @@ L_07F9_005A:
 07F9:0068  d1e0           shl    ax, 1
 07F9:006A  03c2           add    ax, dx
 07F9:006C  8bd8           mov    bx, ax
-07F9:006E  8a874e36       mov    al, byte ptr [bx + 0x364e]
+07F9:006E  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 07F9:0072  98             cwde   
 07F9:0073  3b4606         cmp    ax, word ptr [bp + 6]
 07F9:0076  7519           jne    0x91
@@ -13474,7 +13474,7 @@ L_07F9_005A:
 07F9:0083  d1e0           shl    ax, 1
 07F9:0085  d1e0           shl    ax, 1
 07F9:0087  8bf8           mov    di, ax
-07F9:0089  8b855044       mov    ax, word ptr [di + 0x4450]
+07F9:0089  8b855044       mov    ax, word ptr [di + 0x4450]   ; side.home
 07F9:008D  3bc6           cmp    ax, si
 07F9:008F  7503           jne    0x94
 L_07F9_0091:
@@ -13488,12 +13488,12 @@ L_07F9_0094:
 07F9:009A  5d             pop    bp
 07F9:009B  cb             retf   
 
-f_07F9_009C proc  ; 07F9:009C  callers: f_082C_0268
+monthly_event proc  ; 07F9:009C  callers: month
 07F9:009C  55             push   bp
 07F9:009D  8bec           mov    bp, sp
 07F9:009F  57             push   di
 07F9:00A0  56             push   si
-07F9:00A1  ff0ee241       dec    word ptr [0x41e2]
+07F9:00A1  ff0ee241       dec    word ptr [0x41e2]   ; event_in
 07F9:00A5  7406           je     0xad
 L_07F9_00A7:
 07F9:00A7  5e             pop    si
@@ -13504,19 +13504,19 @@ L_07F9_00A7:
 L_07F9_00AD:
 07F9:00AD  b80a00         mov    ax, 0xa
 07F9:00B0  50             push   ax
-07F9:00B1  9a0d000a07     lcall  f_070A_000D
+07F9:00B1  9a0d000a07     lcall  random
 07F9:00B6  59             pop    cx
 07F9:00B7  40             inc    ax
 07F9:00B8  e96602         jmp    0x321
 L_07F9_00BB:
-07F9:00BB  a10c45         mov    ax, word ptr [0x450c]
+07F9:00BB  a10c45         mov    ax, word ptr [0x450c]   ; player
 07F9:00BE  8bd0           mov    dx, ax
 07F9:00C0  d1e0           shl    ax, 1
 07F9:00C2  d1e0           shl    ax, 1
 07F9:00C4  03c2           add    ax, dx
 07F9:00C6  d1e0           shl    ax, 1
 07F9:00C8  8bd8           mov    bx, ax
-07F9:00CA  8b878a43       mov    ax, word ptr [bx + 0x438a]
+07F9:00CA  8b878a43       mov    ax, word ptr [bx + 0x438a]   ; army.soldiers
 07F9:00CE  b90300         mov    cx, 3
 07F9:00D1  99             cdq    
 07F9:00D2  f7f9           idiv   cx
@@ -13524,7 +13524,7 @@ L_07F9_00BB:
 07F9:00D6  85f6           test   si, si
 07F9:00D8  742b           je     0x105
 07F9:00DA  8bc6           mov    ax, si
-07F9:00DC  29878a43       sub    word ptr [bx + 0x438a], ax
+07F9:00DC  29878a43       sub    word ptr [bx + 0x438a], ax   ; army.soldiers
 07F9:00E0  83ec0e         sub    sp, 0xe
 07F9:00E3  57             push   di
 07F9:00E4  8bc4           mov    ax, sp
@@ -13540,13 +13540,13 @@ L_07F9_00BB:
 07F9:00FA  a4             movsb  byte ptr es:[di], byte ptr [si]
 07F9:00FB  5e             pop    si
 07F9:00FC  5f             pop    di
-07F9:00FD  9af3020a07     lcall  f_070A_02F3
+07F9:00FD  9af3020a07     lcall  dialog
 07F9:0102  83c40e         add    sp, 0xe
 L_07F9_0105:
 07F9:0105  e92602         jmp    0x32e
 L_07F9_0108:
-07F9:0108  ff360c45       push   word ptr [0x450c]
-07F9:010C  9a5200f907     lcall  f_07F9_0052
+07F9:0108  ff360c45       push   word ptr [0x450c]   ; player
+07F9:010C  9a5200f907     lcall  side_last_territory
 07F9:0111  59             pop    cx
 07F9:0112  8bf0           mov    si, ax
 07F9:0114  85f6           test   si, si
@@ -13566,27 +13566,27 @@ L_07F9_0108:
 07F9:0132  a4             movsb  byte ptr es:[di], byte ptr [si]
 07F9:0133  5e             pop    si
 07F9:0134  5f             pop    di
-07F9:0135  9af3020a07     lcall  f_070A_02F3
+07F9:0135  9af3020a07     lcall  dialog
 07F9:013A  83c40e         add    sp, 0xe
-07F9:013D  9ab2042304     lcall  f_0423_04B2
+07F9:013D  9ab2042304     lcall  redraw_map
 07F9:0142  56             push   si
 07F9:0143  b8ffff         mov    ax, 0xffff
 07F9:0146  50             push   ax
-07F9:0147  9a58072304     lcall  f_0423_0758
+07F9:0147  9a58072304     lcall  set_owner
 07F9:014C  83c404         add    sp, 4
 07F9:014F  56             push   si
-07F9:0150  9aa5011900     lcall  f_0019_01A5
+07F9:0150  9aa5011900     lcall  send_home_armies_at
 07F9:0155  59             pop    cx
 L_07F9_0156:
 07F9:0156  e9d501         jmp    0x32e
 L_07F9_0159:
-07F9:0159  ff360c45       push   word ptr [0x450c]
-07F9:015D  9a5200f907     lcall  f_07F9_0052
+07F9:0159  ff360c45       push   word ptr [0x450c]   ; player
+07F9:015D  9a5200f907     lcall  side_last_territory
 07F9:0162  59             pop    cx
 07F9:0163  8bf0           mov    si, ax
 07F9:0165  85f6           test   si, si
 07F9:0167  7443           je     0x1ac
-07F9:0169  9a1900f907     lcall  f_07F9_0019
+07F9:0169  9a1900f907     lcall  show_plotters
 07F9:016E  83ec0e         sub    sp, 0xe
 07F9:0171  57             push   di
 07F9:0172  8bc4           mov    ax, sp
@@ -13602,22 +13602,22 @@ L_07F9_0159:
 07F9:0188  a4             movsb  byte ptr es:[di], byte ptr [si]
 07F9:0189  5e             pop    si
 07F9:018A  5f             pop    di
-07F9:018B  9af3020a07     lcall  f_070A_02F3
+07F9:018B  9af3020a07     lcall  dialog
 07F9:0190  83c40e         add    sp, 0xe
-07F9:0193  9ab2042304     lcall  f_0423_04B2
+07F9:0193  9ab2042304     lcall  redraw_map
 07F9:0198  56             push   si
 07F9:0199  b8ffff         mov    ax, 0xffff
 07F9:019C  50             push   ax
-07F9:019D  9a58072304     lcall  f_0423_0758
+07F9:019D  9a58072304     lcall  set_owner
 07F9:01A2  83c404         add    sp, 4
 07F9:01A5  56             push   si
-07F9:01A6  9aa5011900     lcall  f_0019_01A5
+07F9:01A6  9aa5011900     lcall  send_home_armies_at
 07F9:01AB  59             pop    cx
 L_07F9_01AC:
 07F9:01AC  e97f01         jmp    0x32e
 L_07F9_01AF:
-07F9:01AF  9a1900f907     lcall  f_07F9_0019
-07F9:01B4  a10c45         mov    ax, word ptr [0x450c]
+07F9:01AF  9a1900f907     lcall  show_plotters
+07F9:01B4  a10c45         mov    ax, word ptr [0x450c]   ; player
 07F9:01B7  8bd0           mov    dx, ax
 07F9:01B9  b103           mov    cl, 3
 07F9:01BB  d3e0           shl    ax, cl
@@ -13625,7 +13625,7 @@ L_07F9_01AF:
 07F9:01BF  d1e0           shl    ax, 1
 07F9:01C1  d1e0           shl    ax, 1
 07F9:01C3  8bd8           mov    bx, ax
-07F9:01C5  8b875c44       mov    ax, word ptr [bx + 0x445c]
+07F9:01C5  8b875c44       mov    ax, word ptr [bx + 0x445c]   ; side.income
 07F9:01C9  b90200         mov    cx, 2
 07F9:01CC  99             cdq    
 07F9:01CD  f7f9           idiv   cx
@@ -13645,21 +13645,21 @@ L_07F9_01AF:
 07F9:01ED  a4             movsb  byte ptr es:[di], byte ptr [si]
 07F9:01EE  5e             pop    si
 07F9:01EF  5f             pop    di
-07F9:01F0  9af3020a07     lcall  f_070A_02F3
+07F9:01F0  9af3020a07     lcall  dialog
 07F9:01F5  83c40e         add    sp, 0xe
 07F9:01F8  e93301         jmp    0x32e
 L_07F9_01FB:
-07F9:01FB  a10c45         mov    ax, word ptr [0x450c]
+07F9:01FB  a10c45         mov    ax, word ptr [0x450c]   ; player
 07F9:01FE  8bd0           mov    dx, ax
 07F9:0200  d1e0           shl    ax, 1
 07F9:0202  d1e0           shl    ax, 1
 07F9:0204  03c2           add    ax, dx
 07F9:0206  d1e0           shl    ax, 1
 07F9:0208  8bd8           mov    bx, ax
-07F9:020A  83bf484300     cmp    word ptr [bx + 0x4348], 0
+07F9:020A  83bf484300     cmp    word ptr [bx + 0x4348], 0   ; army.catapults
 07F9:020F  742e           je     0x23f
-07F9:0211  ff8f4843       dec    word ptr [bx + 0x4348]
-07F9:0215  9a1900f907     lcall  f_07F9_0019
+07F9:0211  ff8f4843       dec    word ptr [bx + 0x4348]   ; army.catapults
+07F9:0215  9a1900f907     lcall  show_plotters
 07F9:021A  83ec0e         sub    sp, 0xe
 07F9:021D  57             push   di
 07F9:021E  8bc4           mov    ax, sp
@@ -13675,7 +13675,7 @@ L_07F9_01FB:
 07F9:0234  a4             movsb  byte ptr es:[di], byte ptr [si]
 07F9:0235  5e             pop    si
 07F9:0236  5f             pop    di
-07F9:0237  9af3020a07     lcall  f_070A_02F3
+07F9:0237  9af3020a07     lcall  dialog
 07F9:023C  83c40e         add    sp, 0xe
 L_07F9_023F:
 07F9:023F  e9ec00         jmp    0x32e
@@ -13698,18 +13698,18 @@ L_07F9_0242:
 07F9:026B  a4             movsb  byte ptr es:[di], byte ptr [si]
 07F9:026C  5e             pop    si
 07F9:026D  5f             pop    di
-07F9:026E  9af3020a07     lcall  f_070A_02F3
+07F9:026E  9af3020a07     lcall  dialog
 07F9:0273  83c40e         add    sp, 0xe
 07F9:0276  e9b500         jmp    0x32e
 L_07F9_0279:
-07F9:0279  a10c45         mov    ax, word ptr [0x450c]
+07F9:0279  a10c45         mov    ax, word ptr [0x450c]   ; player
 07F9:027C  8bd0           mov    dx, ax
 07F9:027E  d1e0           shl    ax, 1
 07F9:0280  d1e0           shl    ax, 1
 07F9:0282  03c2           add    ax, dx
 07F9:0284  d1e0           shl    ax, 1
 07F9:0286  8bd8           mov    bx, ax
-07F9:0288  8387464303     add    word ptr [bx + 0x4346], 3
+07F9:0288  8387464303     add    word ptr [bx + 0x4346], 3   ; army.knights
 07F9:028D  83ec0e         sub    sp, 0xe
 07F9:0290  57             push   di
 07F9:0291  8bc4           mov    ax, sp
@@ -13725,7 +13725,7 @@ L_07F9_0279:
 07F9:02A7  a4             movsb  byte ptr es:[di], byte ptr [si]
 07F9:02A8  5e             pop    si
 07F9:02A9  5f             pop    di
-07F9:02AA  9af3020a07     lcall  f_070A_02F3
+07F9:02AA  9af3020a07     lcall  dialog
 07F9:02AF  83c40e         add    sp, 0xe
 07F9:02B2  e97900         jmp    0x32e
 L_07F9_02B5:
@@ -13734,7 +13734,7 @@ L_07F9_02B8:
 07F9:02B8  83fe07         cmp    si, 7
 07F9:02BB  7d50           jge    0x30d
 07F9:02BD  56             push   si
-07F9:02BE  9a5200f907     lcall  f_07F9_0052
+07F9:02BE  9a5200f907     lcall  side_last_territory
 07F9:02C3  59             pop    cx
 07F9:02C4  8bf8           mov    di, ax
 07F9:02C6  85ff           test   di, di
@@ -13754,15 +13754,15 @@ L_07F9_02B8:
 07F9:02E4  a4             movsb  byte ptr es:[di], byte ptr [si]
 07F9:02E5  5e             pop    si
 07F9:02E6  5f             pop    di
-07F9:02E7  9af3020a07     lcall  f_070A_02F3
+07F9:02E7  9af3020a07     lcall  dialog
 07F9:02EC  83c40e         add    sp, 0xe
-07F9:02EF  9ab2042304     lcall  f_0423_04B2
+07F9:02EF  9ab2042304     lcall  redraw_map
 07F9:02F4  57             push   di
-07F9:02F5  ff360c45       push   word ptr [0x450c]
-07F9:02F9  9a58072304     lcall  f_0423_0758
+07F9:02F5  ff360c45       push   word ptr [0x450c]   ; player
+07F9:02F9  9a58072304     lcall  set_owner
 07F9:02FE  83c404         add    sp, 4
 07F9:0301  57             push   di
-07F9:0302  9aa5011900     lcall  f_0019_01A5
+07F9:0302  9aa5011900     lcall  send_home_armies_at
 07F9:0307  59             pop    cx
 07F9:0308  eb03           jmp    0x30d
 L_07F9_030A:
@@ -13778,12 +13778,12 @@ L_07F9_0321:
 07F9:0327  d1e3           shl    bx, 1
 07F9:0329  2effa70f03     jmp    word ptr cs:[bx + 0x30f]
 L_07F9_032E:
-07F9:032E  9a0200f907     lcall  f_07F9_0002
+07F9:032E  9a0200f907     lcall  next_event_in
 07F9:0333  e971fd         jmp    0xa7
 
 ;================ segment 082C ================
 
-f_082C_0006 proc  ; 082C:0006  callers: f_082C_0180
+options_menu proc  ; 082C:0006  callers: orders_menu
 082C:0006  55             push   bp
 082C:0007  8bec           mov    bp, sp
 082C:0009  57             push   di
@@ -13836,7 +13836,7 @@ L_082C_006D:
 082C:0083  b90600         mov    cx, 6
 082C:0086  f3a5           rep movsw word ptr es:[di], word ptr [si]
 082C:0088  a4             movsb  byte ptr es:[di], byte ptr [si]
-082C:0089  9af3020a07     lcall  f_070A_02F3
+082C:0089  9af3020a07     lcall  dialog
 082C:008E  83c40e         add    sp, 0xe
 082C:0091  8bf0           mov    si, ax
 082C:0093  8bc6           mov    ax, si
@@ -13853,7 +13853,7 @@ L_082C_00A5:
 082C:00AF  1e             push   ds
 082C:00B0  b80a43         mov    ax, 0x430a
 082C:00B3  50             push   ax
-082C:00B4  9a07001b09     lcall  f_091B_0007
+082C:00B4  9a07001b09     lcall  joystick_read
 082C:00B9  83c404         add    sp, 4
 082C:00BC  a10a43         mov    ax, word ptr [0x430a]
 082C:00BF  b90300         mov    cx, 3
@@ -13931,12 +13931,12 @@ L_082C_0176:
 L_082C_017E:
 082C:017E  ebc2           jmp    0x142
 
-f_082C_0180 proc  ; 082C:0180  callers: f_082C_0268
+orders_menu proc  ; 082C:0180  callers: month
 082C:0180  55             push   bp
 082C:0181  8bec           mov    bp, sp
 082C:0183  57             push   di
 082C:0184  56             push   si
-082C:0185  9ab2042304     lcall  f_0423_04B2
+082C:0185  9ab2042304     lcall  redraw_map
 082C:018A  83ec0e         sub    sp, 0xe
 082C:018D  8bc4           mov    ax, sp
 082C:018F  8cd2           mov    dx, ss
@@ -13949,35 +13949,35 @@ f_082C_0180 proc  ; 082C:0180  callers: f_082C_0268
 082C:019E  f3a5           rep movsw word ptr es:[di], word ptr [si]
 082C:01A0  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:01A1  5e             pop    si
-082C:01A2  9af3020a07     lcall  f_070A_02F3
+082C:01A2  9af3020a07     lcall  dialog
 082C:01A7  83c40e         add    sp, 0xe
 082C:01AA  a20f1d         mov    byte ptr [0x1d0f], al
 082C:01AD  98             cwde   
 082C:01AE  e9a200         jmp    0x253
 L_082C_01B1:
-082C:01B1  ff360c45       push   word ptr [0x450c]
-082C:01B5  9a0600d302     lcall  f_02D3_0006
+082C:01B1  ff360c45       push   word ptr [0x450c]   ; player
+082C:01B5  9a0600d302     lcall  tournament
 082C:01BA  59             pop    cx
 082C:01BB  8bf0           mov    si, ax
 082C:01BD  e9a000         jmp    0x260
 L_082C_01C0:
-082C:01C0  9ad305a501     lcall  f_01A5_05D3
+082C:01C0  9ad305a501     lcall  seek_conquest
 082C:01C5  8bf0           mov    si, ax
 082C:01C7  e99600         jmp    0x260
 L_082C_01CA:
-082C:01CA  9aca010e05     lcall  f_050E_01CA
+082C:01CA  9aca010e05     lcall  go_raiding
 082C:01CF  8bf0           mov    si, ax
 082C:01D1  e98c00         jmp    0x260
 L_082C_01D4:
-082C:01D4  9a0b007601     lcall  f_0176_000B
+082C:01D4  9a0b007601     lcall  buy_army
 082C:01D9  8bf0           mov    si, ax
 082C:01DB  e98200         jmp    0x260
 L_082C_01DE:
-082C:01DE  9a59052304     lcall  f_0423_0559
+082C:01DE  9a59052304     lcall  read_map
 082C:01E3  8bf0           mov    si, ax
 082C:01E5  eb79           jmp    0x260
 L_082C_01E7:
-082C:01E7  a10c45         mov    ax, word ptr [0x450c]
+082C:01E7  a10c45         mov    ax, word ptr [0x450c]   ; player
 082C:01EA  8bd0           mov    dx, ax
 082C:01EC  b103           mov    cl, 3
 082C:01EE  d3e0           shl    ax, cl
@@ -13985,14 +13985,14 @@ L_082C_01E7:
 082C:01F2  d1e0           shl    ax, 1
 082C:01F4  d1e0           shl    ax, 1
 082C:01F6  8bd8           mov    bx, ax
-082C:01F8  ffb74644       push   word ptr [bx + 0x4446]
-082C:01FC  ffb74444       push   word ptr [bx + 0x4444]
+082C:01F8  ffb74644       push   word ptr [bx + 0x4446]   ; side+2
+082C:01FC  ffb74444       push   word ptr [bx + 0x4444]   ; side.name
 082C:0200  1e             push   ds
 082C:0201  b8c83d         mov    ax, 0x3dc8   ; "Lord %s Passes"
 082C:0204  50             push   ax
 082C:0205  ff368e1d       push   word ptr [0x1d8e]
 082C:0209  ff368c1d       push   word ptr [0x1d8c]
-082C:020D  9a0600f809     lcall  f_09F8_0006
+082C:020D  9a0600f809     lcall  sprintf
 082C:0212  83c40c         add    sp, 0xc
 082C:0215  83ec0e         sub    sp, 0xe
 082C:0218  8bc4           mov    ax, sp
@@ -14006,12 +14006,12 @@ L_082C_01E7:
 082C:0229  f3a5           rep movsw word ptr es:[di], word ptr [si]
 082C:022B  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:022C  5e             pop    si
-082C:022D  9af3020a07     lcall  f_070A_02F3
+082C:022D  9af3020a07     lcall  dialog
 082C:0232  83c40e         add    sp, 0xe
 082C:0235  be0100         mov    si, 1
 082C:0238  eb26           jmp    0x260
 L_082C_023A:
-082C:023A  9a06002c08     lcall  f_082C_0006
+082C:023A  9a06002c08     lcall  options_menu
 082C:023F  8bf0           mov    si, ax
 082C:0241  eb1d           jmp    0x260
 082C:0243  ; switch table, 8 entries: 0260 01B1 01C0 01CA 01D4 01DE 01E7 023A
@@ -14029,7 +14029,7 @@ L_082C_0260:
 082C:0266  5d             pop    bp
 082C:0267  cb             retf   
 
-f_082C_0268 proc  ; 082C:0268  callers: f_0000_0000
+month proc  ; 082C:0268  callers: main
 082C:0268  55             push   bp
 082C:0269  8bec           mov    bp, sp
 082C:026B  83c4fa         add    sp, -6
@@ -14042,27 +14042,27 @@ L_082C_0273:
 082C:0278  e90204         jmp    0x67d
 L_082C_027B:
 082C:027B  56             push   si
-082C:027C  9a8402f103     lcall  f_03F1_0284
+082C:027C  9a8402f103     lcall  side_income
 082C:0281  59             pop    cx
-082C:0282  3b360c45       cmp    si, word ptr [0x450c]
+082C:0282  3b360c45       cmp    si, word ptr [0x450c]   ; player
 082C:0286  7403           je     0x28b
 082C:0288  e97600         jmp    0x301
 L_082C_028B:
-082C:028B  ff06e046       inc    word ptr [0x46e0]
-082C:028F  9a9c00f907     lcall  f_07F9_009C
-082C:0294  9a4b090a07     lcall  f_070A_094B
-082C:0299  9a0d000e05     lcall  f_050E_000D
+082C:028B  ff06e046       inc    word ptr [0x46e0]   ; month
+082C:028F  9a9c00f907     lcall  monthly_event
+082C:0294  9a4b090a07     lcall  month_status
+082C:0299  9a0d000e05     lcall  rescue_offer
 082C:029E  8bf8           mov    di, ax
 L_082C_02A0:
 082C:02A0  85ff           test   di, di
 082C:02A2  7509           jne    0x2ad
-082C:02A4  9a80012c08     lcall  f_082C_0180
+082C:02A4  9a80012c08     lcall  orders_menu
 082C:02A9  8bf8           mov    di, ax
 082C:02AB  ebf3           jmp    0x2a0
 L_082C_02AD:
 082C:02AD  833e084300     cmp    word ptr [0x4308], 0
 082C:02B2  754b           jne    0x2ff
-082C:02B4  9ab2042304     lcall  f_0423_04B2
+082C:02B4  9ab2042304     lcall  redraw_map
 082C:02B9  83ec0e         sub    sp, 0xe
 082C:02BC  57             push   di
 082C:02BD  8bc4           mov    ax, sp
@@ -14078,11 +14078,11 @@ L_082C_02AD:
 082C:02D3  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:02D4  5e             pop    si
 082C:02D5  5f             pop    di
-082C:02D6  9af3020a07     lcall  f_070A_02F3
+082C:02D6  9af3020a07     lcall  dialog
 082C:02DB  83c40e         add    sp, 0xe
 082C:02DE  b80400         mov    ax, 4
 082C:02E1  50             push   ax
-082C:02E2  a10c45         mov    ax, word ptr [0x450c]
+082C:02E2  a10c45         mov    ax, word ptr [0x450c]   ; player
 082C:02E5  8bd0           mov    dx, ax
 082C:02E7  b103           mov    cl, 3
 082C:02E9  d3e0           shl    ax, cl
@@ -14090,18 +14090,18 @@ L_082C_02AD:
 082C:02ED  d1e0           shl    ax, 1
 082C:02EF  d1e0           shl    ax, 1
 082C:02F1  8bd8           mov    bx, ax
-082C:02F3  ffb75044       push   word ptr [bx + 0x4450]
-082C:02F7  9ab9052304     lcall  f_0423_05B9
+082C:02F3  ffb75044       push   word ptr [bx + 0x4450]   ; side.home
+082C:02F7  9ab9052304     lcall  flash_territory
 082C:02FC  83c404         add    sp, 4
 L_082C_02FF:
 082C:02FF  eb07           jmp    0x308
 L_082C_0301:
 082C:0301  56             push   si
-082C:0302  9a0000ba04     lcall  f_04BA_0000
+082C:0302  9a0000ba04     lcall  ai_turn
 082C:0307  59             pop    cx
 L_082C_0308:
 082C:0308  56             push   si
-082C:0309  9a8402f103     lcall  f_03F1_0284
+082C:0309  9a8402f103     lcall  side_income
 082C:030E  59             pop    cx
 082C:030F  a01f37         mov    al, byte ptr [0x371f]
 082C:0312  98             cwde   
@@ -14129,18 +14129,18 @@ L_082C_0334:
 082C:0339  e97801         jmp    0x4b4
 L_082C_033C:
 082C:033C  c70608430100   mov    word ptr [0x4308], 1
-082C:0342  3b060c45       cmp    ax, word ptr [0x450c]
+082C:0342  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 082C:0346  7403           je     0x34b
 082C:0348  e9da00         jmp    0x425
 L_082C_034B:
 082C:034B  33c0           xor    ax, ax
 082C:034D  50             push   ax
-082C:034E  9a0f00ef08     lcall  f_08EF_000F
+082C:034E  9a0f00ef08     lcall  clear_screen
 082C:0353  59             pop    cx
 082C:0354  ff360800       push   word ptr [8]
 082C:0358  b89e00         mov    ax, 0x9e   ; "of %s"
 082C:035B  50             push   ax
-082C:035C  9ae00d0a07     lcall  f_070A_0DE0
+082C:035C  9ae00d0a07     lcall  play_tune
 082C:0361  83c404         add    sp, 4
 082C:0364  83ec0e         sub    sp, 0xe
 082C:0367  57             push   di
@@ -14157,7 +14157,7 @@ L_082C_034B:
 082C:037E  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:037F  5e             pop    si
 082C:0380  5f             pop    di
-082C:0381  9af3020a07     lcall  f_070A_02F3
+082C:0381  9af3020a07     lcall  dialog
 082C:0386  83c40e         add    sp, 0xe
 082C:0389  83ec0e         sub    sp, 0xe
 082C:038C  57             push   di
@@ -14174,33 +14174,33 @@ L_082C_034B:
 082C:03A3  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:03A4  5e             pop    si
 082C:03A5  5f             pop    di
-082C:03A6  9af3020a07     lcall  f_070A_02F3
+082C:03A6  9af3020a07     lcall  dialog
 082C:03AB  83c40e         add    sp, 0xe
 082C:03AE  b800c0         mov    ax, 0xc000
 082C:03B1  50             push   ax
 082C:03B2  ff360447       push   word ptr [0x4704]
-082C:03B6  ff360247       push   word ptr [0x4702]
+082C:03B6  ff360247       push   word ptr [0x4702]   ; lib_scene
 082C:03BA  1e             push   ds
 082C:03BB  b8d73d         mov    ax, 0x3dd7   ; "RAID.LIB"
 082C:03BE  50             push   ax
-082C:03BF  9a5a010a07     lcall  f_070A_015A
+082C:03BF  9a5a010a07     lcall  load_lib
 082C:03C4  83c40a         add    sp, 0xa
 082C:03C7  b80500         mov    ax, 5
 082C:03CA  50             push   ax
 082C:03CB  ff360447       push   word ptr [0x4704]
-082C:03CF  ff360247       push   word ptr [0x4702]
-082C:03D3  9ab1020a07     lcall  f_070A_02B1
+082C:03CF  ff360247       push   word ptr [0x4702]   ; lib_scene
+082C:03D3  9ab1020a07     lcall  show_lib_picture
 082C:03D8  83c406         add    sp, 6
-082C:03DB  9ab3010a07     lcall  f_070A_01B3
+082C:03DB  9ab3010a07     lcall  show_screen
 082C:03E0  b83600         mov    ax, 0x36
 082C:03E3  50             push   ax
-082C:03E4  9ab2080a07     lcall  f_070A_08B2
+082C:03E4  9ab2080a07     lcall  wait_ticks
 082C:03E9  59             pop    cx
-082C:03EA  c41e0647       les    bx, ptr [0x4706]
+082C:03EA  c41e0647       les    bx, ptr [0x4706]   ; scene_items
 082C:03EE  268b470c       mov    ax, word ptr es:[bx + 0xc]
 082C:03F2  d1e0           shl    ax, 1
-082C:03F4  03060647       add    ax, word ptr [0x4706]
-082C:03F8  8b160847       mov    dx, word ptr [0x4708]
+082C:03F4  03060647       add    ax, word ptr [0x4706]   ; scene_items
+082C:03F8  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 082C:03FC  8956fe         mov    word ptr [bp - 2], dx
 082C:03FF  8946fc         mov    word ptr [bp - 4], ax
 082C:0402  ff76fe         push   word ptr [bp - 2]
@@ -14209,31 +14209,31 @@ L_082C_034B:
 082C:040B  50             push   ax
 082C:040C  b81900         mov    ax, 0x19
 082C:040F  50             push   ax
-082C:0410  9a07009b08     lcall  f_089B_0007
+082C:0410  9a07009b08     lcall  put_sprite
 082C:0415  83c408         add    sp, 8
 082C:0418  b89e00         mov    ax, 0x9e   ; "of %s"
 082C:041B  50             push   ax
-082C:041C  9a2d0e0a07     lcall  f_070A_0E2D
+082C:041C  9a2d0e0a07     lcall  wait_tune
 082C:0421  59             pop    cx
 082C:0422  e98f00         jmp    0x4b4
 L_082C_0425:
 082C:0425  b800c0         mov    ax, 0xc000
 082C:0428  50             push   ax
 082C:0429  ff360447       push   word ptr [0x4704]
-082C:042D  ff360247       push   word ptr [0x4702]
+082C:042D  ff360247       push   word ptr [0x4702]   ; lib_scene
 082C:0431  1e             push   ds
 082C:0432  b8e03d         mov    ax, 0x3de0   ; "RAID.LIB"
 082C:0435  50             push   ax
-082C:0436  9a5a010a07     lcall  f_070A_015A
+082C:0436  9a5a010a07     lcall  load_lib
 082C:043B  83c40a         add    sp, 0xa
 082C:043E  33c0           xor    ax, ax
 082C:0440  50             push   ax
-082C:0441  9a0f00ef08     lcall  f_08EF_000F
+082C:0441  9a0f00ef08     lcall  clear_screen
 082C:0446  59             pop    cx
 082C:0447  ff360800       push   word ptr [8]
 082C:044B  b89d00         mov    ax, 0x9d   ; " of %s"
 082C:044E  50             push   ax
-082C:044F  9ae00d0a07     lcall  f_070A_0DE0
+082C:044F  9ae00d0a07     lcall  play_tune
 082C:0454  83c404         add    sp, 4
 082C:0457  83ec0e         sub    sp, 0xe
 082C:045A  57             push   di
@@ -14250,13 +14250,13 @@ L_082C_0425:
 082C:0471  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:0472  5e             pop    si
 082C:0473  5f             pop    di
-082C:0474  9af3020a07     lcall  f_070A_02F3
+082C:0474  9af3020a07     lcall  dialog
 082C:0479  83c40e         add    sp, 0xe
-082C:047C  c41e0647       les    bx, ptr [0x4706]
+082C:047C  c41e0647       les    bx, ptr [0x4706]   ; scene_items
 082C:0480  268b470c       mov    ax, word ptr es:[bx + 0xc]
 082C:0484  d1e0           shl    ax, 1
-082C:0486  03060647       add    ax, word ptr [0x4706]
-082C:048A  8b160847       mov    dx, word ptr [0x4708]
+082C:0486  03060647       add    ax, word ptr [0x4706]   ; scene_items
+082C:048A  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 082C:048E  8956fe         mov    word ptr [bp - 2], dx
 082C:0491  8946fc         mov    word ptr [bp - 4], ax
 082C:0494  ff76fe         push   word ptr [bp - 2]
@@ -14265,14 +14265,14 @@ L_082C_0425:
 082C:049D  50             push   ax
 082C:049E  b81900         mov    ax, 0x19
 082C:04A1  50             push   ax
-082C:04A2  9a07009b08     lcall  f_089B_0007
+082C:04A2  9a07009b08     lcall  put_sprite
 082C:04A7  83c408         add    sp, 8
 082C:04AA  b89d00         mov    ax, 0x9d   ; " of %s"
 082C:04AD  50             push   ax
-082C:04AE  9a2d0e0a07     lcall  f_070A_0E2D
+082C:04AE  9a2d0e0a07     lcall  wait_tune
 082C:04B3  59             pop    cx
 L_082C_04B4:
-082C:04B4  a10c45         mov    ax, word ptr [0x450c]
+082C:04B4  a10c45         mov    ax, word ptr [0x450c]   ; player
 082C:04B7  8bd0           mov    dx, ax
 082C:04B9  b103           mov    cl, 3
 082C:04BB  d3e0           shl    ax, cl
@@ -14280,7 +14280,7 @@ L_082C_04B4:
 082C:04BF  d1e0           shl    ax, 1
 082C:04C1  d1e0           shl    ax, 1
 082C:04C3  8bd8           mov    bx, ax
-082C:04C5  8b875044       mov    ax, word ptr [bx + 0x4450]
+082C:04C5  8b875044       mov    ax, word ptr [bx + 0x4450]   ; side.home
 082C:04C9  8bd0           mov    dx, ax
 082C:04CB  b103           mov    cl, 3
 082C:04CD  d3e0           shl    ax, cl
@@ -14288,9 +14288,9 @@ L_082C_04B4:
 082C:04D1  d1e0           shl    ax, 1
 082C:04D3  03c2           add    ax, dx
 082C:04D5  8bd8           mov    bx, ax
-082C:04D7  8a874e36       mov    al, byte ptr [bx + 0x364e]
+082C:04D7  8a874e36       mov    al, byte ptr [bx + 0x364e]   ; terr.owner
 082C:04DB  98             cwde   
-082C:04DC  3b060c45       cmp    ax, word ptr [0x450c]
+082C:04DC  3b060c45       cmp    ax, word ptr [0x450c]   ; player
 082C:04E0  7503           jne    0x4e5
 082C:04E2  e9c500         jmp    0x5aa
 L_082C_04E5:
@@ -14298,20 +14298,20 @@ L_082C_04E5:
 082C:04EB  b800c0         mov    ax, 0xc000
 082C:04EE  50             push   ax
 082C:04EF  ff360447       push   word ptr [0x4704]
-082C:04F3  ff360247       push   word ptr [0x4702]
+082C:04F3  ff360247       push   word ptr [0x4702]   ; lib_scene
 082C:04F7  1e             push   ds
 082C:04F8  b8e93d         mov    ax, 0x3de9   ; "RAID.LIB"
 082C:04FB  50             push   ax
-082C:04FC  9a5a010a07     lcall  f_070A_015A
+082C:04FC  9a5a010a07     lcall  load_lib
 082C:0501  83c40a         add    sp, 0xa
 082C:0504  33c0           xor    ax, ax
 082C:0506  50             push   ax
-082C:0507  9a0f00ef08     lcall  f_08EF_000F
+082C:0507  9a0f00ef08     lcall  clear_screen
 082C:050C  59             pop    cx
 082C:050D  ff360800       push   word ptr [8]
 082C:0511  b89d00         mov    ax, 0x9d   ; " of %s"
 082C:0514  50             push   ax
-082C:0515  9ae00d0a07     lcall  f_070A_0DE0
+082C:0515  9ae00d0a07     lcall  play_tune
 082C:051A  83c404         add    sp, 4
 082C:051D  83ec0e         sub    sp, 0xe
 082C:0520  57             push   di
@@ -14328,11 +14328,11 @@ L_082C_04E5:
 082C:0537  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:0538  5e             pop    si
 082C:0539  5f             pop    di
-082C:053A  9af3020a07     lcall  f_070A_02F3
+082C:053A  9af3020a07     lcall  dialog
 082C:053F  83c40e         add    sp, 0xe
 082C:0542  33c0           xor    ax, ax
 082C:0544  50             push   ax
-082C:0545  9a0f00ef08     lcall  f_08EF_000F
+082C:0545  9a0f00ef08     lcall  clear_screen
 082C:054A  59             pop    cx
 082C:054B  83ec0e         sub    sp, 0xe
 082C:054E  57             push   di
@@ -14349,13 +14349,13 @@ L_082C_04E5:
 082C:0565  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:0566  5e             pop    si
 082C:0567  5f             pop    di
-082C:0568  9af3020a07     lcall  f_070A_02F3
+082C:0568  9af3020a07     lcall  dialog
 082C:056D  83c40e         add    sp, 0xe
-082C:0570  c41e0647       les    bx, ptr [0x4706]
+082C:0570  c41e0647       les    bx, ptr [0x4706]   ; scene_items
 082C:0574  268b470c       mov    ax, word ptr es:[bx + 0xc]
 082C:0578  d1e0           shl    ax, 1
-082C:057A  03060647       add    ax, word ptr [0x4706]
-082C:057E  8b160847       mov    dx, word ptr [0x4708]
+082C:057A  03060647       add    ax, word ptr [0x4706]   ; scene_items
+082C:057E  8b160847       mov    dx, word ptr [0x4708]   ; scene_items_seg
 082C:0582  8956fe         mov    word ptr [bp - 2], dx
 082C:0585  8946fc         mov    word ptr [bp - 4], ax
 082C:0588  ff76fe         push   word ptr [bp - 2]
@@ -14364,11 +14364,11 @@ L_082C_04E5:
 082C:0591  50             push   ax
 082C:0592  b81900         mov    ax, 0x19
 082C:0595  50             push   ax
-082C:0596  9a07009b08     lcall  f_089B_0007
+082C:0596  9a07009b08     lcall  put_sprite
 082C:059B  83c408         add    sp, 8
 082C:059E  b89d00         mov    ax, 0x9d   ; " of %s"
 082C:05A1  50             push   ax
-082C:05A2  9a2d0e0a07     lcall  f_070A_0E2D
+082C:05A2  9a2d0e0a07     lcall  wait_tune
 082C:05A7  59             pop    cx
 082C:05A8  eb4d           jmp    0x5f7
 L_082C_05AA:
@@ -14391,16 +14391,16 @@ L_082C_05B9:
 082C:05D0  7d25           jge    0x5f7
 082C:05D2  b80200         mov    ax, 2
 082C:05D5  50             push   ax
-082C:05D6  ff360c45       push   word ptr [0x450c]
+082C:05D6  ff360c45       push   word ptr [0x450c]   ; player
 082C:05DA  50             push   ax
-082C:05DB  9ab200bb02     lcall  f_02BB_00B2
+082C:05DB  9ab200bb02     lcall  enmity_add
 082C:05E0  83c406         add    sp, 6
 082C:05E3  b80200         mov    ax, 2
 082C:05E6  50             push   ax
-082C:05E7  ff360c45       push   word ptr [0x450c]
+082C:05E7  ff360c45       push   word ptr [0x450c]   ; player
 082C:05EB  b80300         mov    ax, 3
 082C:05EE  50             push   ax
-082C:05EF  9ab200bb02     lcall  f_02BB_00B2
+082C:05EF  9ab200bb02     lcall  enmity_add
 082C:05F4  83c406         add    sp, 6
 L_082C_05F7:
 082C:05F7  833e084300     cmp    word ptr [0x4308], 0
@@ -14413,11 +14413,11 @@ L_082C_0601:
 082C:060D  7568           jne    0x677
 082C:060F  b82400         mov    ax, 0x24
 082C:0612  50             push   ax
-082C:0613  9ab2080a07     lcall  f_070A_08B2
+082C:0613  9ab2080a07     lcall  wait_ticks
 082C:0618  59             pop    cx
 082C:0619  33c0           xor    ax, ax
 082C:061B  50             push   ax
-082C:061C  9a0f00ef08     lcall  f_08EF_000F
+082C:061C  9a0f00ef08     lcall  clear_screen
 082C:0621  59             pop    cx
 082C:0622  83ec0e         sub    sp, 0xe
 082C:0625  57             push   di
@@ -14434,7 +14434,7 @@ L_082C_0601:
 082C:063C  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:063D  5e             pop    si
 082C:063E  5f             pop    di
-082C:063F  9af3020a07     lcall  f_070A_02F3
+082C:063F  9af3020a07     lcall  dialog
 082C:0644  83c40e         add    sp, 0xe
 082C:0647  83ec0e         sub    sp, 0xe
 082C:064A  57             push   di
@@ -14451,7 +14451,7 @@ L_082C_0601:
 082C:0661  a4             movsb  byte ptr es:[di], byte ptr [si]
 082C:0662  5e             pop    si
 082C:0663  5f             pop    di
-082C:0664  9af3020a07     lcall  f_070A_02F3
+082C:0664  9af3020a07     lcall  dialog
 082C:0669  83c40e         add    sp, 0xe
 082C:066C  3d0200         cmp    ax, 2
 082C:066F  7506           jne    0x677
@@ -14470,7 +14470,7 @@ L_082C_067D:
 
 ;================ segment 0894 ================
 
-f_0894_0003 proc  ; 0894:0003  callers: f_070A_02F3
+put_key0 proc  ; 0894:0003  callers: dialog
 0894:0003  55             push   bp
 0894:0004  8bec           mov    bp, sp
 0894:0006  1e             push   ds
@@ -14536,7 +14536,7 @@ L_0894_0071:
 
 ;================ segment 089B ================
 
-f_089B_0007 proc  ; 089B:0007  callers: f_02D3_0737, f_02D3_0A16, f_050E_03BE ...
+put_sprite proc  ; 089B:0007  callers: joust_approach, lady_animate, lance_step ...
 089B:0007  55             push   bp
 089B:0008  8bec           mov    bp, sp
 089B:000A  1e             push   ds
@@ -14593,7 +14593,7 @@ L_089B_0061:
 
 ;================ segment 08A1 ================
 
-f_08A1_0007 proc  ; 08A1:0007  callers: f_0079_010E, f_070A_02F3
+xor_rect_ff proc  ; 08A1:0007  callers: battle_shown, dialog
 08A1:0007  55             push   bp
 08A1:0008  8bec           mov    bp, sp
 08A1:000A  1e             push   ds
@@ -14643,7 +14643,7 @@ L_08A1_0052:
 
 ;================ segment 08A6 ================
 
-f_08A6_0008 proc  ; 08A6:0008  callers: f_021C_0002, f_021C_0996, f_0423_04B2, f_0423_05B9, f_050E_0470, f_0637_0008
+xor_sprite proc  ; 08A6:0008  callers: catapult_aim, fire_flicker, fire_flicker2, flash_territory, new_game, redraw_map
 08A6:0008  55             push   bp
 08A6:0009  8bec           mov    bp, sp
 08A6:000B  1e             push   ds
@@ -14700,13 +14700,13 @@ L_08A6_0062:
 
 ;================ segment 08AC ================
 
-f_08AC_0008 proc  ; 08AC:0008  callers: f_0155_0008, f_0176_000B, f_070A_092D
+speaker_off proc  ; 08AC:0008  callers: beep, buy_army, transfer_forces
 08AC:0008  e461           in     al, 0x61
 08AC:000A  24fe           and    al, 0xfe
 08AC:000C  e661           out    0x61, al
 08AC:000E  cb             retf   
 
-f_08AC_000F proc  ; 08AC:000F  callers: f_021C_0002
+sound_init proc  ; 08AC:000F  callers: new_game
 08AC:000F  55             push   bp
 08AC:0010  8bec           mov    bp, sp
 08AC:0012  1e             push   ds
@@ -14723,7 +14723,7 @@ f_08AC_000F proc  ; 08AC:000F  callers: f_021C_0002
 08AC:0021  cb             retf   
           ; 124 bytes not disassembled
 
-f_08AC_009E proc  ; 08AC:009E  callers: f_08AC_000F
+f_08AC_009E proc  ; 08AC:009E  callers: sound_init
 08AC:009E  50             push   ax
 08AC:009F  1e             push   ds
 08AC:00A0  8ad0           mov    dl, al
@@ -14917,7 +14917,7 @@ L_08AC_0232:
 
 ;================ segment 08EF ================
 
-f_08EF_000F proc  ; 08EF:000F  callers: f_0079_010E, f_021C_0002, f_082C_0268
+clear_screen proc  ; 08EF:000F  callers: battle_shown, month, new_game
 08EF:000F  55             push   bp
 08EF:0010  8bec           mov    bp, sp
 08EF:0012  1e             push   ds
@@ -14940,7 +14940,7 @@ f_08EF_000F proc  ; 08EF:000F  callers: f_0079_010E, f_021C_0002, f_082C_0268
 
 ;================ segment 08F2 ================
 
-f_08F2_0002 proc  ; 08F2:0002  callers: f_0000_0000
+ega_present proc  ; 08F2:0002  callers: main
 08F2:0002  b412           mov    ah, 0x12
 08F2:0004  bb10ff         mov    bx, 0xff10
 08F2:0007  cd10           int    0x10
@@ -14953,7 +14953,7 @@ L_08F2_0014:
 
 ;================ segment 08F3 ================
 
-f_08F3_0005 proc  ; 08F3:0005  callers: f_0155_0008, f_0176_000B, f_02D3_0A16, f_02D3_0BA7, f_070A_092D
+speaker_tone proc  ; 08F3:0005  callers: beep, buy_army, joust_outcome, lance_step, transfer_forces
 08F3:0005  55             push   bp
 08F3:0006  8bec           mov    bp, sp
 08F3:0008  b0b6           mov    al, 0xb6
@@ -14970,7 +14970,7 @@ f_08F3_0005 proc  ; 08F3:0005  callers: f_0155_0008, f_0176_000B, f_02D3_0A16, f
 
 ;================ segment 08F4 ================
 
-f_08F4_000D proc  ; 08F4:000D  callers: f_02D3_0BA7, f_0637_0008 ...
+put_key1 proc  ; 08F4:000D  callers: catapult_aim, joust_outcome ...
 08F4:000D  55             push   bp
 08F4:000E  8bec           mov    bp, sp
 08F4:0010  1e             push   ds
@@ -15037,7 +15037,7 @@ L_08F4_005F:
 
 ;================ segment 090C ================
 
-f_090C_0004 proc  ; 090C:0004  callers: f_021C_086F
+get_pixel proc  ; 090C:0004  callers: title_twinkle
 090C:0004  55             push   bp
 090C:0005  8bec           mov    bp, sp
 090C:0007  1e             push   ds
@@ -15073,7 +15073,7 @@ L_090C_0027:
 
 ;================ segment 0910 ================
 
-f_0910_0003 proc  ; 0910:0003  callers: f_070A_02F3
+put_glyph proc  ; 0910:0003  callers: dialog
 0910:0003  55             push   bp
 0910:0004  8bec           mov    bp, sp
 0910:0006  1e             push   ds
@@ -15155,7 +15155,7 @@ L_0910_0096:
 
 ;================ segment 0919 ================
 
-f_0919_000C proc  ; 0919:000C  callers: f_02D3_0A16
+crtc_write proc  ; 0919:000C  callers: lance_step
 0919:000C  55             push   bp
 0919:000D  8bec           mov    bp, sp
 0919:000F  bada03         mov    dx, 0x3da
@@ -15174,7 +15174,7 @@ L_0919_0012:
 
 ;================ segment 091B ================
 
-f_091B_0007 proc  ; 091B:0007  callers: f_070A_07EF, f_082C_0006
+joystick_read proc  ; 091B:0007  callers: joystick_key, options_menu
 091B:0007  55             push   bp
 091B:0008  8bec           mov    bp, sp
 091B:000A  1e             push   ds
@@ -15227,7 +15227,7 @@ L_091B_0037:
 
 ;================ segment 0920 ================
 
-f_0920_000B proc  ; 0920:000B  callers: f_070A_0761, f_070A_07AB
+bios_key proc  ; 0920:000B  callers: get_key, wait_key
 0920:000B  b80001         mov    ax, 0x100   ; " fields of %s."
 0920:000E  cd16           int    0x16
 0920:0010  7410           je     0x22
@@ -15246,7 +15246,7 @@ L_0920_0025:
 
 ;================ segment 0922 ================
 
-f_0922_0006 proc  ; 0922:0006  callers: f_050E_118E
+crtc_start proc  ; 0922:0006  callers: raid_defense
 0922:0006  55             push   bp
 0922:0007  8bec           mov    bp, sp
 0922:0009  1e             push   ds
@@ -15309,7 +15309,7 @@ L_0922_0070:
 
 ;================ segment 0929 ================
 
-f_0929_0006 proc  ; 0929:0006  callers: f_0000_0000, f_070A_0DE0
+tune_hook? proc  ; 0929:0006  callers: main, play_tune
 0929:0006  55             push   bp
 0929:0007  8bec           mov    bp, sp
 0929:0009  1e             push   ds
@@ -15366,7 +15366,7 @@ L_0929_0073:
 
 ;================ segment 0938 ================
 
-f_0938_000C proc  ; 0938:000C  callers: f_021C_0002, f_0423_0758
+recolour_territory proc  ; 0938:000C  callers: new_game, set_owner
 0938:000C  55             push   bp
 0938:000D  8bec           mov    bp, sp
 0938:000F  1e             push   ds
@@ -15408,7 +15408,7 @@ L_0938_004B:
 
 ;================ segment 093C ================
 
-f_093C_000F proc  ; 093C:000F  callers: f_021C_086F, f_050E_08F7
+put_pixel proc  ; 093C:000F  callers: bar_shorten, title_twinkle
 093C:000F  55             push   bp
 093C:0010  8bec           mov    bp, sp
 093C:0012  1e             push   ds
@@ -15444,7 +15444,7 @@ L_093C_003C:
 
 ;================ segment 0940 ================
 
-f_0940_000F proc  ; 0940:000F  callers: f_0079_010E
+xor_rect_aa proc  ; 0940:000F  callers: battle_shown
 0940:000F  55             push   bp
 0940:0010  8bec           mov    bp, sp
 0940:0012  1e             push   ds
@@ -15494,7 +15494,7 @@ L_0940_005A:
 
 ;================ segment 0946 ================
 
-f_0946_0000 proc  ; 0946:0000  callers: f_070A_02B1
+decompress proc  ; 0946:0000  callers: show_lib_picture
 0946:0000  55             push   bp
 0946:0001  8bec           mov    bp, sp
 0946:0003  1e             push   ds
@@ -15612,7 +15612,7 @@ L_0946_00C7:
 
 ;================ segment 0952 ================
 
-f_0952_000E proc  ; 0952:000E  callers: f_0423_0357, f_0423_0758
+and_mask proc  ; 0952:000E  callers: draw_castles, set_owner
 0952:000E  55             push   bp
 0952:000F  8bec           mov    bp, sp
 0952:0011  1e             push   ds
@@ -15672,7 +15672,7 @@ L_0952_006C:
 
 ;================ segment 0959 ================
 
-f_0959_0002 proc  ; 0959:0002  callers: f_0079_010E, f_021C_0002, f_070A_02F3
+fill_rect proc  ; 0959:0002  callers: battle_shown, dialog, new_game
 0959:0002  55             push   bp
 0959:0003  8bec           mov    bp, sp
 0959:0005  1e             push   ds
@@ -15728,7 +15728,7 @@ L_0959_0058:
 
 ;================ segment 095E ================
 
-f_095E_000E proc  ; 095E:000E  callers: f_02D3_0BA7, f_050E_0960, f_050E_0ADB, f_0637_0008 ...
+restore_rect proc  ; 095E:000E  callers: catapult_aim, joust_outcome, sword_fight, sword_pose_a ...
 095E:000E  55             push   bp
 095E:000F  8bec           mov    bp, sp
 095E:0011  1e             push   ds
@@ -15785,7 +15785,7 @@ L_095E_005B:
 
 ;================ segment 0964 ================
 
-f_0964_000F proc  ; 0964:000F  callers: f_0637_05AB, f_0637_07BC
+save_rect proc  ; 0964:000F  callers: siege_by_player, siege_hole?
 0964:000F  55             push   bp
 0964:0010  8bec           mov    bp, sp
 0964:0012  1e             push   ds
@@ -15842,7 +15842,7 @@ L_0964_005C:
 
 ;================ segment 096B ================
 
-f_096B_0000 proc  ; 096B:0000  callers: f_0079_010E ...
+or_sprite proc  ; 096B:0000  callers: battle_shown ...
 096B:0000  55             push   bp
 096B:0001  8bec           mov    bp, sp
 096B:0003  1e             push   ds
@@ -15902,7 +15902,7 @@ L_096B_005E:
 
 ;================ segment 0971 ================
 
-f_0971_0004 proc  ; 0971:0004  callers: f_021C_0002, f_02D3_0A16, f_050E_04D4
+put_sprite_w proc  ; 0971:0004  callers: lance_step, new_game, romance
 0971:0004  55             push   bp
 0971:0005  8bec           mov    bp, sp
 0971:0007  1e             push   ds
@@ -15962,7 +15962,7 @@ L_0971_0062:
 
 ;================ segment 0977 ================
 
-f_0977_0008 proc  ; 0977:0008  callers: f_02D3_0A16, f_02D3_0DF4
+save_under proc  ; 0977:0008  callers: joust, lance_step
 0977:0008  55             push   bp
 0977:0009  8bec           mov    bp, sp
 0977:000B  1e             push   ds
@@ -16022,7 +16022,7 @@ L_0977_0066:
 
 ;================ segment 097D ================
 
-f_097D_000C proc  ; 097D:000C  callers: f_0079_010E, f_050E_0ADB
+xor_sprite_w proc  ; 097D:000C  callers: battle_shown, sword_fight
 097D:000C  55             push   bp
 097D:000D  8bec           mov    bp, sp
 097D:000F  1e             push   ds
@@ -16082,7 +16082,7 @@ L_097D_006A:
 
 ;================ segment 0984 ================
 
-f_0984_0000 proc  ; 0984:0000  callers: f_0000_0000
+video_init proc  ; 0984:0000  callers: main
 0984:0000  55             push   bp
 0984:0001  8bec           mov    bp, sp
 0984:0003  8b4606         mov    ax, word ptr [bp + 6]
@@ -16090,7 +16090,7 @@ f_0984_0000 proc  ; 0984:0000  callers: f_0000_0000
 L_0984_0008:
 0984:0008  b80300         mov    ax, 3
 0984:000B  50             push   ax
-0984:000C  9a0800d209     lcall  f_09D2_0008
+0984:000C  9a0800d209     lcall  int10
 0984:0011  59             pop    cx
 0984:0012  e99e00         jmp    0xb3
 L_0984_0015:
@@ -16101,7 +16101,7 @@ L_0984_0015:
 0984:0027  c706133e3f01   mov    word ptr [0x3e13], 0x13f   ; "4d   Catapults@@%4d>"
 0984:002D  b80400         mov    ax, 4
 0984:0030  50             push   ax
-0984:0031  9a0800d209     lcall  f_09D2_0008
+0984:0031  9a0800d209     lcall  int10
 0984:0036  59             pop    cx
 0984:0037  e97900         jmp    0xb3
 L_0984_003A:
@@ -16112,7 +16112,7 @@ L_0984_003A:
 0984:004C  c706133e7f02   mov    word ptr [0x3e13], 0x27f   ; "r Designer Software, Inc."
 0984:0052  b80600         mov    ax, 6
 0984:0055  50             push   ax
-0984:0056  9a0800d209     lcall  f_09D2_0008
+0984:0056  9a0800d209     lcall  int10
 0984:005B  59             pop    cx
 0984:005C  eb55           jmp    0xb3
 L_0984_005E:
@@ -16127,7 +16127,7 @@ L_0984_006B:
 0984:006E  cb             retf   
 L_0984_006F:
 0984:006F  50             push   ax
-0984:0070  9a0800d209     lcall  f_09D2_0008
+0984:0070  9a0800d209     lcall  int10
 0984:0075  59             pop    cx
 0984:0076  eb3b           jmp    0xb3
 L_0984_0078:
@@ -16180,7 +16180,7 @@ L_0984_0117:
 0984:012A  ffe1           jmp    cx
           ; 4 bytes not disassembled
 
-f_0984_0130 proc  ; 0984:0130  callers: f_070A_01B3
+palette_set proc  ; 0984:0130  callers: show_screen
 0984:0130  55             push   bp
 0984:0131  8bec           mov    bp, sp
 0984:0133  837e0600       cmp    word ptr [bp + 6], 0
@@ -16192,7 +16192,7 @@ f_0984_0130 proc  ; 0984:0130  callers: f_070A_01B3
 0984:0140  50             push   ax
 0984:0141  b8000b         mov    ax, 0xb00   ; "ws, then ask his"
 0984:0144  50             push   ax
-0984:0145  9a0800d209     lcall  f_09D2_0008
+0984:0145  9a0800d209     lcall  int10
 0984:014A  83c408         add    sp, 8
 0984:014D  eb14           jmp    0x163
 L_0984_014F:
@@ -16203,14 +16203,14 @@ L_0984_014F:
 0984:0156  50             push   ax
 0984:0157  b8000b         mov    ax, 0xb00   ; "ws, then ask his"
 0984:015A  50             push   ax
-0984:015B  9a0800d209     lcall  f_09D2_0008
+0984:015B  9a0800d209     lcall  int10
 0984:0160  83c408         add    sp, 8
 L_0984_0163:
 0984:0163  8be5           mov    sp, bp
 0984:0165  5d             pop    bp
 0984:0166  cb             retf   
 
-f_0984_0167 proc  ; 0984:0167  callers: f_070A_01B3
+palette_restore proc  ; 0984:0167  callers: show_screen
 0984:0167  55             push   bp
 0984:0168  8bec           mov    bp, sp
 0984:016A  33c0           xor    ax, ax
@@ -16219,7 +16219,7 @@ f_0984_0167 proc  ; 0984:0167  callers: f_070A_01B3
 0984:016E  ff7606         push   word ptr [bp + 6]
 0984:0171  b8000b         mov    ax, 0xb00   ; "ws, then ask his"
 0984:0174  50             push   ax
-0984:0175  9a0800d209     lcall  f_09D2_0008
+0984:0175  9a0800d209     lcall  int10
 0984:017A  83c408         add    sp, 8
 0984:017D  8be5           mov    sp, bp
 0984:017F  5d             pop    bp
@@ -16591,7 +16591,7 @@ L_09C8_005E:
 
 ;================ segment 09D2 ================
 
-f_09D2_0008 proc  ; 09D2:0008  callers: f_0984_0000, f_0984_0130, f_0984_0167
+int10 proc  ; 09D2:0008  callers: palette_restore, palette_set, video_init
 09D2:0008  55             push   bp
 09D2:0009  8bec           mov    bp, sp
 09D2:000B  56             push   si
@@ -16609,7 +16609,7 @@ f_09D2_0008 proc  ; 09D2:0008  callers: f_0984_0000, f_0984_0130, f_0984_0167
 
 ;================ segment 09D4 ================
 
-f_09D4_0001 proc  ; 09D4:0001  callers: f_0000_0000
+f_09D4_0001 proc  ; 09D4:0001  callers: main
 09D4:0001  55             push   bp
 09D4:0002  8bec           mov    bp, sp
 09D4:0004  83c4fe         add    sp, -2
@@ -16865,7 +16865,7 @@ L_09F2_0052:
 
 ;================ segment 09F8 ================
 
-f_09F8_0006 proc  ; 09F8:0006  callers: f_0079_0000, f_0079_010E, f_0155_0008 ...
+sprintf proc  ; 09F8:0006  callers: battle_shown, show_armies, transfer_forces ...
 09F8:0006  55             push   bp
 09F8:0007  8bec           mov    bp, sp
 09F8:0009  56             push   si
@@ -16893,7 +16893,7 @@ f_09F8_0006 proc  ; 09F8:0006  callers: f_0079_0000, f_0079_010E, f_0155_0008 ..
 09F8:0041  5d             pop    bp
 09F8:0042  cb             retf   
 
-f_09F8_0043 proc  ; 09F8:0043  callers: f_09F8_0006
+f_09F8_0043 proc  ; 09F8:0043  callers: sprintf
 09F8:0043  55             push   bp
 09F8:0044  8bec           mov    bp, sp
 09F8:0046  8b4606         mov    ax, word ptr [bp + 6]
@@ -16908,7 +16908,7 @@ f_09F8_0043 proc  ; 09F8:0043  callers: f_09F8_0006
 
 ;================ segment 09FD ================
 
-f_09FD_000D proc  ; 09FD:000D  callers: f_070A_01B3
+copy_to_screen proc  ; 09FD:000D  callers: show_screen
 09FD:000D  55             push   bp
 09FD:000E  8bec           mov    bp, sp
 09FD:0010  57             push   di
@@ -16949,7 +16949,7 @@ L_09FD_003C:
 
 ;================ segment 0A01 ================
 
-f_0A01_0003 proc  ; 0A01:0003  callers: f_021C_0002, f_0423_05B9, f_070A_07EF, f_070A_08B2, f_070A_08E9
+get_ticks proc  ; 0A01:0003  callers: delay_ticks, flash_territory, joystick_key, new_game, wait_ticks
 0A01:0003  b42c           mov    ah, 0x2c
 0A01:0005  cd21           int    0x21
 0A01:0007  b064           mov    al, 0x64
@@ -17029,7 +17029,7 @@ L_0A05_006E:
 0A05:0074  9aaf03050a     lcall  f_0A05_03AF
 0A05:0079  83c404         add    sp, 4
 0A05:007C  ff760a         push   word ptr [bp + 0xa]
-0A05:007F  9a2101050a     lcall  f_0A05_0121
+0A05:007F  9a2101050a     lcall  malloc
 0A05:0084  59             pop    cx
 0A05:0085  8956fe         mov    word ptr [bp - 2], dx
 0A05:0088  8946fc         mov    word ptr [bp - 4], ax
@@ -17095,7 +17095,7 @@ L_0A05_0117:
 0A05:011F  5d             pop    bp
 0A05:0120  cb             retf   
 
-f_0A05_0121 proc  ; 0A05:0121  callers: f_070A_00E7, f_0A05_0000
+malloc proc  ; 0A05:0121  callers: f_0A05_0000, far_alloc
 0A05:0121  55             push   bp
 0A05:0122  8bec           mov    bp, sp
 0A05:0124  83c4f2         add    sp, -0xe
@@ -17457,7 +17457,7 @@ L_0A44_00B9:
 0A44:00C3  5d             pop    bp
 0A44:00C4  cb             retf   
 
-f_0A44_00C5 proc  ; 0A44:00C5  callers: f_09F8_0006
+f_0A44_00C5 proc  ; 0A44:00C5  callers: sprintf
 0A44:00C5  55             push   bp
 0A44:00C6  8bec           mov    bp, sp
 0A44:00C8  81c422ff       add    sp, 0xff22
@@ -17804,13 +17804,13 @@ f_0A81_000F proc  ; 0A81:000F
 0A81:0018  50             push   ax
 0A81:0019  ff7608         push   word ptr [bp + 8]
 0A81:001C  ff7606         push   word ptr [bp + 6]
-0A81:001F  9a2b00810a     lcall  f_0A81_002B
+0A81:001F  9a2b00810a     lcall  open
 0A81:0024  83c408         add    sp, 8
 0A81:0027  8be5           mov    sp, bp
 0A81:0029  5d             pop    bp
 0A81:002A  cb             retf   
 
-f_0A81_002B proc  ; 0A81:002B  callers: f_070A_015A, f_0A81_000F
+open proc  ; 0A81:002B  callers: f_0A81_000F, load_lib
 0A81:002B  55             push   bp
 0A81:002C  8bec           mov    bp, sp
 0A81:002E  57             push   di
@@ -17850,7 +17850,7 @@ L_0A81_0080:
 0A81:0080  f7460a0004     test   word ptr [bp + 0xa], 0x400
 0A81:0085  7416           je     0x9d
 0A81:0087  56             push   si
-0A81:0088  9a5100cd0a     lcall  f_0ACD_0051
+0A81:0088  9a5100cd0a     lcall  dos_close
 0A81:008D  59             pop    cx
 0A81:008E  c70682401300   mov    word ptr [0x4082], 0x13
 0A81:0094  b8ffff         mov    ax, 0xffff
@@ -17872,7 +17872,7 @@ L_0A81_009D:
 0A81:00B3  52             push   dx
 0A81:00B4  50             push   ax
 0A81:00B5  56             push   si
-0A81:00B6  9a6900cd0a     lcall  f_0ACD_0069
+0A81:00B6  9a6900cd0a     lcall  dos_lseek
 0A81:00BB  83c408         add    sp, 8
 L_0A81_00BE:
 0A81:00BE  56             push   si
@@ -17885,7 +17885,7 @@ L_0A81_00C9:
 
 ;================ segment 0A8D ================
 
-f_0A8D_000D proc  ; 0A8D:000D  callers: f_04BA_0123, f_0AFF_0009
+f_0A8D_000D proc  ; 0A8D:000D  callers: ai_buy, ran_float
 0A8D:000D  57             push   di
 0A8D:000E  2bff           sub    di, di
 0A8D:0010  85d2           test   dx, dx
@@ -18013,7 +18013,7 @@ f_0A9A_0009 proc  ; 0A9A:0009  callers: f_0A44_00C5
 
 ;================ segment 0A9C ================
 
-f_0A9C_0002 proc  ; 0A9C:0002  callers: f_09D4_0001, f_0A81_002B
+f_0A9C_0002 proc  ; 0A9C:0002  callers: f_09D4_0001, open
 0A9C:0002  55             push   bp
 0A9C:0003  8bec           mov    bp, sp
 0A9C:0005  8b4606         mov    ax, word ptr [bp + 6]
@@ -18056,7 +18056,7 @@ L_0A9C_003C:
 
 ;================ segment 0AA0 ================
 
-f_0AA0_0006 proc  ; 0AA0:0006  callers: f_0A05_0000, f_0A05_0121
+f_0AA0_0006 proc  ; 0AA0:0006  callers: f_0A05_0000, malloc
 0AA0:0006  55             push   bp
 0AA0:0007  8bec           mov    bp, sp
 0AA0:0009  8b4608         mov    ax, word ptr [bp + 8]
@@ -18077,7 +18077,7 @@ L_0AA0_0014:
 
 ;================ segment 0AA2 ================
 
-f_0AA2_000A proc  ; 0AA2:000A  callers: f_0A05_0000, f_0A05_0121
+f_0AA2_000A proc  ; 0AA2:000A  callers: f_0A05_0000, malloc
 0AA2:000A  55             push   bp
 0AA2:000B  8bec           mov    bp, sp
 0AA2:000D  8b4608         mov    ax, word ptr [bp + 8]
@@ -18214,7 +18214,7 @@ L_0AA5_00FA:
 0AA5:010F  9a1700b80a     lcall  f_0AB8_0017
 0AA5:0114  eb03           jmp    0x119
 
-f_0AA5_0116 proc  ; 0AA5:0116  callers: f_0AB8_0017, f_0AB8_0141
+exit proc  ; 0AA5:0116  callers: f_0AB8_0017, f_0AB8_0141
 0AA5:0116  58             pop    ax
 0AA5:0117  58             pop    ax
 0AA5:0118  58             pop    ax
@@ -18230,7 +18230,7 @@ L_0AA5_0119:
 0AA5:0131  9a3b01a50a     lcall  f_0AA5_013B
 0AA5:0136  2eff2e2201     ljmp   cs:[0x122]
 
-f_0AA5_013B proc  ; 0AA5:013B  callers: f_0AA5_0116
+f_0AA5_013B proc  ; 0AA5:013B  callers: exit
 0AA5:013B  57             push   di
 0AA5:013C  56             push   si
 0AA5:013D  cb             retf   
@@ -18327,7 +18327,7 @@ L_0AB8_00C9:
 0AB8:00DD  83c408         add    sp, 8
 0AB8:00E0  b8c800         mov    ax, 0xc8   ; "our army is attacked by %s."
 0AB8:00E3  50             push   ax
-0AB8:00E4  9a1601a50a     lcall  f_0AA5_0116
+0AB8:00E4  9a1601a50a     lcall  exit
 0AB8:00E9  59             pop    cx
 L_0AB8_00EA:
 0AB8:00EA  83460601       add    word ptr [bp + 6], 1
@@ -18353,7 +18353,7 @@ L_0AB8_0112:
 0AB8:0120  ff36fc41       push   word ptr [0x41fc]
 0AB8:0124  ff36fa41       push   word ptr [0x41fa]
 0AB8:0128  ff36fe41       push   word ptr [0x41fe]
-0AB8:012C  9a00000000     lcall  f_0000_0000
+0AB8:012C  9a00000000     lcall  main
 0AB8:0131  83c406         add    sp, 6
 0AB8:0134  33c0           xor    ax, ax
 0AB8:0136  50             push   ax
@@ -18363,12 +18363,12 @@ L_0AB8_0112:
 0AB8:013F  5d             pop    bp
 0AB8:0140  cb             retf   
 
-f_0AB8_0141 proc  ; 0AB8:0141  callers: f_0000_0000, f_021C_0002, f_0AB8_0017
+f_0AB8_0141 proc  ; 0AB8:0141  callers: f_0AB8_0017, main, new_game
 0AB8:0141  55             push   bp
 0AB8:0142  8bec           mov    bp, sp
 0AB8:0144  ff1ea040       lcall  [0x40a0]
 0AB8:0148  ff7606         push   word ptr [bp + 6]
-0AB8:014B  9a1601a50a     lcall  f_0AA5_0116
+0AB8:014B  9a1601a50a     lcall  exit
 0AB8:0150  59             pop    cx
 0AB8:0151  8be5           mov    sp, bp
 0AB8:0153  5d             pop    bp
@@ -18390,7 +18390,7 @@ f_0ACD_000F proc  ; 0ACD:000F  callers: f_0AD9_0076
 0ACD:0014  8b5e06         mov    bx, word ptr [bp + 6]
 0ACD:0017  eb24           jmp    0x3d
 
-f_0ACD_0019 proc  ; 0ACD:0019  callers: f_070A_015A
+dos_read proc  ; 0ACD:0019  callers: load_lib
 0ACD:0019  55             push   bp
 0ACD:001A  8bec           mov    bp, sp
 0ACD:001C  b43f           mov    ah, 0x3f
@@ -18423,7 +18423,7 @@ L_0ACD_004F:
 0ACD:004F  5d             pop    bp
 0ACD:0050  cb             retf   
 
-f_0ACD_0051 proc  ; 0ACD:0051  callers: f_070A_015A, f_0A81_002B
+dos_close proc  ; 0ACD:0051  callers: load_lib, open
 0ACD:0051  55             push   bp
 0ACD:0052  8bec           mov    bp, sp
 0ACD:0054  b43e           mov    ah, 0x3e
@@ -18439,7 +18439,7 @@ L_0ACD_0065:
 0ACD:0067  5d             pop    bp
 0ACD:0068  cb             retf   
 
-f_0ACD_0069 proc  ; 0ACD:0069  callers: f_0A81_002B
+dos_lseek proc  ; 0ACD:0069  callers: open
 0ACD:0069  55             push   bp
 0ACD:006A  8bec           mov    bp, sp
 0ACD:006C  b442           mov    ah, 0x42
@@ -18662,7 +18662,7 @@ L_0AE9_0046:
 
 ;================ segment 0AED ================
 
-f_0AED_000D proc  ; 0AED:000D  callers: f_0A81_002B, f_0AB8_0017
+f_0AED_000D proc  ; 0AED:000D  callers: f_0AB8_0017, open
 0AED:000D  55             push   bp
 0AED:000E  8bec           mov    bp, sp
 0AED:0010  8b5e06         mov    bx, word ptr [bp + 6]
@@ -18683,7 +18683,7 @@ L_0AED_0029:
 
 ;================ segment 0AEF ================
 
-f_0AEF_000D proc  ; 0AEF:000D  callers: f_0A05_0121, f_0AB8_0017
+f_0AEF_000D proc  ; 0AEF:000D  callers: f_0AB8_0017, malloc
 0AEF:000D  55             push   bp
 0AEF:000E  8bec           mov    bp, sp
 0AEF:0010  57             push   di
@@ -18810,7 +18810,7 @@ L_0AEF_00FA:
 
 ;================ segment 0AFF ================
 
-f_0AFF_0009 proc  ; 0AFF:0009  callers: f_021C_0002, f_070A_000D, f_070A_005C, f_0AFF_0073
+ran_float proc  ; 0AFF:0009  callers: new_game, ran_seed?, random, shuffle
 0AFF:0009  55             push   bp
 0AFF:000A  8bec           mov    bp, sp
 0AFF:000C  8b16d440       mov    dx, word ptr [0x40d4]
@@ -18855,10 +18855,10 @@ f_0AFF_0009 proc  ; 0AFF:0009  callers: f_021C_0002, f_070A_000D, f_070A_005C, f
 0AFF:0071  5d             pop    bp
 0AFF:0072  cb             retf   
 
-f_0AFF_0073 proc  ; 0AFF:0073
+ran_seed? proc  ; 0AFF:0073
 0AFF:0073  55             push   bp
 0AFF:0074  8bec           mov    bp, sp
-0AFF:0076  9a0900ff0a     lcall  f_0AFF_0009
+0AFF:0076  9a0900ff0a     lcall  ran_float
 0AFF:007B  8d5e06         lea    bx, [bp + 6]
 0AFF:007E  9a3e01480b     lcall  f_0B48_013E
 0AFF:0083  9a6c05480b     lcall  f_0B48_056C
@@ -18871,7 +18871,7 @@ f_0AFF_0073 proc  ; 0AFF:0073
 
 ;================ segment 0B08 ================
 
-f_0B08_0009 proc  ; 0B08:0009  callers: f_0AFF_0073
+f_0B08_0009 proc  ; 0B08:0009  callers: ran_seed?
 0B08:0009  55             push   bp
 0B08:000A  8bec           mov    bp, sp
 0B08:000C  83c4de         add    sp, -0x22
@@ -19081,7 +19081,7 @@ f_0B46_0007 proc  ; 0B46:0007  callers: f_0B08_0009
 
 ;================ segment 0B48 ================
 
-f_0B48_0129 proc  ; 0B48:0129  callers: f_070A_000D, f_070A_005C, f_0AFF_0009, f_0B08_0009
+f_0B48_0129 proc  ; 0B48:0129  callers: f_0B08_0009, ran_float, random, shuffle
 0B48:0129  55             push   bp
 0B48:012A  8bec           mov    bp, sp
 0B48:012C  c45e02         les    bx, ptr [bp + 2]
@@ -19090,7 +19090,7 @@ f_0B48_0129 proc  ; 0B48:0129  callers: f_070A_000D, f_070A_005C, f_0AFF_0009, f
 0B48:0134  e90e00         jmp    0x145
           ; 7 bytes not disassembled
 
-f_0B48_013E proc  ; 0B48:013E  callers: f_0AFF_0073
+f_0B48_013E proc  ; 0B48:013E  callers: ran_seed?
 0B48:013E  8cd1           mov    cx, ss
 0B48:0140  8ec1           mov    es, cx
 0B48:0142  e90000         jmp    0x145
@@ -19190,7 +19190,7 @@ f_0B48_01E4 proc  ; 0B48:01E4  callers: f_0AFF_03C0, f_0B48_0224
 0B48:0214  cb             retf   
           ; 15 bytes not disassembled
 
-f_0B48_0224 proc  ; 0B48:0224  callers: f_0AFF_0073, f_0B08_0009
+f_0B48_0224 proc  ; 0B48:0224  callers: f_0B08_0009, ran_seed?
 0B48:0224  58             pop    ax
 0B48:0225  5a             pop    dx
 0B48:0226  83ec08         sub    sp, 8
@@ -19445,7 +19445,7 @@ L_0B48_043A:
 0B48:0440  9d             popf   
 0B48:0441  cb             retf   
 
-f_0B48_0442 proc  ; 0B48:0442  callers: f_0AFF_0009
+f_0B48_0442 proc  ; 0B48:0442  callers: ran_float
 0B48:0442  9c             pushf  
 0B48:0443  55             push   bp
 0B48:0444  56             push   si
@@ -19571,7 +19571,7 @@ L_0B48_0554:
 0B48:0567  75ce           jne    0x537
 0B48:0569  e914fe         jmp    0x380
 
-f_0B48_056C proc  ; 0B48:056C  callers: f_070A_000D, f_070A_005C, f_0AFF_0073
+f_0B48_056C proc  ; 0B48:056C  callers: ran_seed?, random, shuffle
 0B48:056C  9c             pushf  
 0B48:056D  55             push   bp
 0B48:056E  56             push   si
@@ -19773,7 +19773,7 @@ L_0B48_0762:
 L_0B48_0787:
 0B48:0787  c3             ret    
 
-f_0B48_0788 proc  ; 0B48:0788  callers: f_0AFF_0009
+f_0B48_0788 proc  ; 0B48:0788  callers: ran_float
 0B48:0788  9c             pushf  
 0B48:0789  55             push   bp
 0B48:078A  56             push   si
@@ -19802,7 +19802,7 @@ L_0B48_07AB:
 0B48:07B6  ab             stosw  word ptr es:[di], ax
 0B48:07B7  e9c6fb         jmp    0x380
 
-f_0B48_07BA proc  ; 0B48:07BA  callers: f_070A_000D, f_070A_005C
+f_0B48_07BA proc  ; 0B48:07BA  callers: random, shuffle
 0B48:07BA  56             push   si
 0B48:07BB  57             push   di
 0B48:07BC  8b36e440       mov    si, word ptr [0x40e4]

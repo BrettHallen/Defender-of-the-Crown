@@ -133,8 +133,12 @@ static void joust_approach(void)
  * when the key moves it), the gallop bobs it up and down (DS:0063, turned every
  * 6 steps and at the ends); `item` is the opponent's next picture (BK 3-19 at
  * DS:0C8C) or 0 */
-static void lance_step(int item)
+static void lance_step(int item, int bob)
 {
+    /* AA 5B6C crtc_write(5, 6 - bob) (on GameSYS's configuration 2) and DOC 02D3:0A35
+     * (on a CGA; on an EGA its register 10h, E1h - bob): the CGA programs bob the
+     * picture with the gallop; AB and AC pass the bob and leave it */
+    gfx_set_bob((1u << MODE_CGA1) | (1u << MODE_CGA2), bob);
     snd_speaker_tone(W(D_GALLOP));
     int si = get_key() - 0x47;
     if (si < 0 || si > 10) si = 3;
@@ -231,10 +235,12 @@ static int joust(int opp)
         SW(D_LANCE_X, 40);
         SW(D_LANCE_Y, 125);
         for (int si = 3; si < 20; si++) {
-            lance_step(si);
-            lance_step(0);
-            lance_step(0);
+            lance_step(si, 1);
+            lance_step(0, 2);
+            lance_step(0, 1);
+            if (g_dos_rules) lance_step(0, 0);   /* DOC 02D3:0E9D (and AA 5F3B): a fourth step for each picture */
         }
+        gfx_set_bob(0, 0);
         slots_off();
         int pj = W(SIDE(p) + S_JOUST), oj = W(SIDE(opp) + S_JOUST);
         int l4 = w16(pj + 2 - oj);

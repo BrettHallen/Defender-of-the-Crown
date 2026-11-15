@@ -43,7 +43,16 @@ void gfx_to_rgb(Mode m, uint32_t *out)
         const uint8_t *c = RGB16[V.pal[m][i] & 15];
         lut[i] = ((uint32_t)c[0] << 16) | ((uint32_t)c[1] << 8) | c[2];
     }
-    for (int i = 0; i < SCREEN_W * SCREEN_H; i++) out[i] = lut[s[i] & 15];
+    int b = V.bob[m] > 0 && V.bob[m] < SCREEN_H ? V.bob[m] : 0, n = SCREEN_W * (SCREEN_H - b);
+    for (int i = 0; i < n; i++) out[i] = lut[s[i + SCREEN_W * b] & 15];
+    for (int i = n; i < SCREEN_W * SCREEN_H; i++) out[i] = lut[0];   /* the border (the background colour) */
+    gfx_unlock();
+}
+
+void gfx_set_bob(unsigned modes, int lines)
+{
+    gfx_lock();
+    for (int m = 0; m < MODE_COUNT; m++) V.bob[m] = (modes >> m) & 1 ? lines : 0;
     gfx_unlock();
 }
 

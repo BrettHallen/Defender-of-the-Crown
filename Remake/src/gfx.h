@@ -52,9 +52,14 @@ typedef struct {
     uint8_t  saved[MODE_COUNT][NUM_SLOTS][SCREEN_H * SCREEN_W / 2];
     int      sx[MODE_COUNT][NUM_SLOTS], sy[MODE_COUNT][NUM_SLOTS], sw[MODE_COUNT][NUM_SLOTS], sh[MODE_COUNT][NUM_SLOTS];
     bool     saved_ok[MODE_COUNT][NUM_SLOTS];
+    int      bob[MODE_COUNT];            /* the picture shown this many lines higher (the joust's gallop: gfx_set_bob) */
 } Video;
 
 void gfx_init(const Assets *a);
+/* The CGA programs' bobbing picture in the joust: the CRT controller's vertical
+ * total adjust (register 5, normally 6) set to 6 - lines, so the monitor shows the
+ * whole picture that many lines higher, the border colour below it */
+void gfx_set_bob(unsigned modes, int lines);
 Video *gfx_video(void);
 const Assets *gfx_assets(void);
 

@@ -1,16 +1,18 @@
 ﻿# Defender of the Crown (PC): analysis
 
-Analysis of the files in `Original/`, started 14 Nov 2026 with the method used for The Ancient Art of War (decode the formats, disassemble, name routines as they are understood, then port). This first pass covers what every file is, the graphics formats of both versions and the loaders; the game logic itself is still to be read.
+Analysis of the files in `Original/`, started 14 Nov 2026 with the method used for The Ancient Art of War (decode the formats, disassemble, name routines as they are understood, then port).
+
+**State:** complete enough to have ported the whole game (`../Remake`). Every file is decoded (`DOTC_file_reference.md`); the booter's three game programs are disassembled with every routine named; the game's rules are written down from the EGA program, routine by routine, with every flaw found (`GAME_LOGIC.md`); the 1987 DOS version's DOC.EXE is disassembled with its game routines paired with the booter's and named, and every difference in its logic, timing, texts and graphics listed (`DOC_vs_AB.md`); the music of both kinds is ported (`../Sound`). What was checked against the originals running in DOSBox, and what was not, is at the end of this file.
 
 | File | What it is |
 |---|---|
 | `DOTC_file_reference.md` | Every file: what it holds and how it is laid out |
-| `GAME_LOGIC.md` | The game's rules as read from the code: the data, the setup, the month, events, buying, conquest, the computer lords (the action scenes still to come) |
-| `DOC.ASM` | Disassembly of DOC.EXE (the 1987 DOS CGA version), 19,900 lines: 232 routines in 76 segments, 95% of the code bytes reached. Routines are named `f_SEG_OFF` for now |
+| `GAME_LOGIC.md` | The game's rules as read from the booter's EGA program (AB): the data, the setup, the month, the events, buying, conquest, battles and sieges, the computer lords, raids and the sword fight, the ladies and the romance, tournaments and the joust, the opening, the random numbers; each of the original's flaws (the remake's `--fix=` names), and where the CGA and Tandy programs differ |
+| `DOC.ASM` | Disassembly of DOC.EXE (the 1987 DOS CGA version), 19,900 lines: 232 routines in 76 segments, 95% of the code bytes reached. 162 routines are named (`tools/doc_names.txt`: the 88 that port a booter routine, its drawing primitives, the speaker and the C library calls the game makes; a `?` marks a name not checked by reading); the other 70, still `f_SEG_OFF`, are the insides of the speaker's interrupt handler (08AC), the video BIOS calls (0984-09F2) and the C library with its 8087 emulator (09F8-0B48), which the game's logic does not depend on. Data references are named from `tools/doc_ds_names.txt`, the records' fields too (`; side.home`) |
 | `GAMESYS.ASM` | The booter's loader, GameSYS 4.0 (GAME.DAT disk 0 track 0 sectors 2-9), with its services named |
 | `AA.ASM`, `AB.ASM`, `AC.ASM` | Disassemblies of the booter's three game programs (CGA, EGA, Tandy), with the data file BH's strings and the message boxes' texts as comments. Every routine is named: AB's by reading them all (`disassembler/ab_names.txt`), AA's and AC's from their AB matches plus their own (`aa_names.txt`, `ac_names.txt`) |
 | `AC_vs_AB.txt`, `AA_vs_AB.txt` | Every routine of AC (Tandy) and of AA (CGA) with its match in AB (EGA) and how alike they are |
-| `disassembler/docdis.py` | Writes `DOC.ASM` (`python3 docdis.py DOC.EXE > DOC.ASM`, needs capstone). Follows far calls through the relocations, near calls and jumps, switch tables, far pointers to functions and the remaining `push bp / mov bp,sp` prologues. Names go in a `names.py` beside it (`NAMES`, `DNAMES`, `COMMENTS`, keyed by linear address) |
+| `disassembler/docdis.py` | Writes `DOC.ASM` (`python3 docdis.py DOC.EXE > DOC.ASM`, needs capstone). Follows far calls through the relocations, near calls and jumps, switch tables, far pointers to functions and the remaining `push bp / mov bp,sp` prologues. It takes its names from `../tools/doc_names.txt` and `doc_ds_names.txt` (and a `names.py` beside it, if there is one) |
 | `disassembler/flatdis.py` | Disassembles a flat 16-bit binary from given entry points (`flatdis.py FILE BASE ENTRIES [names.txt] [--prologues] [--ds DATAFILE]`): follows calls, jumps and switch tables (sized by their bounds check, and the search-a-value kind), treats the block a program starts by jumping over as data, with `--prologues` also every C routine start not yet reached; used for GameSYS and AA-AC |
 | `disassembler/matchfuncs.py` | Matches the routines of two listings (`matchfuncs.py AB.ASM AC.ASM`) |
 | `disassembler/gamesys_names.txt`, `aa_names.txt`, `ab_names.txt`, `ac_names.txt` | The names in `GAMESYS.ASM`, `AA.ASM`, `AB.ASM` and `AC.ASM` |
@@ -22,7 +24,7 @@ Analysis of the files in `Original/`, started 14 Nov 2026 with the method used f
 | `tools/dosbox/` | DOSBox configurations that run both versions (see below) |
 | `../Graphics/extract_graphics.py` | Extracts every picture and sprite sheet of both versions into `../Graphics/CGA_DOS`, `Booter_CGA` and `Booter_EGA`; `doclib.py` reads the .LIB files, `gamedat.py` reads GAME.DAT (`python3 gamedat.py GAME.DAT OUTDIR` unpacks every file) |
 
-## Findings so far
+## Findings
 
 ### Two versions, not one
 - `cga/` is the **1987 DOS release**: DOC.EXE plus eight .LIB graphics files, CGA only. The title credits read "Master Designer Software, Inc. presents"; the IBM PC soundtrack is by Dave Farquharson.
@@ -33,9 +35,9 @@ Analysis of the files in `Original/`, started 14 Nov 2026 with the method used f
 ### DOC.EXE (the DOS version)
 - A large-model C program: every routine is called far, 76 code segments, one data segment (DGROUP at segment 0BCE). The strings are in DGROUP: the story texts, the events, the battle and siege messages, the credits.
 - At start (021C:0002) it loads DOCCHARS.LIB into the buffer at [4508] (up to A000h bytes) and TITLE.LIB into the one at [4702] (up to C000h bytes) (load_lib 070A:015A: open, read the 7-byte BSAVE header, then the data over it). Scenes load their own .LIB (RAID, JOUST1, JOUST2, SIEGE, LOVE1, LOVE2) when they start.
-- Pictures are unpacked straight to the screen (show_picture 070A:02B1 -> decompress 0946:0000; the format is in the file reference). Sprites are raw CGA bytes with a width in bits and a height.
+- Pictures are unpacked into an off-screen buffer (show_lib_picture 070A:02B1 -> decompress 0946:0000, into DS:46EA; the format is in the file reference) and brought onto the screen by show_screen (070A:01B3), which also sets the palette: with a blinds wipe (four passes of every fourth line, two ticks a pass), or at once while DS:46D8 is set. Sprites are raw CGA bytes with a width in bits and a height, drawn straight onto the screen by a dozen primitives (put, AND mask, OR, XOR, colour 0 transparent, ...: `DOC_vs_AB.md`).
 - Colours: CGA palette 0 (green, red, brown) on black throughout (set once in 070A:01B3); one screen (050E:0626) switches on the bright palette 0. The extracted title and cast screens match DOSBox pixel for pixel.
-- It checks for an EGA (08F2:0002, int 10h AH=12h) but has no EGA graphics.
+- It checks for an EGA (08F2:0002, int 10h AH=12h) but has no EGA graphics: the check only chooses the CRT controller register the joust's bobbing picture writes (10h on an EGA, 5 on a CGA).
 
 ### GAME.DAT (the booter version)
 - ZeroBoot's boot sector loads GameSYS, which provides the services (as interrupts 20h-22h and 2Ch-2Fh), detects the machine and video card and loads the right program (AA CGA, AB EGA, AC Tandy) to 0170:0100.
@@ -107,7 +109,7 @@ Driver quirks a faithful remake keeps: a note word FFFAh turns vibrato off but t
 - **Recoloured in places** (the same lines, other colours): the title's bricks (DOS red, booter green), the map's surround (DOS red, booter brown), the castle hall (DOS red, booter brown), the first siege castle (DOS brown, booter red), the trumpeters' banner and sky, the lady's dress, the character-choice panels (DOS brown, booter green).
 - **Sprites baked in or left out**: DOC.EXE's pictures include things the booter draws as sprites (the knight on the lane, the two silhouettes and the window's figures in the romance, the raid's strength bars), and DOC.EXE's Sherwood (TITLE_06) has its scroll drawn in.
 - **Palettes**: both use CGA palette 0, low intensity, on black (checked in DOSBox: title, character choice, Sherwood and the map in both). DOC.EXE alone switches on the intensity bit for one picture, the romance's bedchamber (LOVE2; 050E:0626 sets the background register's bit 4), so that scene is brighter there.
-- **Other differences seen in DOSBox**: DOC.EXE's opening is shorter ("Master Designer Software, Inc. presents...", no credit boxes after the title); its character choice marks the character with a twinkle by the portrait instead of the booter's red box over the name.
+- **Other differences seen in DOSBox**: DOC.EXE's opening reads "Master Designer Software, Inc. presents...", and after the title shows the credits under a crown, two of them (Computography, Art Direction) blank; its character choice marks the character with its own name plates (TITLE.LIB). The rest: `DOC_vs_AB.md`.
 
 ## Running the originals in DOSBox
 `tools/dosbox/` has four configurations; edit the `mount` line if the repo is elsewhere:
@@ -118,8 +120,23 @@ Driver quirks a faithful remake keeps: a note word FFFAh turns vibrato off but t
 
 Checked in DOSBox 0.74-3 on 14 Nov 2026: both versions start and show their titles; the Tandy title is pixel-identical to the EGA one (CB).
 
-## Not done yet
-- The game logic: the campaign map and territories, income and armies, the AI lords, battles, the raid, jousting, sword fighting, sieges, the events, the end. DOC.EXE's routines are not named yet.
-- The B sprite files of the booter and JOUST1.LIB's tables (items 36-39).
-- Sound: which tune plays in which scene is read from the code (only the title was heard); the beeps' uses are not yet listed one by one.
-- The rest of the B sprite files of the three builds (only Bh/Bj and the message-box pieces are decoded so far).
+## What was checked against the originals
+The remake was compared with the originals running in DOSBox (`tools/dosbox/`), frame by frame where it says so; the rest was ported from the code alone.
+
+| | Booter EGA (AB) | Booter CGA (AA), Tandy (AC) | DOS version (DOC.EXE) |
+|---|---|---|---|
+| Opening: credits, title, sparkles | the credits pixel-identical | Tandy title pixel-identical | pixel-identical (crown, sparkles) |
+| Character choice | | CGA pixel-identical | |
+| Sherwood | pixel-identical (but the flickering fire) | | pixel-identical text |
+| Status panel, map, orders menu, Buy Home Army, Transfer Forces | the first month's status, Buy Home Army, Hold Tournament | | pixel-identical |
+| Field battle screen | | | pixel-identical (soldiers only) |
+| Siege (catapult, sprites) | | | the sprites |
+| Raid, sword fight | | | the fighters |
+| Joust: ride-in, charge, an unhorsing | pixel-identical, frame by frame | | pixel-identical (lane, lance, unhorsing) |
+| Music | the title tune | the Tandy title tune | |
+
+**Not compared:** the booter's sieges and raids, the romance (any version), the battles and sieges against you, the monthly events and the three endings (they use boxes, texts and sprites checked elsewhere), the mounted knights on the battle screen, and the DOS version's pace (`--rules=dos`, from its code). Two things DOSBox does not show at all: the joust's bobbing picture (a CRT controller trick: `GAME_LOGIC.md`, *The joust*) and the speed of the PCs of 1987 (the remake's catapult and sword fight paces are estimates of it).
+
+## Left
+- The 70 unnamed routines of DOC.EXE (the C library and its emulator) and the `?` names in `tools/doc_names.txt`.
+- The uses of each beep, listed one by one; which tune plays in which scene is read from the code (only the title was heard).

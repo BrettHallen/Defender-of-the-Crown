@@ -32,3 +32,16 @@
 3A36 lady_item 8    # by lady: the 1-based LOVE1 item of her portrait (2, 8, 14, 20)
 3A3E bed_pos 44 4   # by step 0-10: x (units), y of the bedchamber's figures
 33F6 lady 40 10 0=name 4=side 6=terr 8=flag
+4332 crtc_reg       # the joust's bob: CRT controller register (5 on a CGA, 10h on an EGA)
+4334 crtc_value     # and its value without the bob (6, E1h)
+33EE gallop         # the lance step's tone, 30000 down to 28500 by 500
+33F0 bob_left       # steps before the bob turns
+33F2 bob            # the lance's bob, +-2 lines a step
+416C lance_x
+416E lance_y
+4164 lance_sprite   # far pointer: JOUST1 item 36, its height set to 200 - lance_y
+4168 lance_save     # far pointer: JOUST1 item 41, 40 x 84 pixels under the lance
+46D8 no_wipe        # 1: show_screen copies the picture at once, without the blinds
+46EA screen_buffer  # far pointer: the off-screen picture show_screen brings in
+4508 lib_chars      # far pointer: DOCCHARS.LIB (the font, map, portraits, sword fight)
+46F6 lib_joust1     # far pointer: JOUST1.LIB

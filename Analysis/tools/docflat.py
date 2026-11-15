@@ -19,10 +19,10 @@ if os.path.exists(p):
             names['f_' + a.replace(':', '_').upper()] = n
 for line in open(src):
     line = line.rstrip('\n')
-    m = re.match(r'^(f_[0-9A-F]{4}_[0-9A-F]{4}) proc', line)
-    if m:
-        n = m.group(1)
-        print('\n%s: ; %s' % (names.get(n, n), n))
+    m = re.match(r'^(\S+) proc  ; ([0-9A-F]{4}):([0-9A-F]{4})', line)
+    if m:   # DOC.ASM names the routines itself now (docdis.py reads doc_names.txt); older listings use f_SEG_OFF
+        n = 'f_%s_%s' % (m.group(2), m.group(3))
+        print('\n%s: ; %s' % (names.get(n, m.group(1)), n))
         continue
     m = re.match(r'^L_[0-9A-F]{4}_([0-9A-F]{4}):', line)
     if m:

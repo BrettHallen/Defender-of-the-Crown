@@ -64,19 +64,23 @@ def norm(s):
 doc = {}          # name -> {'texts': [...], 'calls': set(), 'lines': n}
 cur = None
 last_cx = None
+ids = {}          # the name DOC.ASM gives a routine -> f_SEG_OFF (docdis.py names them from doc_names.txt)
 for line in open(doc_asm):
-    m = re.match(r'^(f_[0-9A-F]{4}_[0-9A-F]{4}) proc', line)
+    m = re.match(r'^(\S+) proc  ; ([0-9A-F]{4}):([0-9A-F]{4})', line)
+    if m: ids[m.group(1)] = 'f_%s_%s' % (m.group(2), m.group(3))
+for line in open(doc_asm):
+    m = re.match(r'^(\S+) proc  ; ([0-9A-F]{4}):([0-9A-F]{4})', line)
     if m:
-        cur = m.group(1)
+        cur = 'f_%s_%s' % (m.group(2), m.group(3))
         doc[cur] = {'texts': [], 'calls': set(), 'seq': [], 'n': 0}
         continue
     if not cur or not re.match(r'^[0-9A-F]{4}:[0-9A-F]{4} ', line):
         continue
     doc[cur]['n'] += 1
-    m = re.search(r'lcall\s+(f_[0-9A-F]{4}_[0-9A-F]{4})', line)
-    if m:
-        doc[cur]['calls'].add(m.group(1))
-        doc[cur]['seq'].append(m.group(1))
+    m = re.search(r'lcall\s+([A-Za-z_][\w?]*)', line)
+    if m and m.group(1) in ids:
+        doc[cur]['calls'].add(ids[m.group(1)])
+        doc[cur]['seq'].append(ids[m.group(1)])
     m = re.search(r'mov\s+(\w\w), 0x([0-9a-f]+)', line)
     if m:
         v = int(m.group(2), 16)
