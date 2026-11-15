@@ -122,6 +122,11 @@ extern const char *const FIX_NAMES[FIX_COUNT];
 extern unsigned g_fixes;
 static inline bool fixed(Fix f) { return (g_fixes >> f) & 1; }
 bool fixes_parse(const char *list, char *err, size_t errlen);   /* "viking,joust-margin" or "all" */
+/* Screen refreshes per step of the catapult's pull (--catapult-pull=N, 1-8). The
+ * original steps once a refresh, a full pull in 0.4 s, on a PC fast enough to copy
+ * its picture every refresh (and in DOSBox); on the PCs of 1987 that copy took two
+ * or three refreshes. The remake takes 2 unless told otherwise. */
+extern int g_catapult_pull;
 void play_tune(int tune, int flags); /* 9559 */
 void wait_tune(int tune);            /* 958E */
 int  tune_playing(int tune, int n);  /* 95BE */

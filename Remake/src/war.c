@@ -445,6 +445,10 @@ static int catapult_aim(int ammo)
         delay_ticks(1);
     }
     SW(0x8C7, 1);
+    /* Both delay_ticks(1) end at once (the first finds sprites_draw's locals in its
+     * stack slots, the second present's pushed registers, never the tick count), so
+     * the original steps once a screen refresh. The remake holds each step for
+     * g_catapult_pull refreshes (game.h), still reading Enter every refresh. */
     for (;;) {
         if (get_key() == KEY_ENTER) break;
         if (++si > 159) break;
@@ -455,6 +459,12 @@ static int catapult_aim(int ammo)
         if (ammo == 1) gfx_xor_sprite_t(39, 38, si, F_SIEGE, 52);
         present();
         delay_ticks(1);
+        int released = 0;
+        for (int f = 1; f < g_catapult_pull && !released; f++) {
+            if (get_key() == KEY_ENTER) released = 1;
+            else present();
+        }
+        if (released) break;
     }
     SW(0x8C7, 3);
     int h = w16(si - 140) / 2;

@@ -75,7 +75,9 @@ static void game(void)
         SW(ARMY(1) + A_SOLDIERS, 40); SW(ARMY(1) + A_KNIGHTS, 10); SW(ARMY(1) + A_CATAPULTS, 1);
         SW(GARRISON(4) + A_SOLDIERS, 30); SW(GARRISON(4) + A_KNIGHTS, 4);
         SW(ARMY(4) + A_AT, 15);
+        gamelog_begin(1);
         attack(1, 2, 4);
+        gamelog_end("test over");
         return;
     }
     attack(4, 1, 1);
@@ -87,6 +89,7 @@ int main(int argc, char **argv)
     SDL_Init(0);
     if (!assets_load(&A, argv[1], err, sizeof err)) { SDL_Log("%s", err); return 1; }
     gfx_init(&A);
+    if (SDL_getenv("PULL")) g_catapult_pull = SDL_atoi(SDL_getenv("PULL"));   /* --catapult-pull */
     if (SDL_getenv("DOTC_LOG")) gamelog_setup(GLOG_VERBOSE, SDL_getenv("DOTC_LOG"));
     sound_data(A.tunes, A.tunes_len, A.bg, A.bg_len);
     sys_set_speed(4);

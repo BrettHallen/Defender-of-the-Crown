@@ -8,13 +8,15 @@
  * main.c: the window, the keyboard and the command line. The game itself
  * runs on its own thread (sys.h, game.c).
  *
- * Usage: DefenderOfTheCrown [--video=cga1|cga2|ega|tandy] [--log | --log=verbose] [--fix=NAME,...|all] [game-folder]
+ * Usage: DefenderOfTheCrown [--video=cga1|cga2|ega|tandy] [--log | --log=verbose] [--fix=NAME,...|all] [--catapult-pull=N] [game-folder]
  *   --video: the mode to start in (EGA if not given): cga1 the 1987 DOS version's
  *            CGA, cga2 the booter's CGA, ega, tandy. Tab goes through them in the game.
  *   --log:   a log of each game played (gamelog.h), in the remake's folder under Logs/
  *   --fix:   fixes these flaws of the original (none by default, the game as it was):
  *            viking, hostility, targets, catapult, siege-merge, joust-opponent,
  *            joust-margin, battle-text, siege-sprite, or all (game.h, Remake/README.md)
+ *   --catapult-pull: screen refreshes per step of the catapult's pull, 1 (the
+ *            original's speed on a fast PC, 0.4 s) to 8; 2 if not given
  *   game-folder: the folder with your GAME.DAT (and the 1987 version's .LIB files),
  *            also looked for in its ega/ and cga/ subfolders; remembered once found.
  *
@@ -274,6 +276,10 @@ int main(int argc, char **argv)
             if (!fixes_parse(argv[i] + 6, err, sizeof err))
                 SDL_Log("--fix: %s; use viking, hostility, targets, catapult, siege-merge, joust-opponent, joust-margin, "
                         "battle-text, siege-sprite or all, separated by commas", err);
+        } else if (SDL_strncmp(argv[i], "--catapult-pull=", 16) == 0) {
+            int n = SDL_atoi(argv[i] + 16);
+            if (n >= 1 && n <= 8) g_catapult_pull = n;
+            else SDL_Log("--catapult-pull=%s: use 1 (the original's speed) to 8", argv[i] + 16);
         } else if (SDL_strcmp(argv[i], "--log=verbose") == 0) log_level = GLOG_VERBOSE;
         else if (SDL_strcmp(argv[i], "--log") == 0 || SDL_strcmp(argv[i], "--log=normal") == 0) {
             log_level = GLOG_NORMAL;

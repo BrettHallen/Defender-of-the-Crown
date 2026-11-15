@@ -20,6 +20,7 @@ uint8_t ds[65536] = { 0 };
 const char *const FIX_NAMES[FIX_COUNT] = { "viking", "hostility", "targets", "catapult", "siege-merge",
                                            "joust-opponent", "joust-margin", "battle-text", "siege-sprite" };
 unsigned g_fixes;
+int g_catapult_pull = 2;
 
 bool fixes_parse(const char *list, char *err, size_t errlen)
 {
