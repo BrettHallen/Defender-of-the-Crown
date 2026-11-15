@@ -31,6 +31,7 @@
 #include "sound.h"
 #include "game.h"
 #include "gamelog.h"
+#include "icon.h"
 
 #define APP_ORG  "DefenderOfTheCrown"
 #define APP_NAME "Remake"
@@ -122,6 +123,19 @@ static void ask_for_folder(void)
     SDL_ShowOpenFolderDialog(folder_chosen, NULL, App.win, NULL, false);
 }
 
+/* The window's icon (the Dock icon on macOS): the title picture of the
+ * player's own game files, as in the app bundle's icon (tools/make_icon.c). */
+static void set_window_icon(void)
+{
+    enum { N = 256 };
+    uint8_t *px = SDL_malloc(N * N * 4);
+    if (px && App.win && icon_render(&App.a, N, px)) {
+        SDL_Surface *s = SDL_CreateSurfaceFrom(N, N, SDL_PIXELFORMAT_RGBA32, px, N * 4);
+        if (s) { SDL_SetWindowIcon(App.win, s); SDL_DestroySurface(s); }
+    }
+    SDL_free(px);
+}
+
 static bool load_from(const char *dir, bool remember)
 {
     char err[256] = "";
@@ -137,6 +151,7 @@ static bool load_from(const char *dir, bool remember)
     }
     if (remember) save_game_dir(dir);
     SDL_Log("Loaded the game from %s", dir);
+    set_window_icon();
     gfx_init(&App.a);
     sound_data(App.a.tunes, App.a.tunes_len, App.a.bg, App.a.bg_len);
     snd_use_tandy(App.mode == MODE_TANDY);

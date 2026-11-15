@@ -44,6 +44,8 @@ cmake --build build
 ```
 This makes `build/DefenderOfTheCrown.app`.
 
+The app's icon is the title picture ("Defender of the Crown" on the stone wall, from the EGA program), drawn during the build from your own game files, so no original artwork is kept in the repository. CMake finds them in `../Original`; if they are somewhere else, add `-DDOTC_GAME_DIR=/path/to/your/game` to the first `cmake` command. Without them the app builds with no icon in Finder, and the program still shows the icon in the Dock once it has loaded your files. If Finder keeps showing an old icon, run `touch build/DefenderOfTheCrown.app`.
+
 ## Running
 ```sh
 open build/DefenderOfTheCrown.app
@@ -96,6 +98,7 @@ The log only reads the game: it never calls the random numbers, so a logged game
 - `src/gfx.c`: every picture is drawn into all four modes at once, each with its own pictures, sprites and the way its program drew them (the EGA program puts sprites on whole bytes of 8 pixels, the CGA one on 4; the territories' colours each from their own table ...), so Tab can switch at any moment.
 - `src/assets.c`, `src/dat.c`: GAME.DAT (two floppy images, LZW) and the .LIB files, decoded as in `../Analysis/DOTC_file_reference.md`.
 - `src/sound.c`: the speaker tunes (AB 968A) and AC's Tandy music driver.
+- `src/icon.c`, `tools/make_icon.c`: the app icon from the player's own copy of the game: the title picture in its 4:3 shape on a rounded square; `make_icon` writes the macOS `.iconset` at build time and `iconutil` turns it into `AppIcon.icns` (as in The Ancient Art of War remake).
 
 ## Tests
 `test/build.sh NAME` builds `test/NAME.c` with the remake's sources (ASan and UBSan; SDL3 from pkg-config or `SDL3_DIR`). Run headless with `SDL_AUDIODRIVER=dummy`.
