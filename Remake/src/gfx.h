@@ -39,6 +39,7 @@ typedef struct {
     int      trim;          /* rows left off the bottom (DS:12A0) */
     int      tandy_dx;      /* pixels added in Tandy mode (the Tandy program placed some sprites elsewhere) */
     int      rows;          /* if > 0, at most this many rows are drawn (the joust's knights behind the barrier) */
+    unsigned modes;         /* if not 0, the modes it is drawn in (MODES_...; the romance's per-program frames) */
 } Slot;
 
 typedef struct {
@@ -78,6 +79,7 @@ void gfx_fill_rect(int x, int y, int w, int h, int colour);   /* 80EA: the colou
 void gfx_xor_rect(int x, int y, int w, int h, int colour);    /* 8223 */
 void gfx_xor_rect3(int x, int y, int w, int h, int cga, int ega, int tandy);   /* the programs passing their own colours */
 void gfx_put_sprite(int x, int y, FileId f, int item);        /* 8495: opaque */
+void gfx_put_sprite_m(unsigned modes, int x, int y, FileId f, int item);   /* only in those modes */
 void gfx_xor_sprite(int x, int y, FileId f, int item);        /* 82D2 */
 void gfx_xor_sprite_m(unsigned modes, int x, int y, FileId f, int item);   /* only in those modes */
 void gfx_xor_sprite_t(int x, int x_tandy, int y, FileId f, int item);   /* the same, the Tandy program at another x */

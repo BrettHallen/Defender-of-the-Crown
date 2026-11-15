@@ -151,6 +151,20 @@ void lib_close(LibFile *l)
 /* DOC.EXE 0946:0000. c < 80h: c+1 literal pixels, 2 bits at a time from literal
  * bytes (a partly used byte carries over); c >= 80h: a run of colour c & 3,
  * count (c >> 2) & 0Fh (with bit 6: * 256 + the next byte), + 1 pixels. */
+bool lib_sprite(const uint8_t *item, size_t n, int *w, int *h, uint8_t **pix)
+{
+    if (!item || n < 4 || (n >= 8 && SDL_memcmp(item, "COMPRESS", 8) == 0)) return false;
+    int wb = item[0] | (item[1] << 8), hh = item[2] | (item[3] << 8);
+    int bpr = wb / 8, wp = bpr * 4;
+    if (bpr <= 0 || hh <= 0 || hh > 200 || wp > 320 || 4 + (size_t)bpr * hh > n) return false;
+    uint8_t *p = SDL_malloc((size_t)wp * hh);
+    if (!p) return false;
+    for (int y = 0; y < hh; y++)
+        for (int x = 0; x < wp; x++) p[y * wp + x] = (item[4 + y * bpr + (x >> 2)] >> (6 - 2 * (x & 3))) & 3;
+    *w = wp; *h = hh; *pix = p;
+    return true;
+}
+
 bool lib_picture(const uint8_t *item, size_t n, uint8_t out[16000])
 {
     if (!item || n < 8 || SDL_memcmp(item, "COMPRESS", 8) != 0) return false;

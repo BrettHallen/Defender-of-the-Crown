@@ -144,7 +144,7 @@ L_027D:
 02C4  e82f93         call   load_file
 02C7  83c406         add    sp, 6
 02CA  e87293         call   show_picture
-02CD  e8bd93         call   present_bottom
+02CD  e8bd93         call   present
 02D0  b80500         mov    ax, 5
 02D3  50             push   ax
 02D4  e86d71         call   music_play
@@ -323,7 +323,7 @@ L_0384:
 0460  e89391         call   load_file
 0463  83c406         add    sp, 6
 0466  e8d691         call   show_picture
-0469  e82192         call   present_bottom
+0469  e82192         call   present
 046C  b86c00         mov    ax, 0x6c
 046F  50             push   ax
 0470  e87d6b         call   wait_ticks
@@ -337,7 +337,7 @@ L_0384:
 0482  e87191         call   load_file
 0485  83c406         add    sp, 6
 0488  e8b491         call   show_picture
-048B  e8ff91         call   present_bottom
+048B  e8ff91         call   present
 048E  b8b400         mov    ax, 0xb4
 0491  50             push   ax
 0492  e85b6b         call   wait_ticks
@@ -434,7 +434,7 @@ L_04B6:
 05A9  e84a90         call   load_file
 05AC  83c406         add    sp, 6
 05AF  e88d90         call   show_picture
-05B2  e8d890         call   present_bottom
+05B2  e8d890         call   present
 05B5  bfffff         mov    di, 0xffff
 05B8  8bf7           mov    si, di
 L_05BA:
@@ -627,7 +627,7 @@ L_074F:
 077D  e8216b         call   xor_sprite
 0780  83c408         add    sp, 8
 L_0783:
-0783  e8078f         call   present_bottom
+0783  e8078f         call   present
 0786  e89f68         call   wait_key
 0789  8bf0           mov    si, ax
 078B  8bc6           mov    ax, si
@@ -948,7 +948,7 @@ L_0A6C:
 0A72  c7062812ffff   mov    word ptr [0x1228], 0xffff
 L_0A78:
 0A78  e88c75         call   sprites_draw
-0A7B  e8f98b         call   present
+0A7B  e8f98b         call   present_bottom
 0A7E  e8d474         call   sprites_erase
 0A81  ff46fa         inc    word ptr [bp - 6]
 0A84  837efa03       cmp    word ptr [bp - 6], 3
@@ -1297,7 +1297,7 @@ L_0D3C:
 0DB2  e84188         call   load_file
 0DB5  83c406         add    sp, 6
 0DB8  e88488         call   show_picture
-0DBB  e8cf88         call   present_bottom
+0DBB  e8cf88         call   present
 0DBE  b83600         mov    ax, 0x36
 0DC1  50             push   ax
 0DC2  e82b62         call   wait_ticks
@@ -1319,7 +1319,7 @@ L_0D3C:
 0DEC  a34012         mov    word ptr [0x1240], ax
 0DEF  c7062812ffff   mov    word ptr [0x1228], 0xffff
 0DF5  e80f72         call   sprites_draw
-0DF8  e89288         call   present_bottom
+0DF8  e89288         call   present
 0DFB  e85771         call   sprites_erase
 0DFE  c70628120000   mov    word ptr [0x1228], 0
 0E04  b81400         mov    ax, 0x14
@@ -1373,7 +1373,7 @@ L_0E11:
 0E8C  a34012         mov    word ptr [0x1240], ax
 0E8F  c7062812ffff   mov    word ptr [0x1228], 0xffff
 0E95  e86f71         call   sprites_draw
-0E98  e8f287         call   present_bottom
+0E98  e8f287         call   present
 0E9B  e8b770         call   sprites_erase
 0E9E  c70628120000   mov    word ptr [0x1228], 0
 0EA4  b81400         mov    ax, 0x14
@@ -1452,7 +1452,7 @@ L_0ED1:
 0F6E  a34012         mov    word ptr [0x1240], ax
 0F71  c7062812ffff   mov    word ptr [0x1228], 0xffff
 0F77  e88d70         call   sprites_draw
-0F7A  e81087         call   present_bottom
+0F7A  e81087         call   present
 0F7D  e8d56f         call   sprites_erase
 0F80  c70628120000   mov    word ptr [0x1228], 0
 0F86  b81400         mov    ax, 0x14
@@ -3486,7 +3486,7 @@ show_plotters_picture: ; = AB 2EFB show_plotters_picture
 203D  e8b675         call   load_file
 2040  83c406         add    sp, 6
 2043  e8f975         call   show_picture
-2046  e84476         call   present_bottom
+2046  e84476         call   present
 2049  c3             ret    
 
 side_last_territory: ; = AB 2F14 side_last_territory
@@ -5374,7 +5374,7 @@ L_30EF:
 3131  a34012         mov    word ptr [0x1240], ax
 3134  c7062812ffff   mov    word ptr [0x1228], 0xffff
 313A  e8ca4e         call   sprites_draw
-313D  e84d65         call   present_bottom
+313D  e84d65         call   present
 3140  c70628120000   mov    word ptr [0x1228], 0
 3146  5f             pop    di
 3147  5e             pop    si
@@ -5523,7 +5523,7 @@ L_3240:
 3268  50             push   ax
 3269  e83540         call   xor_sprite
 326C  83c408         add    sp, 8
-326F  e81b64         call   present_bottom
+326F  e81b64         call   present
 3272  4e             dec    si
 L_3273:
 3273  0bf6           or     si, si
@@ -6134,7 +6134,7 @@ L_37FB:
 37FE  833e5300ff     cmp    word ptr [0x53], -1
 3803  7442           je     L_3847
 3805  e8375e         call   show_picture
-3808  e8825e         call   present_bottom
+3808  e8825e         call   present
 380B  8b1e5300       mov    bx, word ptr [0x53]
 380F  d1e3           shl    bx, 1
 3811  d1e3           shl    bx, 1
@@ -6242,7 +6242,7 @@ L_38E9:
 3908  50             push   ax
 3909  e80c3a         call   xor_mask
 390C  83c408         add    sp, 8
-390F  e87b5d         call   present_bottom
+390F  e87b5d         call   present
 3912  b80100         mov    ax, 1
 3915  50             push   ax
 3916  e8d736         call   wait_ticks
@@ -6272,7 +6272,7 @@ L_3925:
 3944  50             push   ax
 3945  e8d039         call   xor_mask
 3948  83c408         add    sp, 8
-394B  e83f5d         call   present_bottom
+394B  e83f5d         call   present
 394E  b80100         mov    ax, 1
 3951  50             push   ax
 3952  e89b36         call   wait_ticks
@@ -6331,7 +6331,7 @@ L_39C9:
 39CF  c7063c12ffff   mov    word ptr [0x123c], 0xffff
 L_39D5:
 39D5  e82f46         call   sprites_draw
-39D8  e8b25c         call   present_bottom
+39D8  e8b25c         call   present
 39DB  e87745         call   sprites_erase
 39DE  c7063c120000   mov    word ptr [0x123c], 0
 39E4  ff46fa         inc    word ptr [bp - 6]
@@ -6567,7 +6567,7 @@ L_3B45:
 3C1D  a34012         mov    word ptr [0x1240], ax
 3C20  c7062812ffff   mov    word ptr [0x1228], 0xffff
 3C26  e8de43         call   sprites_draw
-3C29  e8615a         call   present_bottom
+3C29  e8615a         call   present
 3C2C  e82643         call   sprites_erase
 3C2F  b81400         mov    ax, 0x14
 3C32  50             push   ax
@@ -6606,7 +6606,7 @@ L_3C40:
 3C8B  e86859         call   load_file
 3C8E  83c406         add    sp, 6
 3C91  e8ab59         call   show_picture
-3C94  e8f659         call   present_bottom
+3C94  e8f659         call   present
 3C97  be0c00         mov    si, 0xc
 3C9A  eb3f           jmp    L_3CDB
 L_3C9C:
@@ -6631,7 +6631,7 @@ L_3C9C:
 3CCD  e82033         call   wait_ticks
 3CD0  59             pop    cx
 3CD1  e83343         call   sprites_draw
-3CD4  e8b659         call   present_bottom
+3CD4  e8b659         call   present
 3CD7  e87b42         call   sprites_erase
 3CDA  46             inc    si
 L_3CDB:
@@ -7038,7 +7038,7 @@ L_40B7:
 40BA  e8dcfd         call   sword_pose_a
 40BD  59             pop    cx
 40BE  e8463f         call   sprites_draw
-40C1  e8c955         call   present_bottom
+40C1  e8c955         call   present
 40C4  a1080b         mov    ax, word ptr [0xb08]
 40C7  3b06020b       cmp    ax, word ptr [0xb02]
 40CB  7d2e           jge    L_40FB
@@ -7114,7 +7114,7 @@ L_4105:
 418C  a34012         mov    word ptr [0x1240], ax
 418F  c7062812ffff   mov    word ptr [0x1228], 0xffff
 4195  e86f3e         call   sprites_draw
-4198  e8f254         call   present_bottom
+4198  e8f254         call   present
 419B  e8b73d         call   sprites_erase
 419E  e8042f         call   flush_keys
 41A1  b80200         mov    ax, 2
@@ -7141,7 +7141,7 @@ L_4105:
 41D6  a34012         mov    word ptr [0x1240], ax
 41D9  c7062812ffff   mov    word ptr [0x1228], 0xffff
 41DF  e8253e         call   sprites_draw
-41E2  e8a854         call   present_bottom
+41E2  e8a854         call   present
 41E5  e8bd2e         call   flush_keys
 41E8  b80100         mov    ax, 1
 41EB  e9ea02         jmp    L_44D8
@@ -7238,7 +7238,7 @@ L_42B0:
 42C9  50             push   ax
 42CA  e8d42f         call   xor_sprite
 42CD  83c408         add    sp, 8
-42D0  e8ba53         call   present_bottom
+42D0  e8ba53         call   present
 42D3  b8040b         mov    ax, 0xb04
 42D6  50             push   ax
 42D7  e833fa         call   bar_shorten
@@ -7376,7 +7376,7 @@ L_4432:
 4449  50             push   ax
 444A  e8542e         call   xor_sprite
 444D  83c408         add    sp, 8
-4450  e83a52         call   present_bottom
+4450  e83a52         call   present
 4453  b8f20a         mov    ax, 0xaf2
 4456  50             push   ax
 4457  e8b3f8         call   bar_shorten
@@ -7493,7 +7493,7 @@ raid_attack: ; = AB 5449 raid_attack (similarity 0.96)
 455A  50             push   ax
 455B  e8432d         call   xor_sprite
 455E  83c408         add    sp, 8
-4561  e82951         call   present_bottom
+4561  e82951         call   present
 4564  b80000         mov    ax, 0
 4567  50             push   ax
 4568  e8d92e         call   music_play
@@ -7603,7 +7603,7 @@ L_4684:
 L_468D:
 468D  83fe28         cmp    si, 0x28
 4690  7cf2           jl     L_4684
-4692  e8f84f         call   present_bottom
+4692  e8f84f         call   present
 4695  c706f20a9a00   mov    word ptr [0xaf2], 0x9a
 469B  c706040b1801   mov    word ptr [0xb04], 0x118
 46A1  be3200         mov    si, 0x32
@@ -8502,7 +8502,7 @@ L_4EFA:
 4F27  c7872812ffff   mov    word ptr [bx + 0x1228], 0xffff
 L_4F2D:
 4F2D  e8d730         call   sprites_draw
-4F30  e85a47         call   present_bottom
+4F30  e85a47         call   present
 4F33  e81f30         call   sprites_erase
 4F36  e959fc         jmp    L_4B92
 L_4F39:
@@ -9071,7 +9071,7 @@ L_53F7:
 5458  50             push   ax
 5459  e8be4c         call   use_palette
 545C  83c402         add    sp, 2
-545F  e82b42         call   present_bottom
+545F  e82b42         call   present
 5462  b80010         mov    ax, 0x1000
 5465  50             push   ax
 5466  b80070         mov    ax, 0x7000
@@ -9096,7 +9096,7 @@ L_5495:
 54A1  e85241         call   load_file
 54A4  83c406         add    sp, 6
 54A7  e89541         call   show_picture
-54AA  e8e041         call   present_bottom
+54AA  e8e041         call   present
 54AD  b80010         mov    ax, 0x1000
 54B0  50             push   ax
 54B1  b80070         mov    ax, 0x7000
@@ -9178,7 +9178,7 @@ joust_round: ; = AB 6475 joust_round (similarity 0.92)
 556C  50             push   ax
 556D  e8aa4b         call   use_palette
 5570  83c402         add    sp, 2
-5573  e81741         call   present_bottom
+5573  e81741         call   present
 5576  eb18           jmp    L_5590
 L_5578:
 5578  b80010         mov    ax, 0x1000
@@ -9190,7 +9190,7 @@ L_5578:
 5584  e86f40         call   load_file
 5587  83c406         add    sp, 6
 558A  e8b240         call   show_picture
-558D  e8fd40         call   present_bottom
+558D  e8fd40         call   present
 L_5590:
 5590  be1200         mov    si, 0x12
 5593  eb35           jmp    L_55CA
@@ -9389,7 +9389,7 @@ L_5737:
 5750  50             push   ax
 5751  e8c649         call   use_palette
 5754  83c402         add    sp, 2
-5757  e8333f         call   present_bottom
+5757  e8333f         call   present
 575A  eb37           jmp    L_5793
 L_575C:
 575C  b80010         mov    ax, 0x1000
@@ -9449,7 +9449,7 @@ L_5793:
 57E4  a34212         mov    word ptr [0x1242], ax
 57E7  c7062a12ffff   mov    word ptr [0x122a], 0xffff
 57ED  e81728         call   sprites_draw
-57F0  e89a3e         call   present_bottom
+57F0  e89a3e         call   present
 57F3  e85f27         call   sprites_erase
 57F6  c70628120000   mov    word ptr [0x1228], 0
 57FC  8b1e100d       mov    bx, word ptr [0xd10]
@@ -9638,7 +9638,7 @@ L_597F:
 59A6  47             inc    di
 59A7  c7062812ffff   mov    word ptr [0x1228], 0xffff
 59AD  e85726         call   sprites_draw
-59B0  e8da3c         call   present_bottom
+59B0  e8da3c         call   present
 59B3  e89f25         call   sprites_erase
 59B6  b80300         mov    ax, 3
 59B9  50             push   ax
@@ -9668,7 +9668,7 @@ L_59C2:
 59ED  a34012         mov    word ptr [0x1240], ax
 59F0  c7062812ffff   mov    word ptr [0x1228], 0xffff
 59F6  e80e26         call   sprites_draw
-59F9  e8913c         call   present_bottom
+59F9  e8913c         call   present
 59FC  e85625         call   sprites_erase
 59FF  b80300         mov    ax, 3
 5A02  50             push   ax
@@ -9693,7 +9693,7 @@ L_59C2:
 5A2D  a34012         mov    word ptr [0x1240], ax
 5A30  c7062812ffff   mov    word ptr [0x1228], 0xffff
 5A36  e8ce25         call   sprites_draw
-5A39  e8513c         call   present_bottom
+5A39  e8513c         call   present
 5A3C  e81625         call   sprites_erase
 5A3F  b80300         mov    ax, 3
 5A42  50             push   ax
@@ -9726,7 +9726,7 @@ L_5A57:
 5A7F  4f             dec    di
 5A80  c7062812ffff   mov    word ptr [0x1228], 0xffff
 5A86  e87e25         call   sprites_draw
-5A89  e8013c         call   present_bottom
+5A89  e8013c         call   present
 5A8C  e8c624         call   sprites_erase
 5A8F  b80100         mov    ax, 1
 5A92  50             push   ax
@@ -9752,7 +9752,7 @@ L_5A57:
 5AC2  ff46fc         inc    word ptr [bp - 4]
 5AC5  c7062a12ffff   mov    word ptr [0x122a], 0xffff
 5ACB  e83925         call   sprites_draw
-5ACE  e8bc3b         call   present_bottom
+5ACE  e8bc3b         call   present
 5AD1  e88124         call   sprites_erase
 5AD4  b80200         mov    ax, 2
 5AD7  50             push   ax
@@ -9781,7 +9781,7 @@ L_5AE2:
 5B0D  ff46fc         inc    word ptr [bp - 4]
 5B10  c7062a12ffff   mov    word ptr [0x122a], 0xffff
 5B16  e8ee24         call   sprites_draw
-5B19  e8713b         call   present_bottom
+5B19  e8713b         call   present
 5B1C  e83624         call   sprites_erase
 5B1F  33c0           xor    ax, ax
 5B21  a32812         mov    word ptr [0x1228], ax
@@ -9985,7 +9985,7 @@ L_5D11:
 5D2A  a38812         mov    word ptr [0x1288], ax
 5D2D  c7062812ffff   mov    word ptr [0x1228], 0xffff
 5D33  e8d122         call   sprites_draw
-5D36  e83e39         call   present
+5D36  e83e39         call   present_bottom
 5D39  e81922         call   sprites_erase
 5D3C  ff0e6100       dec    word ptr [0x61]
 5D40  a16100         mov    ax, word ptr [0x61]
@@ -10046,7 +10046,7 @@ L_5DC6:
 5DD2  e82138         call   load_file
 5DD5  83c406         add    sp, 6
 5DD8  e86438         call   show_picture
-5DDB  e8af38         call   present_bottom
+5DDB  e8af38         call   present
 5DDE  8b5e08         mov    bx, word ptr [bp + 8]
 5DE1  83c325         add    bx, 0x25
 5DE4  d1e3           shl    bx, 1
@@ -10212,7 +10212,7 @@ L_5F42:
 5F67  c7062812ffff   mov    word ptr [0x1228], 0xffff
 L_5F6D:
 5F6D  e89720         call   sprites_draw
-5F70  e80437         call   present
+5F70  e80437         call   present_bottom
 5F73  e8df1f         call   sprites_erase
 5F76  33c0           xor    ax, ax
 5F78  a32812         mov    word ptr [0x1228], ax
@@ -10269,7 +10269,7 @@ joust: ; = AB 6EC2 joust (similarity 0.84)
 L_5FFF:
 5FFF  e82610         call   wait_key
 6002  e83a36         call   show_picture
-6005  e88536         call   present_bottom
+6005  e88536         call   present
 6008  c7060c0d2800   mov    word ptr [0xd0c], 0x28
 600E  c706140d7d00   mov    word ptr [0xd14], 0x7d
 6014  be0300         mov    si, 3
@@ -10545,7 +10545,7 @@ catapult_aim: ; = AB 7168 catapult_aim (similarity 0.93)
 6289  8bec           mov    bp, sp
 628B  83ec0c         sub    sp, 0xc
 628E  be8800         mov    si, 0x88
-6291  e8f933         call   present_bottom
+6291  e8f933         call   present
 6294  8b460a         mov    ax, word ptr [bp + 0xa]
 6297  ba0e00         mov    dx, 0xe
 629A  f7e2           mul    dx
@@ -10570,7 +10570,7 @@ catapult_aim: ; = AB 7168 catapult_aim (similarity 0.93)
 62C9  a34012         mov    word ptr [0x1240], ax
 62CC  c7062812ffff   mov    word ptr [0x1228], 0xffff
 62D2  e8321d         call   sprites_draw
-62D5  e8b533         call   present_bottom
+62D5  e8b533         call   present
 L_62D8:
 62D8  e8810d         call   get_key
 62DB  3d1c00         cmp    ax, 0x1c
@@ -10586,7 +10586,7 @@ L_62D8:
 62F2  50             push   ax
 62F3  e8ab0f         call   xor_sprite
 62F6  83c408         add    sp, 8
-62F9  e89133         call   present_bottom
+62F9  e89133         call   present
 L_62FC:
 62FC  b80100         mov    ax, 1
 62FF  50             push   ax
@@ -10624,7 +10624,7 @@ L_631E:
 6343  e85b0f         call   xor_sprite
 6346  83c408         add    sp, 8
 L_6349:
-6349  e84133         call   present_bottom
+6349  e84133         call   present
 634C  b80100         mov    ax, 1
 634F  50             push   ax
 6350  e81d3f         call   delay_ticks
@@ -10653,7 +10653,7 @@ L_6380:
 6389  83ee08         sub    si, 8
 638C  89365812       mov    word ptr [0x1258], si
 6390  e8741c         call   sprites_draw
-6393  e8f732         call   present_bottom
+6393  e8f732         call   present
 6396  ebe8           jmp    L_6380
 L_6398:
 6398  8b460a         mov    ax, word ptr [bp + 0xa]
@@ -10676,7 +10676,7 @@ L_6398:
 63C2  d1e0           shl    ax, 1
 63C4  a34012         mov    word ptr [0x1240], ax
 63C7  e83d1c         call   sprites_draw
-63CA  e8c032         call   present_bottom
+63CA  e8c032         call   present
 63CD  1e             push   ds
 63CE  b80020         mov    ax, 0x2000
 63D1  8ed8           mov    ds, ax
@@ -10688,7 +10688,7 @@ L_6398:
 63E0  b89200         mov    ax, 0x92
 63E3  a35812         mov    word ptr [0x1258], ax
 63E6  e81e1c         call   sprites_draw
-63E9  e8a132         call   present_bottom
+63E9  e8a132         call   present
 63EC  1e             push   ds
 63ED  b80020         mov    ax, 0x2000
 63F0  8ed8           mov    ds, ax
@@ -10703,7 +10703,7 @@ L_6398:
 640A  d1e0           shl    ax, 1
 640C  a34012         mov    word ptr [0x1240], ax
 640F  e8f51b         call   sprites_draw
-6412  e87832         call   present_bottom
+6412  e87832         call   present
 6415  be7d00         mov    si, 0x7d
 6418  8b460a         mov    ax, word ptr [bp + 0xa]
 641B  ba0e00         mov    dx, 0xe
@@ -10731,7 +10731,7 @@ L_6436:
 6450  a34212         mov    word ptr [0x1242], ax
 6453  c7062a12ffff   mov    word ptr [0x122a], 0xffff
 6459  e8ab1b         call   sprites_draw
-645C  e82e32         call   present_bottom
+645C  e82e32         call   present
 645F  ebd5           jmp    L_6436
 L_6461:
 6461  8b460a         mov    ax, word ptr [bp + 0xa]
@@ -10757,7 +10757,7 @@ L_6477:
 648F  d1e0           shl    ax, 1
 6491  a34212         mov    word ptr [0x1242], ax
 6494  e8701b         call   sprites_draw
-6497  e8f331         call   present_bottom
+6497  e8f331         call   present
 649A  ebdb           jmp    L_6477
 L_649C:
 649C  e8b61a         call   sprites_erase
@@ -10816,7 +10816,7 @@ L_64DE:
 651A  a34212         mov    word ptr [0x1242], ax
 651D  c7062a12ffff   mov    word ptr [0x122a], 0xffff
 6523  e8e11a         call   sprites_draw
-6526  e86431         call   present_bottom
+6526  e86431         call   present
 6529  e8291a         call   sprites_erase
 652C  ff46fe         inc    word ptr [bp - 2]
 652F  b80100         mov    ax, 1
@@ -10833,7 +10833,7 @@ L_64DE:
 654A  8bf0           mov    si, ax
 654C  89365a12       mov    word ptr [0x125a], si
 6550  e8b41a         call   sprites_draw
-6553  e83731         call   present_bottom
+6553  e83731         call   present
 6556  e8fc19         call   sprites_erase
 6559  ff46fe         inc    word ptr [bp - 2]
 655C  b80100         mov    ax, 1
@@ -10862,7 +10862,7 @@ L_6588:
 6590  d1e0           shl    ax, 1
 6592  a34212         mov    word ptr [0x1242], ax
 6595  e86f1a         call   sprites_draw
-6598  e8f230         call   present_bottom
+6598  e8f230         call   present
 659B  e8b719         call   sprites_erase
 659E  ff46fe         inc    word ptr [bp - 2]
 65A1  ff46fc         inc    word ptr [bp - 4]
@@ -10874,7 +10874,7 @@ L_6588:
 L_65AF:
 65AF  c7062a120000   mov    word ptr [0x122a], 0
 65B5  e84f1a         call   sprites_draw
-65B8  e8d230         call   present_bottom
+65B8  e8d230         call   present
 65BB  e89719         call   sprites_erase
 65BE  8be5           mov    sp, bp
 65C0  5d             pop    bp
@@ -11248,7 +11248,7 @@ L_6908:
 6933  a34212         mov    word ptr [0x1242], ax
 6936  c7062a12ffff   mov    word ptr [0x122a], 0xffff
 693C  e8c816         call   sprites_draw
-693F  e84b2d         call   present_bottom
+693F  e84b2d         call   present
 6942  c7062a120000   mov    word ptr [0x122a], 0
 6948  e80a16         call   sprites_erase
 694B  c70628120000   mov    word ptr [0x1228], 0
@@ -11808,7 +11808,7 @@ L_6E6F:
 6E73  3bc6           cmp    ax, si
 6E75  7f90           jg     L_6E07
 L_6E77:
-6E77  e81328         call   present_bottom
+6E77  e81328         call   present
 6E7A  8a460d         mov    al, byte ptr [bp + 0xd]
 6E7D  98             cwde   
 6E7E  8bf0           mov    si, ax
@@ -11934,7 +11934,7 @@ L_6F6C:
 6F95  e89302         call   xor_rect
 6F98  83c40a         add    sp, 0xa
 L_6F9B:
-6F9B  e8ef26         call   present_bottom
+6F9B  e8ef26         call   present
 6F9E  833e9c0a00     cmp    word ptr [0xa9c], 0
 6FA3  750f           jne    L_6FB4
 6FA5  e88000         call   wait_key
@@ -11953,7 +11953,7 @@ L_6FB4:
 6FC4  ffb636fd       push   word ptr [bp - 0x2ca]
 6FC8  e86002         call   xor_rect
 6FCB  83c40a         add    sp, 0xa
-6FCE  e8bc26         call   present_bottom
+6FCE  e8bc26         call   present
 6FD1  8a460d         mov    al, byte ptr [bp + 0xd]
 6FD4  98             cwde   
 6FD5  8bd6           mov    dx, si
@@ -14495,7 +14495,7 @@ show_portrait: ; = AB 9407 show_portrait
 9190  56             push   si
 9191  e884e1         call   xor_mask
 9194  83c408         add    sp, 8
-9197  e8f304         call   present_bottom
+9197  e8f304         call   present
 919A  8be5           mov    sp, bp
 919C  5d             pop    bp
 919D  5f             pop    di
@@ -14951,7 +14951,7 @@ show_picture: ; = AB 98C3 show_picture (similarity 0.91)
 9675  58             pop    ax
 9676  c3             ret    
 
-present: ; = AB 9902 present
+present_bottom: ; = AB 994A present_bottom (lines 100-199: calls 9C37; the matcher had paired the two wrappers the other way round)
 9677  50             push   ax
 9678  53             push   bx
 9679  51             push   cx
@@ -14973,7 +14973,7 @@ present: ; = AB 9902 present
 968B  58             pop    ax
 968C  c3             ret    
 
-present_bottom: ; = AB 994A present_bottom
+present: ; = AB 9902 present (the whole back buffer: calls 96A3)
 968D  50             push   ax
 968E  53             push   bx
 968F  51             push   cx

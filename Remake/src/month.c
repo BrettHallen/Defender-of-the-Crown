@@ -418,7 +418,7 @@ static int orders_menu(void)   /* 1A91 */
 static void the_end_sprite(int y)
 {
     Video *v = gfx_video();
-    v->slot[0] = (Slot){ true, 100, y, F_END, 6, 0, 0, 0 };
+    v->slot[0] = (Slot){ true, 100, y, F_END, 6, 0, 0, 0, 0 };
     gfx_sprites_draw();
     present();
     gfx_sprites_erase();

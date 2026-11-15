@@ -30,8 +30,8 @@ The two have the same story texts, pictures in the same scenes and the same char
 | JOUST2.LIB | 49,074 | The jousting lane and the stands; the charging knight (2-19) and the lance view (20-40). |
 | RAID.LIB | 43,776 | The castle raid: the castle at night, the hall, the plotters, the trumpeters, the land view; "You / Enemy" strength bars. |
 | SIEGE.LIB | 29,100 | The two castle views for a siege; the catapult's stones, fire and bits of wall (50 sprites). |
-| LOVE1.LIB | 33,670 | The Saxon lady's portraits and her eyes (blinking). |
-| LOVE2.LIB | 33,232 | The bedchamber scene, its window, the couple, "THE END". |
+| LOVE1.LIB | 33,670 | The romance: the lady picture with an empty frame (item 0), the four ladies' portraits (1, 7, 13, 19), each followed by five frames of her eyes (DOC 050E:03BE). |
+| LOVE2.LIB | 33,232 | The romance: the bedchamber with the couple in it (item 0), the couple as they draw together (1-9: the lady, then the man, whole figures, put opaque with the background around them), the window (10) and the couple in it (11-20) (DOC 050E:04D4). |
 
 ### The .LIB format (DOC.EXE)
 - A BASIC **BSAVE** image: byte FDh, word segment, word offset, word length, then *length* bytes, then 1Ah. DOC.EXE's loader (070A:015A) reads the 7-byte header and then the data into a buffer.

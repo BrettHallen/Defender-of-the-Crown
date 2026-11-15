@@ -55,7 +55,12 @@ static void game(void)
         SW(SIDE(1) + S_SWORD, 6); SW(SIDE(4) + S_SWORD, 5);
         SW(SIDE(1) + S_AT, 2); SW(SIDE(4) + S_GOLD, 40);
         gamelog_begin(1);
-        if (SDL_getenv("RESCUE")) {   /* a Saxon's lady held at the Norman's home: the offer, then the raid */
+        if (SDL_getenv("ROMANCE")) {   /* the romance alone, over the hall, with lady ROMANCE (0-3) */
+            gfx_show_picture(PIC_HALL);
+            present();
+            gfx_set_palette();
+            romance(SDL_atoi(SDL_getenv("ROMANCE")));
+        } else if (SDL_getenv("RESCUE")) {   /* a Saxon's lady held at the Norman's home: the offer, then the raid */
             SW(SIDE(2) + S_NAME, W(LORD(2) + 0));
             SW(SIDE(2) + S_HOME, 5); SB(TERR(5) + T_OWNER, 2); SB(TERR(6) + T_OWNER, 2);
             set_region_colour(5, 2); set_region_colour(6, 2);

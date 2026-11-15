@@ -43,5 +43,9 @@ bool lib_open(LibFile *l, const char *path);
 void lib_close(LibFile *l);
 /* a COMPRESS picture to 200 rows of 80 bytes (CGA 2 bits a pixel); false if not one */
 bool lib_picture(const uint8_t *item, size_t n, uint8_t out[16000]);
+/* a sprite: word width in bits (2 a pixel), word height, then height rows of
+ * width / 8 bytes (the put routines' count, DOC 089B:002C); *pix gets w*h pixel
+ * values 0-3 (SDL_malloc). false if not one */
+bool lib_sprite(const uint8_t *item, size_t n, int *w, int *h, uint8_t **pix);
 
 #endif

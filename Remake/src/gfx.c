@@ -200,10 +200,13 @@ static void blit(int m, int pg, int x0, int y0, const Image *im, int op, int row
     }
 }
 
-void gfx_put_sprite(int x, int y, FileId f, int item)
+void gfx_put_sprite(int x, int y, FileId f, int item) { gfx_put_sprite_m(MODES_ALL, x, y, f, item); }
+
+void gfx_put_sprite_m(unsigned modes, int x, int y, FileId f, int item)
 {
     gfx_lock();
-    for (int m = 0; m < MODE_COUNT; m++) blit(m, PAGE_BACK, x_px(m, x), y, asset_item(A, (Mode)m, f, item), OP_COPY, 999);
+    for (int m = 0; m < MODE_COUNT; m++)
+        if (modes & (1u << m)) blit(m, PAGE_BACK, x_px(m, x), y, asset_item(A, (Mode)m, f, item), OP_COPY, 999);
     gfx_unlock();
 }
 
@@ -362,7 +365,7 @@ void gfx_sprites_draw(void)
         for (int i = NUM_SLOTS - 1; i >= 0; i--) {
             Slot *s = &V.slot[i];
             V.saved_ok[m][i] = false;
-            if (!s->active) continue;
+            if (!s->active || (s->modes && !(s->modes & (1u << m)))) continue;
             const Image *im = asset_item(A, (Mode)m, s->file, s->item);
             if (!im) continue;
             int x0 = slot_x(m, s->x + (m == MODE_TANDY ? s->tandy_dx : 0)), rows = im->h - s->trim;

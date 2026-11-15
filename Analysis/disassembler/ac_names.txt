@@ -165,8 +165,8 @@ A1A4 planar_to_packed ; EGA-style planes (3000:0000, 4 x 1F40h) -> packed 4bpp a
 95F6 load_file ; = AB 987A load_file
 9614 ask_reel_two ; = AB 9898 ask_reel_two
 963F show_picture ; = AB 98C3 show_picture (similarity 0.91)
-9677 present ; = AB 9902 present
-968D present_bottom ; = AB 994A present_bottom
+9677 present_bottom ; = AB 994A present_bottom (lines 100-199: calls 9C37; the matcher had paired the two wrappers the other way round)
+968D present ; = AB 9902 present (the whole back buffer: calls 96A3)
 9F76 lzw_unpack ; = AB 9ABB lzw_unpack
 A061 lzw_code ; = AB 9BA6 lzw_code
 A0B7 lzw_out ; = AB 9BFC lzw_out

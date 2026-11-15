@@ -218,7 +218,7 @@ static void chosen_rect(int x, int y, int w)  { gfx_xor_rect3(x, y, w, 11, 0x555
 
 static void slot(int k, int xpx, int y, int item)
 {
-    gfx_video()->slot[k] = (Slot){ true, xpx, y, F_SWORD, item, 0, 0, 0 };
+    gfx_video()->slot[k] = (Slot){ true, xpx, y, F_SWORD, item, 0, 0, 0, 0 };
 }
 
 /* The player's battle: a1 attacks territory a3 of side a2, pct the castle's
@@ -399,7 +399,7 @@ static int battle(int att, int def, int t, int pct, int shown)   /* 5781 */
  * 4-pixel units; the Tandy program puts them one unit to the left (AC 62D1). */
 static void siege_slot(int k, int x, int y, int item)
 {
-    gfx_video()->slot[k] = (Slot){ true, x * 4, y, F_SIEGE, item, 0, -4, 0 };
+    gfx_video()->slot[k] = (Slot){ true, x * 4, y, F_SIEGE, item, 0, -4, 0, 0 };
 }
 
 /* 7505: "Load Ammunition": Greek Fire, Disease, Boulders (while there are any)

@@ -100,10 +100,10 @@ static void sword_pose(int rec, int slot0)
     P.x = W(r); P.y = W(r + 2); P.ex = W(r + 10); P.ey = W(r + 12);
     P.legs = W(r + 4); P.body = W(r + 6); P.elegs = W(r + 14); P.ebody = W(r + 16);
     Slot *s = gfx_video()->slot;
-    s[slot0 + 3] = (Slot){ true, P.x * 4, P.y + 24, F_SWORD, P.legs, 0, 0, 0 };
-    s[slot0 + 1] = (Slot){ true, P.x * 4, P.y, F_SWORD, P.body, 0, 0, 0 };
-    s[slot0 + 2] = (Slot){ true, (P.ex + 8) * 4, P.ey + 24, F_SWORD, P.elegs, 0, 0, 0 };
-    s[slot0 + 0] = (Slot){ true, P.ex * 4, P.ey, F_SWORD, P.ebody, 0, 0, 0 };
+    s[slot0 + 3] = (Slot){ true, P.x * 4, P.y + 24, F_SWORD, P.legs, 0, 0, 0, 0 };
+    s[slot0 + 1] = (Slot){ true, P.x * 4, P.y, F_SWORD, P.body, 0, 0, 0, 0 };
+    s[slot0 + 2] = (Slot){ true, (P.ex + 8) * 4, P.ey + 24, F_SWORD, P.elegs, 0, 0, 0, 0 };
+    s[slot0 + 0] = (Slot){ true, P.ex * 4, P.ey, F_SWORD, P.ebody, 0, 0, 0, 0 };
 }
 
 /* the two fighters behind (The Attack): a step now and then, and a new stance */
@@ -166,15 +166,15 @@ static int sword_fight(int attack)
             gfx_sprites_erase();
             Slot *s = gfx_video()->slot;
             for (int k = 3; k < 8; k++) s[k].active = false;
-            s[2] = (Slot){ true, P.x * 4, P.y + 24, F_SWORD, P.legs, 0, 0, 0 };
-            s[1] = (Slot){ true, P.x * 4, P.y, F_SWORD, P.body, 0, 0, 0 };
-            s[0] = (Slot){ true, P.ex * 4, P.ey, F_SWORD, 178, 0, 0, 0 };
+            s[2] = (Slot){ true, P.x * 4, P.y + 24, F_SWORD, P.legs, 0, 0, 0, 0 };
+            s[1] = (Slot){ true, P.x * 4, P.y, F_SWORD, P.body, 0, 0, 0, 0 };
+            s[0] = (Slot){ true, P.ex * 4, P.ey, F_SWORD, 178, 0, 0, 0, 0 };
             gfx_sprites_draw();
             present();
             gfx_sprites_erase();
             flush_keys();
             wait_ticks(2);
-            s[0] = (Slot){ true, P.ex * 4, P.ey + 32, F_SWORD, 179, 0, 0, 0 };
+            s[0] = (Slot){ true, P.ex * 4, P.ey + 32, F_SWORD, 179, 0, 0, 0, 0 };
             gfx_sprites_draw();   /* left on the picture */
             present();
             flush_keys();
@@ -301,14 +301,149 @@ static int raid_defense(void)
     return sword_fight(0);
 }
 
-/* 48EB: the romance, not ported yet (its scenes differ between the three
- * programs): its first and last words over the hall, and what it does (morale
- * 50; the lady and her ward's land then go to the player in raid) */
-static void romance(int lady)
+/* ------------------------------------------------------------------ the romance (48EB) */
+
+#define MODES_CGA ((1u << MODE_CGA1) | (1u << MODE_CGA2))
+#define MODE_BIT(m) (1u << (m))
+
+/* the lady's picture (F_LADIES): put opaque (8495; the CGA and Tandy programs copy
+ * whole bytes, AA 71E9, AC 7318, to the same place). Only the EGA program moves
+ * Anne of Lancashire (2), and for her base picture Rosalind of Bedford (3) too, one
+ * unit (4 pixels) to the right, onto the next byte. */
+static bool dos_sprites(FileId f) { return gfx_assets()->dos_file[f]; }
+
+/* The DOS version (DOC 050E:04D4) puts every lady at (26, 17) and her eyes at
+ * (34, 53), straight onto the screen (0971:0004, 089B:0007); dos_x/y: those */
+static void lady_put(int x, int y, int item, int ega_dx, int dos_x, int dos_y)
 {
-    GLOG(GLOG_NORMAL, "REMAKE the romance with %s (48EB) is not ported yet: only its words", STR(W(LADY(lady) + L_NAME)));
+    unsigned booter = MODES_ALL & ~MODE_BIT(MODE_EGA);
+    if (dos_sprites(F_LADIES)) {
+        booter &= ~MODES_DOS;
+        gfx_put_sprite_m(MODES_DOS, dos_x, dos_y, F_LADIES, item);
+    }
+    gfx_put_sprite_m(MODE_BIT(MODE_EGA), x + ega_dx, y, F_LADIES, item);
+    gfx_put_sprite_m(booter, x, y, F_LADIES, item);
+}
+
+/* 479B: her eyes close and open again: items base + 2 .. + 5, then + 5 back to
+ * + 1, one a screen refresh (the wait_ticks(1) end at once: present's pushed
+ * registers fill their stack slots) */
+static void lady_animate(int lady)
+{
+    int y = W(0xA9E + 4 * lady), x = W(0xAA0 + 4 * lady), base = W(0xABE + 2 * lady);
+    int si;
+    for (si = base + 2; si < base + 6; si++) {
+        lady_put(x, y, si, lady == 2, 34, 53);
+        present();
+        wait_ticks(1);
+    }
+    for (si--; si > base; si--) {
+        lady_put(x, y, si, lady == 2, 34, 53);
+        present();
+        wait_ticks(1);
+    }
+}
+
+/* 4853: the hearth in the bedchamber, a frame a screen refresh (and a short
+ * count-down, AB 48D8, that the remake leaves out). EGA (and Tandy, AC 3963):
+ * sprite slot 4 (the Tandy program's 10) at (128, 113) cycles off / flame 1 /
+ * flame 2 with the figures drawn over it. CGA (AA 390E): flame 1 XORed at (36,
+ * 125) every frame, so it is there every other frame, over the figures. */
+static void fire_flicker2(int frames)
+{
+    Slot *f = &gfx_video()->slot[4];
+    *f = (Slot){ false, 128, 113, F_FONT, ITEM_FLAME1, 0, 0, 0, MODES_ALL & ~MODES_CGA };
+    for (int i = 0; i < frames; i++) {
+        get_key();
+        int phase = i % 3;
+        f->active = phase != 0;
+        f->item = phase == 1 ? ITEM_FLAME1 : ITEM_FLAME2;
+        gfx_sprites_draw();
+        bool cga_on = !(i & 1);
+        if (cga_on) gfx_xor_sprite_m(MODES_CGA, 36, 125, F_FONT, ITEM_FLAME1);
+        present();
+        if (cga_on) gfx_xor_sprite_m(MODES_CGA, 36, 125, F_FONT, ITEM_FLAME1);
+        gfx_sprites_erase();
+        f->active = false;
+    }
+    f->modes = 0;
+}
+
+/* the two figures of the bedchamber, each in two halves (Bi item n, and n + 22
+ * 64 lines lower), at the places DS:0AC6 (x, units) / 0AC8 (y) for step n */
+static void figure(int top_slot, int n, unsigned modes)
+{
+    Slot *s = gfx_video()->slot;
+    int x = W(0xAC6 + 4 * n) * 4, y = W(0xAC8 + 4 * n);
+    s[top_slot]     = (Slot){ true, x, y, F_ROMANCE, n, 0, 0, 0, modes };
+    s[top_slot - 1] = (Slot){ true, x, y + 64, F_ROMANCE, n + 22, 0, 0, 0, modes };
+}
+
+/* 48EB: after a rescue. "You creep into a torchlit chamber..." over the hall;
+ * the lady (CR, Bh) opens and closes her eyes five times; "As the firelight
+ * reflects in her eyes, your pulse quickens."; the bedchamber (CS, Bi): the two
+ * figures come together in three steps by the flickering hearth, and a fourth;
+ * the window (CT, Bi 12-21); "You return to battle with renewed strength and
+ * determination..."; morale 50. The tune is 99h (the Tandy music's song 4).
+ * The remake follows the EGA program's order and timing in every mode. The others
+ * differ a little: the CGA and Tandy programs start the bedchamber one step
+ * earlier (Bg / Bk items 2 and 3); the Tandy program has no fourth step (Bk has
+ * no item 10: the remake keeps its third there), waits 14 and 24 ticks where the
+ * others wait 18 and 27, shows each step for 20 frames of the fire, not 40, puts
+ * the lady up only with her first blink, and has the window's figures in Bl. The
+ * DOS version (DOC 050E:04D4, LOVE1/LOVE2.LIB, drawn here when those files are
+ * there) puts whole figures, not halves, one at a time from step 2, after 350
+ * frames of the fire, its lady at (26, 17) and her eyes at (34, 53), one a timer
+ * tick, and the window's figures one unit to the right; the remake draws its
+ * pictures at the EGA program's moments. */
+void romance(int lady)
+{
+    Slot *s = gfx_video()->slot;
+    GLOG(GLOG_NORMAL, "ROMANCE with %s", STR(W(LADY(lady) + L_NAME)));
     dialog(0x267F);
+    gfx_show_picture(PIC_LADY);
+    play_tune(0x99, W(D_TUNE_ONCE));
+    lady_put(W(0xAB0 + 4 * lady), W(0xAAE + 4 * lady), W(0xABE + 2 * lady), lady == 2 || lady == 3, 26, 17);
+    present();
+    gfx_set_palette();
+    static const int WAIT[5] = { 18, 27, 9, 18, 27 };
+    for (int i = 0; i < 5; i++) {
+        wait_ticks(WAIT[i]);
+        lady_animate(lady);
+    }
+    dialog(0x2781);
+    gfx_show_picture(PIC_BEDCHAMBER);
+    gfx_set_palette();
+    for (int n = 4; n < 10; n += 2) {
+        figure(3, n, 0);
+        figure(1, n + 1, 0);
+        gfx_sprites_draw();
+        present();
+        gfx_sprites_erase();
+        fire_flicker2(40);
+    }
+    figure(3, 10, MODES_ALL & ~MODE_BIT(MODE_TANDY));
+    figure(7, 8, MODE_BIT(MODE_TANDY));
+    gfx_sprites_draw();
+    present();
+    gfx_sprites_erase();
+    for (int k = 0; k < 8; k++) { s[k].active = false; s[k].modes = 0; }
+    gfx_show_picture(PIC_WINDOW);
+    present();
+    gfx_set_palette();
+    unsigned dos_window = dos_sprites(F_WINDOW) ? MODES_DOS : 0;
+    for (int n = 12; n < 22; n++) {   /* the DOS version one unit to the right (050E:06E5) */
+        s[0] = (Slot){ true, 36 * 4, 89, F_WINDOW, n, 0, 0, 0, MODES_ALL & ~dos_window };
+        s[1] = (Slot){ dos_window != 0, 37 * 4, 89, F_WINDOW, n, 0, 0, 0, dos_window };
+        wait_ticks(3);
+        gfx_sprites_draw();
+        present();
+        gfx_sprites_erase();
+    }
+    for (int k = 0; k < 2; k++) { s[k].active = false; s[k].modes = 0; }
+    wait_ticks(18);
     dialog(0x27CA);
+    wait_tune(0x99);
     SW(D_MORALE, 50);
 }
 

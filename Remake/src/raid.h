@@ -5,7 +5,7 @@
  * Original game by Cinemaware (Kellyn Beeck, Jim Sachs, ...)
  * IBM PC versions by Master Designer Software (1987 DOS) and the booter (GAME.DAT)
  *
- * raid.h: Go Raiding, the sword fight and the rescue of a kidnapped lady.
+ * raid.h: Go Raiding, the sword fight, the rescue of a kidnapped lady and the romance.
  */
 #ifndef DOTC_RAID_H
 #define DOTC_RAID_H
@@ -13,5 +13,6 @@
 int  go_raiding(void);                 /* 45AC: 1 if the month goes on */
 int  rescue_offer(void);               /* 4316: 1 if the player went to rescue her */
 void leadership_add(int side, int d);  /* 7113: kept within 0-10 */
+void romance(int lady);                /* 48EB: after the rescue of a lady (0-3); morale 50 */
 
 #endif

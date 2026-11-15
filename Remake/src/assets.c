@@ -29,9 +29,9 @@ bool mode_from_name(const char *s, Mode *m)
 }
 
 static const char *const FILES[3][F_COUNT] = {
-    /* CGA (AA) */  { "BA", "BD", "BP", "BT", "BU", "BV", "BW", "Bc", "Bf", "Bg" },
-    /* EGA (AB) */  { "BB", "BE", "BL", "BJ", "BK", "BN", "BO", "Bd", "Bh", "Bi" },
-    /* Tandy (AC) */{ "BC", "BF", "BR", "BX", "BY", "Ba", "Bb", "Be", "Bj", "Bk" },
+    /* CGA (AA) */  { "BA", "BD", "BP", "BT", "BU", "BV", "BW", "Bc", "Bf", "Bg", "Bg" },
+    /* EGA (AB) */  { "BB", "BE", "BL", "BJ", "BK", "BN", "BO", "Bd", "Bh", "Bi", "Bi" },
+    /* Tandy (AC) */{ "BC", "BF", "BR", "BX", "BY", "Ba", "Bb", "Be", "Bj", "Bk", "Bl" },
 };
 
 /* The DOS version's pictures, A-T: (.LIB file, item) */
@@ -351,8 +351,29 @@ static bool load_set(Assets *a, const GameDat *g, Mode m, char *err, size_t errl
     return true;
 }
 
-/* The 1987 DOS version: its own pictures (the .LIB files); its sprites and font
- * are not decoded yet, so the booter's CGA ones stand in. */
+/* DOS .LIB sprites into a file of the CGA (1987) set: LIB item j (DOC.EXE's
+ * 1-based number j + 1, as the booter's tables count) becomes item j + 1, for j in
+ * first..last; the booter's items of that file are dropped. */
+static bool dos_sprites(Assets *a, const char *lib, FileId f, int first, int last)
+{
+    char path[1200];
+    LibFile l;
+    if (!find_file(a->dir, lib, path, sizeof path) || !lib_open(&l, path)) return false;
+    SpriteFile *sf = &a->set[MODE_CGA1].file[f];
+    for (int i = 0; i < MAX_ITEMS; i++) { img_free(&sf->img[i]); sf->kind[i] = IT_NONE; }
+    int n = 0;
+    for (int j = first; j <= last && j < l.count && j + 1 < MAX_ITEMS; j++) {
+        Image *im = &sf->img[j + 1];
+        if (lib_sprite(l.item[j], l.item_len[j], &im->w, &im->h, &im->pix)) { sf->kind[j + 1] = IT_BIG; n++; }
+    }
+    lib_close(&l);
+    a->dos_file[f] = n > 0;
+    return n > 0;
+}
+
+/* The 1987 DOS version: its own pictures (the .LIB files) and the romance's
+ * sprites; its other sprites and its font are not decoded yet, so the booter's CGA
+ * ones stand in. */
 static void load_dos(Assets *a, const GameDat *g)
 {
     AssetSet *s = &a->set[MODE_CGA1];
@@ -377,6 +398,11 @@ static void load_dos(Assets *a, const GameDat *g)
         lib_close(&l);
     }
     if (found < PIC_COUNT) SDL_Log("CGA (1987): %d of the DOS pictures found; the booter's CGA pictures stand in for the rest", found);
+    /* the romance (DOC 050E:03BE-0733): the ladies and their eyes; the couple
+     * (whole figures, 1-9); the couple at the window (11-20) */
+    dos_sprites(a, "LOVE1.LIB", F_LADIES, 1, 24);
+    dos_sprites(a, "LOVE2.LIB", F_ROMANCE, 1, 9);
+    dos_sprites(a, "LOVE2.LIB", F_WINDOW, 11, 20);
 }
 
 bool assets_load(Assets *a, const char *dir, char *err, size_t errlen)

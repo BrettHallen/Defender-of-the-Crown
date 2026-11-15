@@ -52,6 +52,7 @@ typedef enum {
     F_SIEGE,      /* Bd / Bc / Be: the siege */
     F_LADIES,     /* Bh / Bf / Bj: the ladies */
     F_ROMANCE,    /* Bi / Bg / Bk: the romance */
+    F_WINDOW,     /* Bi / Bg / Bl: the romance's last scene, at the window (the Tandy program has it in a file of its own) */
     F_COUNT
 } FileId;
 
@@ -91,6 +92,7 @@ typedef struct {
     uint8_t *tunes;              /* BB: the PC-speaker tunes are items 97h-9Eh */
     size_t   tunes_len;
     char     dir[1024];
+    bool     dos_file[F_COUNT];  /* the CGA (1987) set has the DOS version's own sprites for this file (LOVE1/2.LIB) */
 } Assets;
 
 /* dir: a folder with GAME.DAT, and/or DOC.EXE's .LIB files (also looked for in

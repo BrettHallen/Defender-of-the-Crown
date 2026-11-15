@@ -45,7 +45,7 @@ static int lance_item;   /* DS:0D0E: the lance (BK item 20) */
 
 static void slot_set(int k, int xpx, int y, FileId f, int item, int rows)
 {
-    gfx_video()->slot[k] = (Slot){ true, xpx, y, f, item, 0, 0, rows };
+    gfx_video()->slot[k] = (Slot){ true, xpx, y, f, item, 0, 0, rows, 0 };
 }
 
 static void slots_off(void)
