@@ -54,7 +54,7 @@ open build/DefenderOfTheCrown.app
 ```
 The app looks for your game files in the folder given on the command line, then the one it remembers (the settings file's `folder`, below), then `game/` or `../Original` next to the app (so the repository's `Original/` folder is found when you run it from `Remake/build`), then the current folder. If it finds none it asks for the folder, and remembers it.
 ```sh
-build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --video=cga1 ../Original
+open build/DefenderOfTheCrown.app --args --video=cga1 ../Original
 ```
 
 **The settings file:** every option below can also be set in `DefenderOfTheCrown.ini`, so you don't have to give it each time. The remake reads it at every start and writes it with the defaults (and a comment for each setting) if it isn't there: on macOS it is `~/Library/Application Support/DefenderOfTheCrown/Remake/DefenderOfTheCrown.ini`, beside `Logs/`. An option given on the command line wins over the file for that run only; delete the file to get the defaults back. The game folder you choose (or give on the command line) is remembered in it; earlier builds kept it in `gamedir.txt`, which is read once and moved over.
@@ -89,7 +89,7 @@ The vassals of the six territories with a castle are not used: they are the lord
 
 **Fixing the original's flaws:** the remake plays the game as it was, flaws included. `--fix=` with a list of names, separated by commas (or `--fix=all`), fixes those you choose:
 ```sh
-build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --fix=targets,joust-opponent,joust-margin
+open build/DefenderOfTheCrown.app --args --fix=targets,joust-opponent,joust-margin
 ```
 
 | `--fix=` | The original | Fixed |
@@ -116,8 +116,8 @@ Each is described in `../Analysis/GAME_LOGIC.md` where it happens. The game log 
 
 **Game log (debugging):** `--log` writes a log of each game played:
 ```sh
-build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --log            # decisions and events
-build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --log=verbose    # and more
+open build/DefenderOfTheCrown.app --args --log            # decisions and events
+open build/DefenderOfTheCrown.app --args --log=verbose    # and more
 ```
 Each game opens a new text file in `Logs/` in the remake's folder (`~/Library/Application Support/DefenderOfTheCrown/Remake/Logs/` on macOS), named with the date, time and the lord you chose, such as `2026-11-15 08-46-01 Wilfred of Ivanhoe.log`. It starts with the settings in effect (each with where it came from: the settings file, the command line or the default) and the video mode, then the game as it was set up: the date, morale, the next event, the random generator's state, every side (lord, home, where its army is, gold, income, leadership, jousting, swordplay, its lady), the campaign armies, the 18 territories (owner, castle, vassals, income, neighbours, garrison), the ladies, and the enmity between the sides. Then one line for each decision or event, after the date in the game:
 ```
