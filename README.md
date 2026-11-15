@@ -9,7 +9,22 @@ The [original files](/Original) hold two different PC versions:
 - `ega/`: a later self-booting release (GameSYS 4.0 by Interactive Designs) with CGA, EGA and Tandy 1000 16-colour graphics, kept as one disk image file (GAME.DAT) and started from DOS with DEFENDER.COM.
 
 ## [Remake](/Remake)
-The remake for macOS (C and SDL3), a port of the booter's EGA program, showing the game as the 1987 DOS version's CGA, the booter's CGA, EGA or Tandy 1000 did (Tab switches, `--video=cga1|cga2|ega|tandy`), with a game log (`--log`). So far: the opening, the choice of character, Sherwood, the month with its events, the computer lords' turns, Buy Home Army, Seek Conquest with battles and sieges, Read Map, Go Raiding with the sword fight, the rescue of a kidnapped lady with the romance, and the tournaments with the joust: the whole game can be played. Build and run as in its [README](/Remake/README.md), or the [Quick Reference](/Remake/DOTC_Remake_Quick_Reference.pdf).
+The remake for macOS (C and SDL3), a port of the booter's EGA program, showing the game as the 1987 DOS version's CGA, the booter's CGA, EGA or Tandy 1000 did (Tab switches, `--video=cga1|cga2|ega|tandy`), with a game log (`--log`).<br>
+
+The remake is completed:
+- the opening,
+- the choice of character,
+- Sherwood,
+- the month with its events,
+- the computer lords' turns,
+- Buy Home Army,
+- Seek Conquest with battles and sieges,
+- Read Map,
+- Go Raiding with the sword fight,
+- the rescue of a kidnapped lady with the romance, and
+- the tournaments with the joust
+
+Build and run as in its [README](/Remake/README.md), or the [Quick Reference](/Remake/DOTC_Remake_Quick_Reference.pdf).
 
 ## [Analysis](/Analysis)
 What every file holds ([file reference](/Analysis/DOTC_file_reference.md)), the [findings](/Analysis/README.md) and what was checked against the originals, the game's rules as read from the code ([game logic](/Analysis/GAME_LOGIC.md)), the two PC versions compared ([DOC.EXE against the booter](/Analysis/DOC_vs_AB.md)), the printed manual checked against the code ([manual vs code](/Analysis/MANUAL_vs_CODE.md)), and the disassemblies of DOC.EXE, the booter's loader and its three game programs (CGA, EGA and Tandy 1000).
