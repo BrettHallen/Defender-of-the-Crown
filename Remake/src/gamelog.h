@@ -14,6 +14,10 @@
  * after the date in the game: what the computer lords choose and why, the
  * player's orders, events, battles and their results.
  *
+ * The start also lists the settings in effect (the settings file and the
+ * command line, and where each came from); a switch of video mode (Tab) or
+ * pixel shape (F2) during a game gets a line of its own.
+ *
  * Logging only reads the game: it never calls the random numbers, so a
  * logged game plays as one not logged.
  */
@@ -26,6 +30,8 @@
 typedef enum { GLOG_OFF = 0, GLOG_NORMAL = 1, GLOG_VERBOSE = 2 } GameLogLevel;
 
 void gamelog_setup(GameLogLevel level, const char *dir);
+void gamelog_settings(const char *text); /* the settings in effect (main.c), written at the start of each log */
+void gamelog_display(const char *mode, bool aspect_43);   /* the video mode and pixel shape now (main.c): a line when they change */
 void gamelog_begin(int character);      /* the game is set up: open a log, write the start */
 void gamelog_state(const char *title);  /* the whole state again (verbose: each month) */
 void gamelog_end(const char *how);

@@ -15,6 +15,10 @@ static struct {
     char dir[1024];
     char path[1280];
     SDL_IOStream *f;
+    SDL_Mutex *lock;          /* the display lines come from the main thread */
+    char settings[4096];
+    char mode[32];
+    bool aspect_43;
 } G;
 
 static const char *const MONTHS[12] = { "January", "February", "March", "April", "May", "June", "July",
@@ -65,7 +69,10 @@ void gamelog_setup(GameLogLevel level, const char *dir)
 {
     G.level = level;
     SDL_strlcpy(G.dir, dir ? dir : "", sizeof G.dir);
+    if (!G.lock) G.lock = SDL_CreateMutex();
 }
+
+void gamelog_settings(const char *text) { SDL_strlcpy(G.settings, text ? text : "", sizeof G.settings); }
 
 bool gamelog_on(GameLogLevel level) { return G.f && G.level >= level; }
 const char *gamelog_path(void) { return G.f ? G.path : ""; }
@@ -83,6 +90,13 @@ static void outf(const char *fmt, ...)
     out(line);
 }
 
+static void dated(const char *line)
+{
+    int mo = W(D_MONTH_NO);
+    outf("[%-9s %4d, month %2d] %s\n", mo >= 0 && mo < 12 ? MONTHS[mo] : "?", W(D_YEAR), W(D_MONTH), line);
+    SDL_FlushIO(G.f);
+}
+
 void gamelog_printf(const char *fmt, ...)
 {
     if (!G.f) return;
@@ -91,12 +105,36 @@ void gamelog_printf(const char *fmt, ...)
     va_start(ap, fmt);
     SDL_vsnprintf(line, sizeof line, fmt, ap);
     va_end(ap);
-    int mo = W(D_MONTH_NO);
-    outf("[%-9s %4d, month %2d] %s\n", mo >= 0 && mo < 12 ? MONTHS[mo] : "?", W(D_YEAR), W(D_MONTH), line);
-    SDL_FlushIO(G.f);
+    SDL_LockMutex(G.lock);
+    if (G.f) dated(line);
+    SDL_UnlockMutex(G.lock);
 }
 
+void gamelog_display(const char *mode, bool aspect_43)
+{
+    SDL_LockMutex(G.lock);
+    bool first = !G.mode[0];
+    if (G.f && !first && SDL_strcmp(G.mode, mode) != 0) {
+        char line[200];
+        SDL_snprintf(line, sizeof line, "SETTING the video mode is now %s (Tab)", mode);
+        dated(line);
+    }
+    if (G.f && !first && G.aspect_43 != aspect_43) dated(aspect_43 ? "SETTING the pixels are now 4:3 (F2)" : "SETTING the pixels are now square (F2)");
+    SDL_strlcpy(G.mode, mode, sizeof G.mode);
+    G.aspect_43 = aspect_43;
+    SDL_UnlockMutex(G.lock);
+}
+
+static void state(const char *title);
+
 void gamelog_state(const char *title)
+{
+    SDL_LockMutex(G.lock);
+    state(title);
+    SDL_UnlockMutex(G.lock);
+}
+
+static void state(const char *title)
 {
     if (!G.f) return;
     outf("\n== %s ==\n", title);
@@ -147,9 +185,18 @@ void gamelog_state(const char *title)
     SDL_FlushIO(G.f);
 }
 
+static void begin(int character);
+
 void gamelog_begin(int character)
 {
     if (G.level == GLOG_OFF) return;
+    SDL_LockMutex(G.lock);   /* reentrant */
+    begin(character);
+    SDL_UnlockMutex(G.lock);
+}
+
+static void begin(int character)
+{
     if (G.f) gamelog_end("A new game was started");
     SDL_CreateDirectory(G.dir);
     SDL_Time now;
@@ -168,16 +215,21 @@ void gamelog_begin(int character)
     char fx[256] = "";
     for (int i = 0; i < FIX_COUNT; i++)
         if (fixed((Fix)i)) SDL_snprintf(fx + SDL_strlen(fx), sizeof fx - SDL_strlen(fx), "%s%s", *fx ? ", " : "", FIX_NAMES[i]);
-    outf("The original's flaws fixed (--fix): %s.\n", *fx ? fx : "none, the game as it was");
+    if (G.settings[0]) out(G.settings);
+    else outf("The original's flaws fixed (--fix): %s.\n", *fx ? fx : "none, the game as it was");
+    if (G.mode[0]) outf("Video mode at the start of the game: %s, %s pixels.\n", G.mode, G.aspect_43 ? "4:3" : "square");
     gamelog_state("The game as it was set up");
     SDL_Log("Game log: %s", G.path);
 }
 
 void gamelog_end(const char *how)
 {
-    if (!G.f) return;
-    gamelog_printf("The end of the log: %s", how ? how : "");
-    if (G.level == GLOG_VERBOSE) gamelog_state("The game at the end");
-    SDL_CloseIO(G.f);
-    G.f = NULL;
+    SDL_LockMutex(G.lock);
+    if (G.f) {
+        gamelog_printf("The end of the log: %s", how ? how : "");
+        if (G.level == GLOG_VERBOSE) gamelog_state("The game at the end");
+        SDL_CloseIO(G.f);
+        G.f = NULL;
+    }
+    SDL_UnlockMutex(G.lock);
 }

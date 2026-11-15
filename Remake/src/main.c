@@ -56,7 +56,15 @@ static struct {
     Uint32        ev_folder;
     char          chosen[1024];
     bool          dialog_open;
+    const char   *src[5];          /* where each setting came from (SET_...), for the game log */
+    const char   *folder_src;
+    Mode          start_mode;      /* the mode the settings asked for */
+    const char   *log_name;        /* off, normal, verbose */
 } App;
+
+static const char *const MODE_KEYS[MODE_COUNT] = { "cga1", "cga2", "ega", "tandy" };
+
+enum { SET_VIDEO, SET_FIX, SET_PULL, SET_LOG, SET_FOLDER };
 
 /* ------------------------------------------------------------------ the settings file */
 
@@ -207,6 +215,8 @@ static void set_window_icon(void)
     SDL_free(px);
 }
 
+static void log_settings(const char *folder);
+
 static bool load_from(const char *dir, bool remember)
 {
     char err[256] = "";
@@ -222,6 +232,8 @@ static bool load_from(const char *dir, bool remember)
     }
     if (remember) save_game_dir(dir);
     SDL_Log("Loaded the game from %s", dir);
+    log_settings(dir);
+    gamelog_display(MODE_NAMES[App.mode], App.aspect_43);
     set_window_icon();
     gfx_init(&App.a);
     sound_data(App.a.tunes, App.a.tunes_len, App.a.bg, App.a.bg_len);
@@ -293,6 +305,7 @@ static void set_mode(Mode m)
 {
     App.mode = m;
     snd_use_tandy(m == MODE_TANDY);   /* the tune being played starts again from the top on the new sound */
+    gamelog_display(MODE_NAMES[m], App.aspect_43);
     update_title();
 }
 
@@ -329,16 +342,41 @@ static int scan_code(SDL_Keycode k)
 /* ------------------------------------------------------------------ main */
 
 /* the settings, from the settings file or the command line (from: where, for the messages) */
+static const char *source(const char *from) { return SDL_strncmp(from, "--", 2) == 0 ? "the command line" : "the settings file"; }
+
+/* the settings in effect, for the game log's start */
+static void log_settings(const char *folder)
+{
+    char path[1100], t[4096];
+    settings_path(path, sizeof path);
+    char fx[256] = "";
+    for (int i = 0; i < FIX_COUNT; i++)
+        if (fixed((Fix)i)) SDL_snprintf(fx + SDL_strlen(fx), sizeof fx - SDL_strlen(fx), "%s%s", *fx ? "," : "", FIX_NAMES[i]);
+    SDL_snprintf(t, sizeof t,
+                 "Settings (the settings file %s, then the command line):\n"
+                 "  folder = %s (%s)\n"
+                 "  video = %s at the start (%s)\n"
+                 "  fix = %s (%s)\n"
+                 "  catapult_pull = %d (%s)\n"
+                 "  log = %s (%s)\n",
+                 path, folder, App.folder_src ? App.folder_src : "found",
+                 MODE_KEYS[App.start_mode], App.src[SET_VIDEO] ? App.src[SET_VIDEO] : "the default",
+                 *fx ? fx : "none, the game as it was", App.src[SET_FIX] ? App.src[SET_FIX] : "the default",
+                 g_catapult_pull, App.src[SET_PULL] ? App.src[SET_PULL] : "the default",
+                 App.log_name, App.src[SET_LOG] ? App.src[SET_LOG] : "the default");
+    gamelog_settings(t);
+}
 static void set_video(const char *v, const char *from)
 {
     if (!mode_from_name(v, &App.mode)) SDL_Log("%s=%s: use cga1, cga2, ega or tandy", from, v);
+    else App.src[SET_VIDEO] = source(from);
 }
 
 static void set_fixes(const char *v, const char *from)
 {
     char err[128];
-    if (!fixes_parse(v, err, sizeof err))
-        SDL_Log("%s: %s; use viking, hostility, targets, catapult, siege-merge, joust-opponent, joust-margin, "
+    if (fixes_parse(v, err, sizeof err)) App.src[SET_FIX] = source(from);
+    else SDL_Log("%s: %s; use viking, hostility, targets, catapult, siege-merge, joust-opponent, joust-margin, "
                 "battle-text, siege-sprite or all, separated by commas", from, err);
 }
 
@@ -346,7 +384,7 @@ static void set_catapult_pull(const char *v, const char *from)
 {
     char *end;
     long n = SDL_strtol(v, &end, 10);
-    if (end != v && !*end && n >= 1 && n <= 8) g_catapult_pull = (int)n;
+    if (end != v && !*end && n >= 1 && n <= 8) { g_catapult_pull = (int)n; App.src[SET_PULL] = source(from); }
     else SDL_Log("%s=%s: use 1 (the original's speed) to 8", from, v);
 }
 
@@ -355,7 +393,8 @@ static void set_log(const char *v, GameLogLevel *level, const char *from)
     if (SDL_strcasecmp(v, "off") == 0 || !*v) *level = GLOG_OFF;
     else if (SDL_strcasecmp(v, "normal") == 0 || SDL_strcasecmp(v, "on") == 0) *level = GLOG_NORMAL;
     else if (SDL_strcasecmp(v, "verbose") == 0) *level = GLOG_VERBOSE;
-    else SDL_Log("%s=%s: use off, normal or verbose", from, v);
+    else { SDL_Log("%s=%s: use off, normal or verbose", from, v); return; }
+    App.src[SET_LOG] = source(from);
 }
 
 int main(int argc, char **argv)
@@ -385,13 +424,15 @@ int main(int argc, char **argv)
             set_fixes(argv[i] + 6, "--fix");
         } else if (SDL_strncmp(argv[i], "--catapult-pull=", 16) == 0) {
             set_catapult_pull(argv[i] + 16, "--catapult-pull");
-        } else if (SDL_strcmp(argv[i], "--log=verbose") == 0) log_level = GLOG_VERBOSE;
-        else if (SDL_strcmp(argv[i], "--log=off") == 0) log_level = GLOG_OFF;
-        else if (SDL_strcmp(argv[i], "--log") == 0 || SDL_strcmp(argv[i], "--log=normal") == 0) {
-            log_level = GLOG_NORMAL;
+        } else if (SDL_strncmp(argv[i], "--log=", 6) == 0) {
+            set_log(argv[i] + 6, &log_level, "--log");
+        } else if (SDL_strcmp(argv[i], "--log") == 0) {
+            set_log("normal", &log_level, "--log");
             if (i + 1 < argc && SDL_strcmp(argv[i + 1], "verbose") == 0) { log_level = GLOG_VERBOSE; i++; }
         } else if (argv[i][0] != '-') dir_arg = argv[i];
     }
+    App.start_mode = App.mode;
+    App.log_name = log_level == GLOG_VERBOSE ? "verbose" : log_level == GLOG_NORMAL ? "normal" : "off";
 
     if (!SDL_Init(SDL_INIT_VIDEO)) { SDL_Log("SDL_Init failed: %s", SDL_GetError()); return 1; }
     if (!SDL_CreateWindowAndRenderer("Defender of the Crown", 1280, 960, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY,
@@ -415,7 +456,10 @@ int main(int argc, char **argv)
     }
 
     char dir[1024];
-    if (find_game_dir(dir_arg, folder_setting, dir, sizeof dir)) load_from(dir, dir_arg != NULL);
+    if (find_game_dir(dir_arg, folder_setting, dir, sizeof dir)) {
+        App.folder_src = dir_arg ? "the command line" : SDL_strcmp(dir, folder_setting) == 0 ? "the settings file" : "found";
+        load_from(dir, dir_arg != NULL);
+    }
     if (!App.have_assets) ask_for_folder();
     update_title();
 
@@ -424,7 +468,11 @@ int main(int argc, char **argv)
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_EVENT_QUIT) running = false;
-            else if (e.type == App.ev_folder) { if (!load_from(App.chosen, true)) ask_for_folder(); update_title(); }
+            else if (e.type == App.ev_folder) {
+                App.folder_src = "chosen";
+                if (!load_from(App.chosen, true)) ask_for_folder();
+                update_title();
+            }
             else if (e.type == SDL_EVENT_KEY_DOWN) {
                 SDL_Keycode k = e.key.key;
                 bool mod = (e.key.mod & (SDL_KMOD_ALT | SDL_KMOD_GUI)) != 0;
@@ -434,7 +482,11 @@ int main(int argc, char **argv)
                     SDL_SetWindowFullscreen(App.win, !full);
                 }
                 else if (k == SDLK_TAB) set_mode((Mode)((App.mode + 1) % MODE_COUNT));
-                else if (k == SDLK_F2) { App.aspect_43 = !App.aspect_43; update_title(); }
+                else if (k == SDLK_F2) {
+                    App.aspect_43 = !App.aspect_43;
+                    gamelog_display(MODE_NAMES[App.mode], App.aspect_43);
+                    update_title();
+                }
                 else if (!App.have_assets && k == SDLK_O) ask_for_folder();
                 else { int sc = scan_code(k); if (sc) sys_key(sc); }
             }
