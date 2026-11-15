@@ -103,6 +103,25 @@ void present(void);
 void present_bottom(void);
 unsigned random_next(void);          /* 9D96: steps the generator (DS:005B) and returns it (0 when it reseeds) */
 int  random_n(int n);                /* 9CFC */
+
+/* --fix: the original's flaws the player chose to have fixed (none by default;
+ * each is described where it is fixed and in Remake/README.md) */
+typedef enum {
+    FIX_VIKING,            /* the Viking raid strikes your home's garrison */
+    FIX_HOSTILITY,         /* the end check adds the three Norman homes' owners */
+    FIX_TARGETS,           /* the computer lords compare their targets' values signed */
+    FIX_CATAPULT,          /* a buying lord looks for a catapult in his home's garrison */
+    FIX_SIEGE_MERGE,       /* the defending army joins the garrison only if the siege goes ahead */
+    FIX_JOUST_OPPONENT,    /* the joust is judged by the opponent's jousting (and his army goes home) */
+    FIX_JOUST_MARGIN,      /* the joust's margin is at least 1, as in the CGA and Tandy programs */
+    FIX_BATTLE_TEXT,       /* "Saxon blood taints the green fields of" the territory attacked */
+    FIX_SIEGE_SPRITE,      /* the catapult does not linger into the battle after a siege */
+    FIX_COUNT
+} Fix;
+extern const char *const FIX_NAMES[FIX_COUNT];
+extern unsigned g_fixes;
+static inline bool fixed(Fix f) { return (g_fixes >> f) & 1; }
+bool fixes_parse(const char *list, char *err, size_t errlen);   /* "viking,joust-margin" or "all" */
 void play_tune(int tune, int flags); /* 9559 */
 void wait_tune(int tune);            /* 958E */
 int  tune_playing(int tune, int n);  /* 95BE */

@@ -17,6 +17,32 @@
  * ("reducing alignment of section __DATA,__common") */
 uint8_t ds[65536] = { 0 };
 
+const char *const FIX_NAMES[FIX_COUNT] = { "viking", "hostility", "targets", "catapult", "siege-merge",
+                                           "joust-opponent", "joust-margin", "battle-text", "siege-sprite" };
+unsigned g_fixes;
+
+bool fixes_parse(const char *list, char *err, size_t errlen)
+{
+    unsigned f = 0;
+    const char *p = list;
+    while (*p) {
+        const char *e = SDL_strchr(p, ',');
+        size_t n = e ? (size_t)(e - p) : SDL_strlen(p);
+        bool known = false;
+        if (n == 3 && SDL_strncmp(p, "all", 3) == 0) { f = (1u << FIX_COUNT) - 1; known = true; }
+        for (int i = 0; i < FIX_COUNT && !known; i++)
+            if (SDL_strlen(FIX_NAMES[i]) == n && SDL_strncmp(p, FIX_NAMES[i], n) == 0) { f |= 1u << i; known = true; }
+        if (!known && n) {
+            SDL_snprintf(err, errlen, "unknown fix '%.*s'", (int)n, p);
+            return false;
+        }
+        p += n;
+        if (*p == ',') p++;
+    }
+    g_fixes = f;
+    return true;
+}
+
 /* ------------------------------------------------------------------ helpers */
 
 void present(void)        { sys_retrace(); gfx_present(); sys_frame_done(); }          /* 9902 */

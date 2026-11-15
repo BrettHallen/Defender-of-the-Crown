@@ -366,6 +366,7 @@ void gfx_sprites_draw(void)
             const Image *im = asset_item(A, (Mode)m, s->file, s->item);
             if (!im) continue;
             int x0 = slot_x(m, s->x + (m == MODE_TANDY ? s->tandy_dx : 0)), rows = im->h - s->trim;
+            if (s->rows > 0 && s->rows < rows) rows = s->rows;
             if (rows <= 0) continue;
             /* save what is under it */
             int w = im->w, h = rows;

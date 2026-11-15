@@ -49,7 +49,8 @@ static int target_value(int side, int t, int steps)   /* 2704 */
 /* 28B8: depth first from t through the side's own territories, up to 4 steps;
  * every other territory reached gets a value the first time. The values are
  * compared unsigned (AB 2957 jbe), so a negative value (an attack on a much
- * stronger enemy) beats every positive one: kept. */
+ * stronger enemy) beats every positive one: kept (--fix=targets: signed, so a
+ * lord attacks only where his value is above 0). */
 static void ai_search(int side, int t, int depth, const int16_t *path)
 {
     if ((unsigned)depth >= 4) return;
@@ -66,7 +67,7 @@ static void ai_search(int side, int t, int depth, const int16_t *path)
         }
         SW(D_SEARCH_SEEN + 2 * nb, 1);
         int v = target_value(side, nb, depth);
-        bool best = v != -1 && (uint16_t)v > UW(D_SEARCH_BEST);
+        bool best = v != -1 && (fixed(FIX_TARGETS) ? v > W(D_SEARCH_BEST) : (uint16_t)v > UW(D_SEARCH_BEST));
         GLOG(GLOG_VERBOSE, "AI %s: looks at %s (%s%s), %d step%s away: value %d%s", glog_side(side), glog_terr(nb),
              (int8_t)B(TERR(nb) + T_OWNER) == -1 ? "nobody's" : glog_side((int8_t)B(TERR(nb) + T_OWNER)),
              B(TERR(nb) + T_CASTLE) ? ", castle" : "", depth, depth == 1 ? "" : "s",
@@ -116,11 +117,11 @@ static int best_site_for_castle(int side)   /* 2A3C: its territory without a cas
 
 /* 2A9E. Whether it has a catapult is read from its campaign army and the
  * garrison of the territory with its side's number, not its home's (AB 2AD1):
- * kept. Without one and without 15 gold it buys nothing. */
+ * kept (--fix=catapult: its home's). Without one and without 15 gold it buys nothing. */
 static void ai_buy(int si)
 {
     int home = W(SIDE(si) + S_HOME);
-    if (w16(W(ARMY(si) + A_CATAPULTS) + W(GARRISON(si) + A_CATAPULTS)) <= 0) {
+    if (w16(W(ARMY(si) + A_CATAPULTS) + W(GARRISON(fixed(FIX_CATAPULT) ? home : si) + A_CATAPULTS)) <= 0) {
         if (W(SIDE(si) + S_GOLD) < 15) {
             GLOG(GLOG_NORMAL, "AI %s: buys nothing: no catapult and only %d gold for one", glog_side(si), W(SIDE(si) + S_GOLD));
             return;

@@ -7,7 +7,7 @@ The [original files](/Original) hold two different PC versions:
 - `ega/`: a later self-booting release (GameSYS 4.0 by Interactive Designs) with CGA, EGA and Tandy 1000 16-colour graphics, kept as one disk image file (GAME.DAT) and started from DOS with DEFENDER.COM.
 
 ## [Remake](/Remake)
-The remake for macOS (C and SDL3), a port of the booter's EGA program, showing the game as the 1987 DOS version's CGA, the booter's CGA, EGA or Tandy 1000 did (Tab switches, `--video=cga1|cga2|ega|tandy`), with a game log (`--log`). So far: the opening, the choice of character, Sherwood, the month with its events, the computer lords' turns, Buy Home Army, Seek Conquest with battles and sieges, Read Map, Go Raiding with the sword fight and the rescue of a kidnapped lady; still to come: the tournaments and jousting, and the romance scene. Build and run as in its [README](/Remake/README.md).
+The remake for macOS (C and SDL3), a port of the booter's EGA program, showing the game as the 1987 DOS version's CGA, the booter's CGA, EGA or Tandy 1000 did (Tab switches, `--video=cga1|cga2|ega|tandy`), with a game log (`--log`). So far: the opening, the choice of character, Sherwood, the month with its events, the computer lords' turns, Buy Home Army, Seek Conquest with battles and sieges, Read Map, Go Raiding with the sword fight, the rescue of a kidnapped lady, and the tournaments with the joust; still to come: the romance scene. Build and run as in its [README](/Remake/README.md).
 
 ## [Analysis](/Analysis)
 What every file holds ([file reference](/Analysis/DOTC_file_reference.md)), the [findings](/Analysis/README.md), and the disassemblies of DOC.EXE, the booter's loader and its three game programs (CGA, EGA and Tandy 1000).

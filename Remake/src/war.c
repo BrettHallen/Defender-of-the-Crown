@@ -218,7 +218,7 @@ static void chosen_rect(int x, int y, int w)  { gfx_xor_rect3(x, y, w, 11, 0x555
 
 static void slot(int k, int xpx, int y, int item)
 {
-    gfx_video()->slot[k] = (Slot){ true, xpx, y, F_SWORD, item, 0, 0 };
+    gfx_video()->slot[k] = (Slot){ true, xpx, y, F_SWORD, item, 0, 0, 0 };
 }
 
 /* The player's battle: a1 attacks territory a3 of side a2, pct the castle's
@@ -244,9 +244,9 @@ static int battle_shown(int a1, int a2, int a3, int a4)
         } else {
             int e = str_append(0x4192, W(0x2294));
             str_append(W(SIDE(a1) + S_NAME), e);
-            /* the territory's name is taken with the defender's side number (AB 58D1): kept */
+            /* the territory's name is taken with the defender's side number (AB 58D1; --fix=battle-text) */
             e = str_append(0x41AC, W(0x2296));
-            str_append(W(TERR(a2) + T_NAME), e);
+            str_append(W(TERR(fixed(FIX_BATTLE_TEXT) ? a3 : a2) + T_NAME), e);
             dialog(0x2287);
         }
         play_tune(0x9C, W(D_TUNE_LOOP));
@@ -399,7 +399,7 @@ static int battle(int att, int def, int t, int pct, int shown)   /* 5781 */
  * 4-pixel units; the Tandy program puts them one unit to the left (AC 62D1). */
 static void siege_slot(int k, int x, int y, int item)
 {
-    gfx_video()->slot[k] = (Slot){ true, x * 4, y, F_SIEGE, item, 0, -4 };
+    gfx_video()->slot[k] = (Slot){ true, x * 4, y, F_SIEGE, item, 0, -4, 0 };
 }
 
 /* 7505: "Load Ammunition": Greek Fire, Disease, Boulders (while there are any)
@@ -602,6 +602,9 @@ static int siege_by_player(int def, int t)
         delay_ticks(27);
     }
     SW(D_SIEGE_SHOWN, 1);
+    /* only a boulder's hit clears the catapult's slot: otherwise it is drawn over the battle's first
+     * frames (--fix=siege-sprite clears it) */
+    if (fixed(FIX_SIEGE_SPRITE)) gfx_video()->slot[0].active = false;
     return battle(p, def, t, prot, 1);
 }
 
@@ -743,7 +746,10 @@ int attack(int att, int def, int t)
     else if ((int8_t)B(TERR(t) + T_OWNER) == att) r = 1;
     else if ((int8_t)B(TERR(t) + T_OWNER) == -1) r = 2;
     else {
-        if (W(ARMY(def) + A_AT) == t) army_merge(ARMY(def), GARRISON(t));
+        /* the defending army joins the garrison before the siege looks for a catapult, and stays
+         * joined if there is none (--fix=siege-merge: only when the siege goes ahead) */
+        bool refused = B(TERR(t) + T_CASTLE) && !W(ARMY(att) + A_CATAPULTS);
+        if (W(ARMY(def) + A_AT) == t && !(refused && fixed(FIX_SIEGE_MERGE))) army_merge(ARMY(def), GARRISON(t));
         if (B(TERR(t) + T_CASTLE)) r = siege(att, def, t, shown);
         else r = battle(att, def, t, 0, shown);
     }

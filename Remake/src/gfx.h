@@ -38,6 +38,7 @@ typedef struct {
     int      item;
     int      trim;          /* rows left off the bottom (DS:12A0) */
     int      tandy_dx;      /* pixels added in Tandy mode (the Tandy program placed some sprites elsewhere) */
+    int      rows;          /* if > 0, at most this many rows are drawn (the joust's knights behind the barrier) */
 } Slot;
 
 typedef struct {

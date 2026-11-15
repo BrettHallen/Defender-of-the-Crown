@@ -19,6 +19,7 @@ add_executable(DefenderOfTheCrown MACOSX_BUNDLE
     src/ai.c
     src/conquest.c
     src/raid.c
+    src/tourney.c
     src/gamelog.c
 )
 target_link_libraries(DefenderOfTheCrown PRIVATE SDL3::SDL3)

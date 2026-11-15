@@ -12,7 +12,7 @@
 
 void ai_turn(int side);
 
-/* month.c */
+/* tourney.c */
 int tournament(int side);   /* 62BC */
 
 #endif

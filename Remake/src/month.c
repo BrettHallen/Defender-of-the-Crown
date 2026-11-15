@@ -16,6 +16,7 @@
 #include "war.h"
 #include "conquest.h"
 #include "raid.h"
+#include "tourney.h"
 
 /* ------------------------------------------------------------------ small helpers */
 
@@ -162,10 +163,6 @@ static void month_status(void)
     wait_ticks(40);
 }
 
-/* ------------------------------------------------------------------ not ported yet */
-
-int  tournament(int s)          { GLOG(GLOG_NORMAL, "REMAKE %s: Hold Tournament (62BC) is not ported yet", glog_side(s)); if (s == W(D_PLAYER)) SDL_Log("Hold Tournament is not ported yet"); return 0; }
-
 /* ------------------------------------------------------------------ the events (2F4E) */
 
 static void show_plotters_picture(void)   /* 2EFB */
@@ -189,14 +186,16 @@ static void monthly_event(void)
     if (W(D_EVENT_IN)) return;
     int p = W(D_PLAYER), si, n = random_n(10) + 1;
     switch (n) {
-    case 1:   /* the garrison of the territory with the player's side number, not the player's home (AB 2F89): kept */
-        si = W(GARRISON(p) + A_SOLDIERS) / 3;
-        GLOG(GLOG_NORMAL, "EVENT 1 Viking raid: the garrison of %s loses %s", glog_terr(p), glog_count(si, "soldier"));
+    case 1: {   /* the garrison of the territory with the player's side number, not the player's home (AB 2F89; --fix=viking) */
+        int g = fixed(FIX_VIKING) ? W(SIDE(p) + S_HOME) : p;
+        si = W(GARRISON(g) + A_SOLDIERS) / 3;
+        GLOG(GLOG_NORMAL, "EVENT 1 Viking raid: the garrison of %s loses %s", glog_terr(g), glog_count(si, "soldier"));
         if (si) {
-            SW(GARRISON(p) + A_SOLDIERS, W(GARRISON(p) + A_SOLDIERS) - si);
+            SW(GARRISON(g) + A_SOLDIERS, W(GARRISON(g) + A_SOLDIERS) - si);
             dialog(0x1C53);
         }
         break;
+    }
     case 2:
     case 3:
         si = side_last_territory(p);
@@ -419,7 +418,7 @@ static int orders_menu(void)   /* 1A91 */
 static void the_end_sprite(int y)
 {
     Video *v = gfx_video();
-    v->slot[0] = (Slot){ true, 100, y, F_END, 6, 0, 0 };
+    v->slot[0] = (Slot){ true, 100, y, F_END, 6, 0, 0, 0 };
     gfx_sprites_draw();
     present();
     gfx_sprites_erase();
@@ -484,13 +483,14 @@ void month(void)
         } else if (W(D_QUIT)) {
             SW(D_GAME_OVER, 1);
         } else {
-            /* the code adds Buckingham's owner twice and never looks at Cornwall (1E6C): kept */
-            int sum = (int8_t)B(0x73E) + (int8_t)B(0x75C) + (int8_t)B(0x75C);
+            /* the code adds Buckingham's owner twice and never looks at Cornwall (1E6C; --fix=hostility) */
+            int sum = (int8_t)B(0x73E) + (int8_t)B(0x75C) + (int8_t)B(fixed(FIX_HOSTILITY) ? 0x77A : 0x75C);
             if (sum < 12) {
                 enmity_add(2, W(D_PLAYER), 2);
                 enmity_add(3, W(D_PLAYER), 2);
-                GLOG(GLOG_VERBOSE, "ENMITY Norfolk's owner + twice Buckingham's = %d < 12: sides 2 and 3 +2 against you (now %d, %d)",
-                     sum, W(ENMITY(2, W(D_PLAYER))), W(ENMITY(3, W(D_PLAYER))));
+                GLOG(GLOG_VERBOSE, "ENMITY Norfolk's owner + %s = %d < 12: sides 2 and 3 +2 against you (now %d, %d)",
+                     fixed(FIX_HOSTILITY) ? "Buckingham's + Cornwall's" : "twice Buckingham's", sum, W(ENMITY(2, W(D_PLAYER))),
+                     W(ENMITY(3, W(D_PLAYER))));
             }
         }
         if (W(D_GAME_OVER)) {

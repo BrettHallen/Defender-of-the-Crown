@@ -8,10 +8,13 @@
  * main.c: the window, the keyboard and the command line. The game itself
  * runs on its own thread (sys.h, game.c).
  *
- * Usage: DefenderOfTheCrown [--video=cga1|cga2|ega|tandy] [--log | --log=verbose] [game-folder]
+ * Usage: DefenderOfTheCrown [--video=cga1|cga2|ega|tandy] [--log | --log=verbose] [--fix=NAME,...|all] [game-folder]
  *   --video: the mode to start in (EGA if not given): cga1 the 1987 DOS version's
  *            CGA, cga2 the booter's CGA, ega, tandy. Tab goes through them in the game.
  *   --log:   a log of each game played (gamelog.h), in the remake's folder under Logs/
+ *   --fix:   fixes these flaws of the original (none by default, the game as it was):
+ *            viking, hostility, targets, catapult, siege-merge, joust-opponent,
+ *            joust-margin, battle-text, siege-sprite, or all (game.h, Remake/README.md)
  *   game-folder: the folder with your GAME.DAT (and the 1987 version's .LIB files),
  *            also looked for in its ega/ and cga/ subfolders; remembered once found.
  *
@@ -251,6 +254,11 @@ int main(int argc, char **argv)
             if (!mode_from_name(v, &App.mode)) SDL_Log("--video=%s: use cga1, cga2, ega or tandy", v);
         } else if (SDL_strcmp(argv[i], "--video") == 0 && i + 1 < argc) {
             if (!mode_from_name(argv[++i], &App.mode)) SDL_Log("--video %s: use cga1, cga2, ega or tandy", argv[i]);
+        } else if (SDL_strncmp(argv[i], "--fix=", 6) == 0) {
+            char err[128];
+            if (!fixes_parse(argv[i] + 6, err, sizeof err))
+                SDL_Log("--fix: %s; use viking, hostility, targets, catapult, siege-merge, joust-opponent, joust-margin, "
+                        "battle-text, siege-sprite or all, separated by commas", err);
         } else if (SDL_strcmp(argv[i], "--log=verbose") == 0) log_level = GLOG_VERBOSE;
         else if (SDL_strcmp(argv[i], "--log") == 0 || SDL_strcmp(argv[i], "--log=normal") == 0) {
             log_level = GLOG_NORMAL;

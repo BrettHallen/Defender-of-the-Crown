@@ -165,6 +165,10 @@ void gamelog_begin(int character)
     outf("Defender of the Crown (remake) - game log (%s)\n", G.level == GLOG_VERBOSE ? "verbose" : "normal");
     outf("Started %04d-%02d-%02d %02d:%02d:%02d. You chose character %d: %s.\n", dt.year, dt.month, dt.day, dt.hour,
          dt.minute, dt.second, character, lord);
+    char fx[256] = "";
+    for (int i = 0; i < FIX_COUNT; i++)
+        if (fixed((Fix)i)) SDL_snprintf(fx + SDL_strlen(fx), sizeof fx - SDL_strlen(fx), "%s%s", *fx ? ", " : "", FIX_NAMES[i]);
+    outf("The original's flaws fixed (--fix): %s.\n", *fx ? fx : "none, the game as it was");
     gamelog_state("The game as it was set up");
     SDL_Log("Game log: %s", G.path);
 }

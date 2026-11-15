@@ -2,7 +2,8 @@
  * Runs the game headless at SPEED times its pace; at each time t (game seconds)
  * presses a key (scan code in hex), or writes the screen of all four modes as
  * OUTDIR/NAME_<mode>.bmp. t:w:ADDR:VALUE waits (from t) until the word at DS:ADDR
- * (hex) is VALUE (decimal); the times after it count from then. */
+ * (hex) is VALUE (decimal); the times after it count from then. DOTC_FIX=list
+ * as --fix=list. */
 #include "../src/assets.h"
 #include "../src/gfx.h"
 #include "../src/sys.h"
@@ -35,6 +36,10 @@ int main(int argc, char **argv)
     sound_data(A.tunes, A.tunes_len, A.bg, A.bg_len);
     const char *logdir = SDL_getenv("DOTC_LOG");
     if (logdir) gamelog_setup(GLOG_VERBOSE, logdir);
+    if (SDL_getenv("DOTC_FIX")) {   /* as --fix= */
+        char err[128];
+        if (!fixes_parse(SDL_getenv("DOTC_FIX"), err, sizeof err)) { SDL_Log("DOTC_FIX: %s", err); return 1; }
+    }
     sys_set_speed(speed);
     sys_start(game_main);
     Uint64 t0 = SDL_GetTicksNS();

@@ -100,10 +100,10 @@ static void sword_pose(int rec, int slot0)
     P.x = W(r); P.y = W(r + 2); P.ex = W(r + 10); P.ey = W(r + 12);
     P.legs = W(r + 4); P.body = W(r + 6); P.elegs = W(r + 14); P.ebody = W(r + 16);
     Slot *s = gfx_video()->slot;
-    s[slot0 + 3] = (Slot){ true, P.x * 4, P.y + 24, F_SWORD, P.legs, 0, 0 };
-    s[slot0 + 1] = (Slot){ true, P.x * 4, P.y, F_SWORD, P.body, 0, 0 };
-    s[slot0 + 2] = (Slot){ true, (P.ex + 8) * 4, P.ey + 24, F_SWORD, P.elegs, 0, 0 };
-    s[slot0 + 0] = (Slot){ true, P.ex * 4, P.ey, F_SWORD, P.ebody, 0, 0 };
+    s[slot0 + 3] = (Slot){ true, P.x * 4, P.y + 24, F_SWORD, P.legs, 0, 0, 0 };
+    s[slot0 + 1] = (Slot){ true, P.x * 4, P.y, F_SWORD, P.body, 0, 0, 0 };
+    s[slot0 + 2] = (Slot){ true, (P.ex + 8) * 4, P.ey + 24, F_SWORD, P.elegs, 0, 0, 0 };
+    s[slot0 + 0] = (Slot){ true, P.ex * 4, P.ey, F_SWORD, P.ebody, 0, 0, 0 };
 }
 
 /* the two fighters behind (The Attack): a step now and then, and a new stance */
@@ -166,15 +166,15 @@ static int sword_fight(int attack)
             gfx_sprites_erase();
             Slot *s = gfx_video()->slot;
             for (int k = 3; k < 8; k++) s[k].active = false;
-            s[2] = (Slot){ true, P.x * 4, P.y + 24, F_SWORD, P.legs, 0, 0 };
-            s[1] = (Slot){ true, P.x * 4, P.y, F_SWORD, P.body, 0, 0 };
-            s[0] = (Slot){ true, P.ex * 4, P.ey, F_SWORD, 178, 0, 0 };
+            s[2] = (Slot){ true, P.x * 4, P.y + 24, F_SWORD, P.legs, 0, 0, 0 };
+            s[1] = (Slot){ true, P.x * 4, P.y, F_SWORD, P.body, 0, 0, 0 };
+            s[0] = (Slot){ true, P.ex * 4, P.ey, F_SWORD, 178, 0, 0, 0 };
             gfx_sprites_draw();
             present();
             gfx_sprites_erase();
             flush_keys();
             wait_ticks(2);
-            s[0] = (Slot){ true, P.ex * 4, P.ey + 32, F_SWORD, 179, 0, 0 };
+            s[0] = (Slot){ true, P.ex * 4, P.ey + 32, F_SWORD, 179, 0, 0, 0 };
             gfx_sprites_draw();   /* left on the picture */
             present();
             flush_keys();
