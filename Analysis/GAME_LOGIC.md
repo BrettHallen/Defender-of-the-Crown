@@ -219,7 +219,7 @@ where the defenders are the garrison plus the owner's campaign army if it is the
 
 ## Notes
 - **A side whose home falls** (result 4 against its home, or a rescue for the ward): all its territories go to the winner (side_falls 2406), its campaign army is disbanded, and it does nothing more (ai_turn skips a side without its home).
-- Routine 44F4 (a share of a side's gold: 15, or 40% above 38) is never called.
+- Routine 44F4 (a share of a side's gold: 15, or 40% above 38) and lady_at (2529: the lady held in a territory) are never called; DOC.EXE has both, uncalled too (`README.md`, *Unused code*).
 - **The 1987 DOS version** (DOC.EXE) has the same game with a different random generator, slightly different odds for the computer lords, signed comparisons where the booter's are unsigned, and clock-paced timing: see `DOC_vs_AB.md` (the remake's `--rules=dos`).
 
 ## The random numbers (random_next 9D96)

@@ -1,9 +1,9 @@
 # DOC.EXE (the 1987 DOS version) against the booter (AB)
 
-DOC.EXE and the booter's programs were built from much the same C source with different compilers: DOC.EXE with a large-model compiler (far calls, far pointers, an 8087 emulator; its `ran()` is Aztec C's), the booter with a small-model one. They share no code worth comparing instruction by instruction, but the routines line up one to one. This file records how they were paired and what differs.
+DOC.EXE and the booter's programs were built from much the same C source with different compilers: DOC.EXE with a large-model compiler (far calls, far pointers, floating point done in software; its `ran()` is Aztec C's), the booter with a small-model one. They share no code worth comparing instruction by instruction, but the routines line up one to one. This file records how they were paired and what differs.
 
 ## Tools
-- `tools/docmatch.py DOC.EXE`: pairs DOC's routines with AB's by the message boxes and strings they use, then through the call graph (the calls of two paired routines, in order, between calls already paired). 88 of DOC's 232 routines pair this way; most of the rest are the C library, the 8087 emulator and the drawing primitives.
+- `tools/docmatch.py DOC.EXE`: pairs DOC's routines with AB's by the message boxes and strings they use, then through the call graph (the calls of two paired routines, in order, between calls already paired). 88 of DOC's 232 routines pair this way; the rest are DOC.EXE's own: its drawing primitives, the speaker, the key-disk check and the C library (all named in `tools/doc_names.txt` too). Two game routines have no caller: gold_share (050E:013F: a share of a side's gold, 15, or 40% above 38; the booter's 44F4, never called there either) and lady_at (03DE:0106: the lady held in a territory).
 - `tools/doc_names.txt`: the names given so far (DOC SEG:OFF, AB name), checked by reading. `tools/doc_ds_names.txt`: DOC's data segment.
 - `tools/docflat.py` turns `DOC.ASM` into the flat form `tools/dec.py` reads: `python3 docflat.py > /tmp/DOC_flat.ASM; python3 dec.py -f /tmp/DOC_flat.ASM -n doc_ds_names.txt joust` gives DOC's routine as pseudocode, comparable with `python3 dec.py joust` (AB's). dec.py knows both compilers' ways of indexing the records (AB's imul, DOC's shifts and adds).
 

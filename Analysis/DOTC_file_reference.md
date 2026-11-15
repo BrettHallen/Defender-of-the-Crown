@@ -22,7 +22,7 @@ The two have the same story texts, pictures in the same scenes and the same char
 ## cga/: the 1987 DOS version
 | File | Size | What it is |
 |---|---|---|
-| DOC.EXE | 71,168 | The game. MZ, header 1800h bytes, 1,514 relocations, entry 0AA5:0011. A large-model C program: 76 code segments called far, one data segment DGROUP at segment 0BCE (4120h bytes initialised, BSS to 4728h). The C runtime has `/dev/con` and `Too many args.` (compiler not identified yet). Disassembly: `DOC.ASM`. |
+| DOC.EXE | 71,168 | The game. MZ, header 1800h bytes, 1,514 relocations, entry 0AA5:0011. A large-model C program: 76 code segments called far, one data segment DGROUP at segment 0BCE (4120h bytes initialised, BSS to 4728h). Built with Aztec C (large model; its `ran()`, `/dev/con`, `Too many args.`), floating point in software. Its key-disk check (reading drive A for `A:PROTECT`'s sectors) is cracked in this copy: two NOPs at 021C:0130. Disassembly: `DOC.ASM`, every routine named. |
 | READTHIS.EXE | 52,310 | A text viewer added later (Borland C++, packed). Not part of the original game. |
 | DOCCHARS.LIB | 40,102 | Shared graphics: 19 territory shapes for the map (items 0-18), map and UI pieces, two fonts (upper case 46-89, lower case 94-121), 22 portraits (127-148), the sword fight's swordsmen (159-180), the England map picture (item 93), and the 8 PC-speaker tunes (150-157: word flags, word note count, two words of player state, then (PIT divisor, duration in int 1Ch ticks) per note; see `README.md`). Loaded at start (021C:0143). |
 | TITLE.LIB | 41,060 | The scrolls, the title, the cast, the introduction, the character choice and the Sherwood picture; sprites: the four characters' name plates and the crown. Loaded at start (021C:0165). |
