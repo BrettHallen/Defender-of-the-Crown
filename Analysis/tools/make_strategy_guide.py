@@ -61,6 +61,41 @@ def table(head, rows, widths, center_from=None):
     t.setStyle(TableStyle(st))
     return [t, Spacer(1, 7)]
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+MAP_PNG = os.path.join(HERE, "..", "..", "Graphics", "Booter_EGA", "CK.png")
+# where the game puts the army marker in each territory (BH DS:0C3A, x in 4-pixel units, y), as the labels' places
+MARKER = {1: (42, 21), 2: (50, 29), 3: (34, 76), 4: (43, 50), 5: (50, 66), 6: (56, 58), 7: (29, 110), 8: (40, 106),
+          9: (48, 88), 10: (58, 99), 11: (66, 96), 12: (44, 114), 13: (49, 113), 14: (59, 119), 15: (29, 165),
+          16: (43, 152), 17: (51, 139), 18: (62, 149)}
+NAMES = {1: "Cumbria", 2: "Yorkshire", 3: "Gwynedd", 4: "Lancashire", 5: "Nottingham", 6: "Lincolnshire", 7: "Glamorgan",
+         8: "Clwyd", 9: "Leicester", 10: "Cambridge", 11: "Norfolk", 12: "Gloucester", 13: "Buckingham", 14: "Essex",
+         15: "Cornwall", 16: "Dorset", 17: "Hampshire", 18: "Sussex"}
+NUDGE = {12: (-6, 0)}   # label offsets (in the picture's pixels) where two names would touch
+
+def labelled_map(out_png):
+    """The game's map (CK) at 4 times, stretched to the monitor's 4:3, each territory numbered and named;
+    the Saxon homes' badges green, the Normans' red. Needs Pillow."""
+    from PIL import Image, ImageDraw, ImageFont
+    S, KY = 4, 1.2
+    im = Image.open(MAP_PNG).convert("RGB").crop((60, 4, 318, 196))
+    w, h = im.size
+    im = im.resize((w * S, h * S), Image.NEAREST).resize((w * S, int(h * S * KY)), Image.LANCZOS)
+    d = ImageDraw.Draw(im)
+    fb = ImageFont.truetype(font("DejaVuSans-Bold.ttf"), 22)
+    fn = ImageFont.truetype(font("DejaVuSans-Bold.ttf"), 15)
+    for t, (xb, y) in MARKER.items():
+        dx, dy = NUDGE.get(t, (0, 0))
+        X = (xb * 4 + 8 - 60 + dx) * S
+        Y = (y + 8 - 4 + dy) * S * KY
+        fill, ink = ((70, 120, 40), (255, 255, 255)) if t in (1, 5, 8) else \
+                    ((150, 30, 20), (255, 255, 255)) if t in (11, 13, 15) else ((255, 248, 232), (138, 59, 18))
+        r = 17
+        d.ellipse((X - r, Y - r, X + r, Y + r), fill=fill, outline=(138, 59, 18), width=3)
+        d.text((X, Y), str(t), font=fb, fill=ink, anchor="mm")
+        d.text((X, Y + r + 10), NAMES[t], font=fn, fill=(255, 255, 255), anchor="mm", stroke_width=3, stroke_fill=(40, 30, 20))
+    im.save(out_png)
+    return im.size
+
 def footer(canv, doc):
     canv.saveState()
     canv.setStrokeColor(INK); canv.setLineWidth(0.6)
@@ -111,10 +146,11 @@ s += table(["Norman (three of five)", "Leadership", "Jousting", "Swordplay", "Go
 ], [52, 22, 22, 22, 22])
 
 # ---------------------------------------------------------------- the land
-s.append(P("The land", h1))
-s.append(P("A territory’s income is added to its owner’s treasury every month. Its <b>vassals</b> are only the soldiers holding it "
+land_head = [P("The land", h1)]
+land_head.append(P("A territory’s income is added to its owner’s treasury every month. Its <b>vassals</b> are only the soldiers holding it "
            "when the game starts: unlike the manual’s vassals they never join your army or desert. The six castle territories are the lords’ "
            "homes. The other twelve start with no owner, defended by their vassals."))
+s.append(KeepTogether(land_head + [Spacer(1, 1)])) if not os.path.exists(MAP_PNG) else None
 TERR = [
     (1, "Cumbria", 3, "castle", "Yorkshire, Lancashire"),
     (2, "Yorkshire", 2, 6, "Cumbria, Lancashire, Nottingham, Lincolnshire"),
@@ -135,6 +171,18 @@ TERR = [
     (17, "Hampshire", 3, 8, "Gloucester, Buckingham, Essex, Dorset, Sussex"),
     (18, "Sussex", 7, 8, "Essex, Hampshire"),
 ]
+if os.path.exists(MAP_PNG):
+    import tempfile
+    from reportlab.platypus import Image as RLImage
+    mp = os.path.join(tempfile.gettempdir(), "dotc_map_labelled.png")
+    mw, mh = labelled_map(mp)
+    wmm = 150
+    s.append(KeepTogether(land_head + [RLImage(mp, width=wmm * mm, height=wmm * mm * mh / mw),
+                           P("The game\u2019s map (from the EGA version\u2019s picture CK) with the territories\u2019 numbers. Green: the three Saxon homes, "
+                             "dealt at random to the Saxon lords; red: the three Norman castles.", ParagraphStyle("cap", parent=small, alignment=1, textColor=GREY))]))
+    s.append(Spacer(1, 6))
+else:
+    print("no", MAP_PNG, "- the guide is written without the map")
 s += table(["#", "Territory", "Gold / month", "Vassals", "Neighbours"],
            [[n, nm, g, v, nb] for n, nm, g, v, nb in TERR], [8, 26, 20, 24, 96])
 s += tip("The rich land is in the south: Gloucester and Sussex bring 7 a month, Cambridge 5, Essex 6. Gloucester has the most vassals (12) "
@@ -287,9 +335,7 @@ s += tip("Take Cornwall (through Dorset) and the southern lands before Buckingha
          "within a month or two; have your castles and garrisons ready.")
 
 # ---------------------------------------------------------------- events, ladies
-s.append(P("Events", h1))
-s.append(P("Every 5 to 12 months one of these (or nothing, 2 times in 10):"))
-s += table(["Event", "Effect"], [
+s.append(KeepTogether([P("Events", h1), P("Every 5 to 12 months one of these (or nothing, 2 times in 10):")] + table(["Event", "Effect"], [
     ["Viking raid", "A third of the soldiers of <b>Cumbria’s</b> garrison are lost, whoever you are (a quirk: it means your home; "
      "<font face='Mono'>--fix=viking</font>)"],
     ["Danes invade; Norman plotters", "You lose your highest-numbered territory other than your home"],
@@ -298,7 +344,7 @@ s += table(["Event", "Effect"], [
     ["Robin raids a Norman stronghold", "Every Saxon gets 25 gold"],
     ["Three knights from Germany", "Your campaign army gains 3 knights"],
     ["Norman vassals revolt", "The first Norman with land besides his home gives you his highest-numbered territory"],
-], [52, 122])
+], [52, 122])))
 s.append(P("The ladies", h1))
 s.append(P("Two ladies live as wards of the other two Saxons. When a Norman kidnaps one, you are offered the rescue: <b>accepting raises your leadership by 2 "
            "whatever happens</b> (refusing lowers it by 2), and the rescue is a raid on the kidnapper’s castle. Succeed and the lady is yours, "
