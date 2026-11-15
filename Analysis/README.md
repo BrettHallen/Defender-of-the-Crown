@@ -17,6 +17,7 @@ Analysis of the files in `Original/`, started 14 Nov 2026 with the method used f
 | `disassembler/matchfuncs.py` | Matches the routines of two listings (`matchfuncs.py AB.ASM AC.ASM`) |
 | `disassembler/gamesys_names.txt`, `aa_names.txt`, `ab_names.txt`, `ac_names.txt` | The names in `GAMESYS.ASM`, `AA.ASM`, `AB.ASM` and `AC.ASM` |
 | `tools/dec.py`, `tools/ds_names.txt` | C-like pseudocode for a routine of AB.ASM (or `-f AC.ASM`), with the data segment's names (`python3 tools/dec.py attack`) |
+| `MANUAL_vs_CODE.md` | The printed manual and the C64 and Apple IIGS reference cards (`../Documentation`) checked against the PC code: what agrees, and what the PC game does differently (vassals, the castle's protection, leadership, the siege's days, the end of the game) |
 | `DOC_vs_AB.md`, `tools/docmatch.py`, `tools/docflat.py`, `tools/doc_names.txt`, `tools/doc_ds_names.txt` | DOC.EXE's routines paired with AB's and named, its data segment, and what differs between the two versions' game logic, timing and graphics (`dec.py -f` reads DOC through `docflat.py`) |
 | `tools/joust_scripts.py` | Lists the joust's four outcome animations (BJ items 37-40: each frame's two knights, item, rows, x, y) |
 | `../Sound/tandymusic.py` | A port of the Tandy build's music driver: plays the tunes in BG into WAV files (`python3 tandymusic.py GAME.DAT OUTDIR [SECONDS]`) |

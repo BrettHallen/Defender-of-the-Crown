@@ -10,7 +10,10 @@ The [original files](/Original) hold two different PC versions:
 The remake for macOS (C and SDL3), a port of the booter's EGA program, showing the game as the 1987 DOS version's CGA, the booter's CGA, EGA or Tandy 1000 did (Tab switches, `--video=cga1|cga2|ega|tandy`), with a game log (`--log`). So far: the opening, the choice of character, Sherwood, the month with its events, the computer lords' turns, Buy Home Army, Seek Conquest with battles and sieges, Read Map, Go Raiding with the sword fight, the rescue of a kidnapped lady with the romance, and the tournaments with the joust: the whole game can be played. Build and run as in its [README](/Remake/README.md), or the [Quick Reference](/Remake/DOTC_Remake_Quick_Reference.pdf).
 
 ## [Analysis](/Analysis)
-What every file holds ([file reference](/Analysis/DOTC_file_reference.md)), the [findings](/Analysis/README.md) and what was checked against the originals, the game's rules as read from the code ([game logic](/Analysis/GAME_LOGIC.md)), the two PC versions compared ([DOC.EXE against the booter](/Analysis/DOC_vs_AB.md)), and the disassemblies of DOC.EXE, the booter's loader and its three game programs (CGA, EGA and Tandy 1000).
+What every file holds ([file reference](/Analysis/DOTC_file_reference.md)), the [findings](/Analysis/README.md) and what was checked against the originals, the game's rules as read from the code ([game logic](/Analysis/GAME_LOGIC.md)), the two PC versions compared ([DOC.EXE against the booter](/Analysis/DOC_vs_AB.md)), the printed manual checked against the code ([manual vs code](/Analysis/MANUAL_vs_CODE.md)), and the disassemblies of DOC.EXE, the booter's loader and its three game programs (CGA, EGA and Tandy 1000).
+
+## [Documentation](/Documentation)
+Scans of the printed manual and the Commodore 64 and Apple IIGS reference cards (no scan of the IBM PC's card has been found). And a [strategy guide](/Documentation/DOTC_PC_Strategy_Guide.pdf) for the PC version, written from its code.
 
 ## [Sound](/Sound)
 `tandymusic.py` plays the Tandy 1000 version's three-voice music and `speakermusic.py` the PC-speaker music (shared by the DOS version and the booter's CGA and EGA builds) into WAV files; both are ports of the original players.
