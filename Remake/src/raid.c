@@ -137,6 +137,7 @@ static void spark(int x, int y, int item, int bar)
 {
     gfx_xor_sprite(x, y, F_END, item);
     present();
+    for (int f = 1; f < g_sword_pace && !g_dos_rules; f++) present();   /* held as long as a frame */
     bar_shorten(bar);
     if (g_dos_rules) {   /* DOC 050E:0EB0 and 103A: the spark stays 3 ticks */
         if (item == 9) wait_ticks(3);
@@ -145,7 +146,7 @@ static void spark(int x, int y, int item, int bar)
     gfx_xor_sprite(x, y, F_END, item);
 }
 
-/* 4F24: one frame a screen refresh. The keypad (or the arrows): Enter thrusts,
+/* 4F24: one frame a screen refresh (the remake: g_sword_pace). The keypad (or the arrows): Enter thrusts,
  * 8 raises the sword, 2 parries, 7/4/1 step back and 9/6/3 forward (forward only
  * while more than 5 apart) with the sword raised, in the middle or parrying.
  * Returns 1 if the enemy falls, 0 if the player retreats past the left limit or
@@ -160,6 +161,7 @@ static int sword_fight(int attack)
         sword_pose(0, 0);
         gfx_sprites_draw();
         present();
+        for (int f = 1; f < g_sword_pace && !g_dos_rules; f++) present();   /* g_sword_pace refreshes a frame (game.h); keys pressed meanwhile are read next */
         if (W(F_X) < W(D_LIMIT_BACK)) {
             leadership_add(p, -10);
             morale_add(-2);

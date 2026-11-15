@@ -127,6 +127,12 @@ bool fixes_parse(const char *list, char *err, size_t errlen);   /* "viking,joust
  * its picture every refresh (and in DOSBox); on the PCs of 1987 that copy took two
  * or three refreshes. The remake takes 2 unless told otherwise. */
 extern int g_catapult_pull;
+/* Screen refreshes for each frame of the sword fight (--sword-pace=N, 1-8). The
+ * booter draws a frame a refresh (60 a second, the enemy acting 30 times a second)
+ * on a PC fast enough to copy its picture every refresh (and in DOSBox); on the PCs
+ * of 1987 that copy took two or three refreshes. The remake takes 3 (20 frames a
+ * second) unless told otherwise. Not with the DOS rules: its waits pace it. */
+extern int g_sword_pace;
 
 /* The rules (--rules=, the settings' rules): the booter's (false), or the 1987 DOS
  * version's (true): its random numbers, its computer lords' odds, its signed

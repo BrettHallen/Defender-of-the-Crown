@@ -27,6 +27,7 @@ bool        ini_load(Ini *ini, const char *path);    /* false if there is no suc
 void        ini_text(Ini *ini, const char *text);    /* lines from a string (the default file) */
 const char *ini_get(const Ini *ini, const char *section, const char *key);   /* NULL if not there */
 bool        ini_set(Ini *ini, const char *section, const char *key, const char *value);   /* adds the key (and section) if missing */
+int         ini_add_missing(Ini *ini, const Ini *defaults);   /* the keys of defaults not in ini, with their comments: how many */
 bool        ini_save(const Ini *ini, const char *path);
 void        ini_free(Ini *ini);
 

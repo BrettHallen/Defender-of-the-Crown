@@ -8,7 +8,7 @@
  * main.c: the window, the keyboard and the command line. The game itself
  * runs on its own thread (sys.h, game.c).
  *
- * Usage: DefenderOfTheCrown [--video=cga1|cga2|ega|tandy] [--log | --log=verbose] [--rules=booter|dos] [--fix=NAME,...|all] [--catapult-pull=N] [game-folder]
+ * Usage: DefenderOfTheCrown [--video=cga1|cga2|ega|tandy] [--log | --log=verbose] [--rules=booter|dos] [--fix=NAME,...|all] [--catapult-pull=N] [--sword-pace=N] [game-folder]
  *   --video: the mode to start in (EGA if not given): cga1 the 1987 DOS version's
  *            CGA, cga2 the booter's CGA, ega, tandy. Tab goes through them in the game.
  *   --log:   a log of each game played (gamelog.h), in the remake's folder under Logs/
@@ -18,6 +18,8 @@
  *   --rules: booter (the default) or dos, the 1987 DOS version's rules and timing
  *   --catapult-pull: screen refreshes per step of the catapult's pull, 1 (the
  *            original's speed on a fast PC, 0.4 s) to 8; 2 if not given
+ *   --sword-pace: screen refreshes per frame of the sword fight, 1 (the original's
+ *            speed on a fast PC, 60 frames a second) to 8; 3 if not given
  *   game-folder: the folder with your GAME.DAT (and the 1987 version's .LIB files),
  *            also looked for in its ega/ and cga/ subfolders; remembered once found.
  * The same settings are read first from DefenderOfTheCrown.ini in the remake's
@@ -57,7 +59,7 @@ static struct {
     Uint32        ev_folder;
     char          chosen[1024];
     bool          dialog_open;
-    const char   *src[6];          /* where each setting came from (SET_...), for the game log */
+    const char   *src[8];          /* where each setting came from (SET_...), for the game log */
     const char   *folder_src;
     Mode          start_mode;      /* the mode the settings asked for */
     const char   *log_name;        /* off, normal, verbose */
@@ -65,7 +67,7 @@ static struct {
 
 static const char *const MODE_KEYS[MODE_COUNT] = { "cga1", "cga2", "ega", "tandy" };
 
-enum { SET_VIDEO, SET_FIX, SET_PULL, SET_LOG, SET_FOLDER, SET_RULES, SET_COUNT };
+enum { SET_VIDEO, SET_FIX, SET_PULL, SET_LOG, SET_FOLDER, SET_RULES, SET_SWORD, SET_COUNT };
 
 /* ------------------------------------------------------------------ the settings file */
 
@@ -102,6 +104,9 @@ static const char DEFAULT_SETTINGS[] =
     "; Screen refreshes for each step of the catapult's arm as you draw it back:\n"
     "; 1 (the original on a fast PC: 0.4 seconds for a full pull) to 8. 2: 0.8 s.\n"
     "catapult_pull = 2\n"
+    "; Screen refreshes for each frame of the sword fight: 1 (the original on a\n"
+    "; fast PC: 60 frames a second) to 8. 3: 20 frames a second.\n"
+    "sword_pace = 3\n"
     "\n"
     "[debug]\n"
     "; A log of each game played, in Logs/ beside this file: off, normal or verbose.\n"
@@ -119,7 +124,17 @@ static void settings_load(Ini *ini)
 {
     char path[1100];
     settings_path(path, sizeof path);
-    if (ini_load(ini, path)) { SDL_Log("Settings: %s", path); return; }
+    if (ini_load(ini, path)) {
+        SDL_Log("Settings: %s", path);
+        Ini d;   /* settings added since the file was written: with their defaults and comments */
+        SDL_zero(d);
+        ini_text(&d, DEFAULT_SETTINGS);
+        int n = ini_add_missing(ini, &d);
+        ini_free(&d);
+        if (n && !ini_save(ini, path)) SDL_Log("Could not write the settings file %s", path);
+        else if (n) SDL_Log("Settings: %d new setting%s added to %s", n, n == 1 ? "" : "s", path);
+        return;
+    }
     ini_text(ini, DEFAULT_SETTINGS);
     if (ini_save(ini, path)) SDL_Log("Settings: %s (new, with the defaults)", path);
     else SDL_Log("Could not write the settings file %s", path);
@@ -364,12 +379,14 @@ static void log_settings(const char *folder)
                  "  rules = %s (%s)\n"
                  "  fix = %s (%s)\n"
                  "  catapult_pull = %d (%s)\n"
+                 "  sword_pace = %d (%s)\n"
                  "  log = %s (%s)\n",
                  path, folder, App.folder_src ? App.folder_src : "found",
                  MODE_KEYS[App.start_mode], App.src[SET_VIDEO] ? App.src[SET_VIDEO] : "the default",
                  g_dos_rules ? "dos" : "booter", App.src[SET_RULES] ? App.src[SET_RULES] : "the default",
                  *fx ? fx : "none, the game as it was", App.src[SET_FIX] ? App.src[SET_FIX] : "the default",
                  g_catapult_pull, App.src[SET_PULL] ? App.src[SET_PULL] : "the default",
+                 g_sword_pace, App.src[SET_SWORD] ? App.src[SET_SWORD] : "the default",
                  App.log_name, App.src[SET_LOG] ? App.src[SET_LOG] : "the default");
     gamelog_settings(t);
 }
@@ -392,6 +409,14 @@ static void set_catapult_pull(const char *v, const char *from)
     char *end;
     long n = SDL_strtol(v, &end, 10);
     if (end != v && !*end && n >= 1 && n <= 8) { g_catapult_pull = (int)n; App.src[SET_PULL] = source(from); }
+    else SDL_Log("%s=%s: use 1 (the original's speed) to 8", from, v);
+}
+
+static void set_sword_pace(const char *v, const char *from)
+{
+    char *end;
+    long n = SDL_strtol(v, &end, 10);
+    if (end != v && !*end && n >= 1 && n <= 8) { g_sword_pace = (int)n; App.src[SET_SWORD] = source(from); }
     else SDL_Log("%s=%s: use 1 (the original's speed) to 8", from, v);
 }
 
@@ -426,6 +451,7 @@ int main(int argc, char **argv)
     if ((v = ini_get(&settings, "play", "rules")) && *v) set_rules(v, SETTINGS_FILE " rules");
     if ((v = ini_get(&settings, "play", "fix"))) set_fixes(v, SETTINGS_FILE " fix");
     if ((v = ini_get(&settings, "play", "catapult_pull")) && *v) set_catapult_pull(v, SETTINGS_FILE " catapult_pull");
+    if ((v = ini_get(&settings, "play", "sword_pace")) && *v) set_sword_pace(v, SETTINGS_FILE " sword_pace");
     if ((v = ini_get(&settings, "debug", "log"))) set_log(v, &log_level, SETTINGS_FILE " log");
     char folder_setting[1024] = "";
     if ((v = ini_get(&settings, "game", "folder"))) SDL_strlcpy(folder_setting, v, sizeof folder_setting);
@@ -442,6 +468,8 @@ int main(int argc, char **argv)
             set_fixes(argv[i] + 6, "--fix");
         } else if (SDL_strncmp(argv[i], "--catapult-pull=", 16) == 0) {
             set_catapult_pull(argv[i] + 16, "--catapult-pull");
+        } else if (SDL_strncmp(argv[i], "--sword-pace=", 13) == 0) {
+            set_sword_pace(argv[i] + 13, "--sword-pace");
         } else if (SDL_strncmp(argv[i], "--log=", 6) == 0) {
             set_log(argv[i] + 6, &log_level, "--log");
         } else if (SDL_strcmp(argv[i], "--log") == 0) {

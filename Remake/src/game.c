@@ -22,6 +22,7 @@ const char *const FIX_NAMES[FIX_COUNT] = { "viking", "hostility", "targets", "ca
 unsigned g_fixes;
 bool g_dos_rules;
 int g_catapult_pull = 2;
+int g_sword_pace = 3;
 
 bool fixes_parse(const char *list, char *err, size_t errlen)
 {

@@ -64,9 +64,10 @@ build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --video=cga1 ../O
 | `[play]` | `rules` | `--rules=` | `booter` or `dos` (`booter`) |
 | `[play]` | `fix` | `--fix=` | flaw names separated by commas, or `all` (empty: none) |
 | `[play]` | `catapult_pull` | `--catapult-pull=` | 1 to 8 (2) |
+| `[play]` | `sword_pace` | `--sword-pace=` | 1 to 8 (3) |
 | `[debug]` | `log` | `--log`, `--log=verbose`, `--log=off` | `off`, `normal` or `verbose` (`off`) |
 
-Comments are lines starting with `;` or `#`.
+Comments are lines starting with `;` or `#`. Settings added in later versions of the remake are added to an existing file, with their defaults and comments, the next time it starts.
 
 **Rules:** `--rules=dos` plays the game as DOC.EXE (the 1987 DOS version) does, in any video mode: its random numbers (Aztec C's `ran()`), the computer lords' odds (home 1 in 3, conquest 6 in 7), their targets compared signed, the joust's margin, and its pace: one-tick waits that really wait (the DOS version ran its animations off the 18.2 Hz clock, the booter at the screen's 60 Hz), the slower month's box with its counting beeps, the slower sword fight and catapult pull, and the blinds wipe between pictures. `booter` (the default) plays as the booter version. The differences are listed in `../Analysis/DOC_vs_AB.md`.
 
@@ -92,6 +93,8 @@ build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --fix=targets,jou
 Each is described in `../Analysis/GAME_LOGIC.md` where it happens. The game log says which fixes are on.
 
 **The catapult's pull:** `--catapult-pull=N` sets how many screen refreshes each step of the catapult's arm takes while you draw it back, 1 to 8. The original moves it one step a refresh, so a full pull takes 0.4 seconds, but only on a PC fast enough to copy the whole picture every refresh, as in DOSBox; on the PCs of 1987 that copy took two or three refreshes, and the pull was that much slower. The remake takes **2** (0.8 seconds) unless told otherwise; `--catapult-pull=1` is the original at full speed, `3` slower still. Enter is read every refresh, so letting go is as quick at any setting.
+
+**The sword fight's pace:** `--sword-pace=N` sets how many screen refreshes each frame of the sword fight (in a raid) takes, 1 to 8. The original draws a frame a refresh, 60 a second, on a fast enough PC (and in DOSBox); the enemy then acts 30 times a second, and his raised sword strikes a thirtieth of a second later, too quick to parry by sight. On the PCs of 1987 each frame took two or three refreshes. The remake takes **3** (20 frames a second) unless told otherwise; `1` is the original at full speed, higher is slower (the DOS version, `--rules=dos`, ran its fight at about 9 frames a second, which this setting does not change). Keys pressed during a frame are read at the next.
 
 **Keys:** the original's: the arrows or the keypad (its 1-9 for the diagonals), Enter (keypad + and F1 are Enter too, as in the original). The remake's own: **Enter** during the opening skips to the choice of character, and in Sherwood skips to the game; **Tab** the video mode, **F2** 4:3 or square pixels, **Alt+Enter** or **Cmd+Enter** full screen, **Cmd+Q** quit.
 
@@ -123,6 +126,6 @@ The log only reads the game: it never calls the random numbers, so a logged game
 `test/build.sh NAME` builds `test/NAME.c` with the remake's sources (ASan and UBSan; SDL3 from pkg-config or `SDL3_DIR`). Run headless with `SDL_AUDIODRIVER=dummy`.
 - `run_script GAME OUTDIR SPEED t:key ... t:shot:NAME`: plays the game at SPEED times its pace, pressing keys (scan codes in hex) and writing the screen of all four modes as BMPs at given times (game seconds). Set `DOTC_LOG=folder/` for a verbose log. `DOTC_FIX=list` as `--fix=list`, `DOTC_RULES=dos` as `--rules=dos` (also for `battle_test` and `joust_test`).
 - `t:w:ADDR:VALUE` in a script waits until the word at DS:ADDR (hex) is VALUE, e.g. `100:w:43:5` until month 5; the times after it count from there.
-- `battle_test GAME OUTDIR`: a Norman lord besieges your home with a large army; the battle screen of the four modes every quarter second. `battle_test GAME OUTDIR siege t:key ...`: you besiege a Saxon castle instead, with a key script as `run_script`'s (`PASSAGE=1`: that Saxon offers safe passage first; `PULL=N` as `--catapult-pull=N`). `battle_test GAME OUTDIR raid t:key ...`: you raid a Norman's home (`ROMANCE=0`-`3`: only the romance with that lady, over the hall). `DOTC_LOG=folder/` writes a log of these too.
+- `battle_test GAME OUTDIR`: a Norman lord besieges your home with a large army; the battle screen of the four modes every quarter second. `battle_test GAME OUTDIR siege t:key ...`: you besiege a Saxon castle instead, with a key script as `run_script`'s (`PASSAGE=1`: that Saxon offers safe passage first; `PULL=N` as `--catapult-pull=N`). `battle_test GAME OUTDIR raid t:key ...`: you raid a Norman's home (`ROMANCE=0`-`3`: only the romance with that lady, over the hall; `SWORD=N` as `--sword-pace=N`). `DOTC_LOG=folder/` writes a log of these too.
 - `joust_test GAME OUTDIR approach|lane|0-3`: the knights riding in, a pass down the lane with no keys, or an outcome (0 near miss, 1 opponent unhorsed, 2 player unhorsed, 3 the horse; `JMODE=` the mode to write), every frame written as a BMP (to compare with a DOSBox recording).
 - `dump_assets GAME OUTDIR`: every picture and sprite of the four modes as BMPs.

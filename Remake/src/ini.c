@@ -154,6 +154,31 @@ bool ini_set(Ini *ini, const char *section, const char *key, const char *value)
     return true;
 }
 
+int ini_add_missing(Ini *ini, const Ini *defaults)
+{
+    int added = 0, comments = 0;   /* comments: the first of the comment lines before the current default line */
+    char section[200] = "";
+    for (int i = 0; i < defaults->count; i++) {
+        size_t n;
+        const char *v, *l = defaults->line[i];
+        const char *s = section_of(l, &n);
+        if (s) { SDL_strlcpy(section, s, SDL_min(n + 1, sizeof section)); comments = i + 1; continue; }
+        const char *k = key_of(l, &n, &v);
+        if (!k) { if (!*skip_space(l)) comments = i + 1; continue; }
+        char key[200];
+        SDL_strlcpy(key, k, SDL_min(n + 1, sizeof key));
+        int end;
+        if (find(ini, section, key, &end) < 0) {
+            ini_set(ini, section, key, v);   /* adds the section if missing */
+            int at = find(ini, section, key, &end);
+            for (int c = comments; c < i; c++) add_line(ini, defaults->line[c], SDL_strlen(defaults->line[c]), at++);
+            added++;
+        }
+        comments = i + 1;
+    }
+    return added;
+}
+
 bool ini_save(const Ini *ini, const char *path)
 {
     SDL_IOStream *io = SDL_IOFromFile(path, "w");

@@ -96,6 +96,7 @@ int main(int argc, char **argv)
     gfx_init(&A);
     if (SDL_getenv("DOTC_RULES") && SDL_strcmp(SDL_getenv("DOTC_RULES"), "dos") == 0) set_dos_rules(true);   /* as --rules=dos */
     if (SDL_getenv("PULL")) g_catapult_pull = SDL_atoi(SDL_getenv("PULL"));   /* --catapult-pull */
+    if (SDL_getenv("SWORD")) g_sword_pace = SDL_atoi(SDL_getenv("SWORD"));   /* --sword-pace */
     if (SDL_getenv("DOTC_LOG")) gamelog_setup(GLOG_VERBOSE, SDL_getenv("DOTC_LOG"));
     sound_data(A.tunes, A.tunes_len, A.bg, A.bg_len);
     sys_set_speed(4);
