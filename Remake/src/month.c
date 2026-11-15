@@ -124,6 +124,11 @@ static void month_status(void)
     e = str_append(0x404D, W(0x1C21)); num_append((unsigned)si, e);
     e = str_append(0x4061, W(0x1C23)); num_append((unsigned)W(SIDE(p) + S_GOLD), e);
     redraw_map();
+    dialog_dos_fmt(0x1C02, 0x1C19, "<       Men:  %d", W(ARMY(p) + A_SOLDIERS));   /* DOC DS:3D30-3D78 */
+    dialog_dos_fmt(0x1C02, 0x1C1B, "=   Knights:  %d", W(ARMY(p) + A_KNIGHTS));
+    dialog_dos_fmt(0x1C02, 0x1C1D, " Catapults:  %d", W(ARMY(p) + A_CATAPULTS));
+    dialog_dos_fmt(0x1C02, 0x1C21, "Your income is=   %d>", si);
+    dialog_dos_fmt(0x1C02, 0x1C23, "Your treasure is %d", W(SIDE(p) + S_GOLD));
     dialog(0x1C02);
     dialog(0x1C26);
     if (W(D_MORALE) > 29) {
@@ -155,10 +160,14 @@ static void month_status(void)
         else { si--; step = 1; }
         e = str_append(0x404D, W(0x1C4F)); num_append((unsigned)si, e);
         beep(250, g_dos_rules ? 1 : 2);
+        dialog_dos_fmt(0x1C44, 0x1C4F, "Your income is=   %d>", si);
+        dialog_dos_fmt(0x1C44, 0x1C51, "Your treasure is %d", W(SIDE(p) + S_GOLD));
         dialog(0x1C44);
         e = str_append(0x4061, W(0x1C51));
         SW(SIDE(p) + S_GOLD, W(SIDE(p) + S_GOLD) + step);
         num_append((unsigned)W(SIDE(p) + S_GOLD), e);
+        dialog_dos_fmt(0x1C44, 0x1C4F, "Your income is=   %d>", si);
+        dialog_dos_fmt(0x1C44, 0x1C51, "Your treasure is %d", W(SIDE(p) + S_GOLD));
         if (g_dos_rules) {
             beep(500, 1);
             dialog(0x1C44);
@@ -341,6 +350,15 @@ static int buy_army(void)
         num_append((unsigned)have[2], str_append(0x40B7, W(0x381A)));
         num_append((unsigned)have[3], str_append(0x40C9, W(0x381C)));
         num_append((unsigned)have[4], str_append(0x40DB, W(0x381E)));
+        if (DOS_MODES) {   /* DOC's own lines, the numbers right-aligned (%4d) */
+            static char dos[4][40];
+            static const int AT[4] = { 0x3816, 0x381A, 0x381C, 0x381E };
+            SDL_snprintf(dos[0], sizeof dos[0], "You have %4d>gold pieces", W(SIDE(p) + S_GOLD));
+            SDL_snprintf(dos[1], sizeof dos[1], "  1 >Soldiers <@@%4d>", have[2]);
+            SDL_snprintf(dos[2], sizeof dos[2], "  8 >Knights  <>@%4d>", have[3]);
+            SDL_snprintf(dos[3], sizeof dos[3], " 15  Catapults@@%4d>", have[4]);
+            for (int i = 0; i < 4; i++) dialog_dos_text((AT[i] - UW(0x380B + 9)) / 2, dos[i]);
+        }
         SB(0x3812, si);
         snd_speaker_off();
         si = dialog(0x380B) + 1;

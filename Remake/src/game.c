@@ -193,6 +193,36 @@ void beep(int divisor, int ticks)   /* 9520 */
  * (also lets Left and Right end it), the ticks to wait at the end, then a word:
  * the table of the lines' pointers. A menu returns the line chosen (1 = the
  * first one it can choose); Left/Right set DS:0A9C to -1 or 1. */
+static const char *dos_text[16];   /* dialog_dos_text: lines the DOS version wrote its own way */
+
+void dialog_dos_text(int line, const char *s) { if (line >= 0 && line < 16) dos_text[line] = s; }
+
+/* a line of the next dialog (box), at the line pointer line_ptr, as DOC.EXE's
+ * sprintf wrote it (its "%d" has no space before numbers under 10, as the booter's
+ * 94B5 has, and its labels end in a space more where the booter's add one) */
+void dialog_dos_fmt(int box, int line_ptr, const char *fmt, ...)
+{
+    if (!DOS_MODES) return;
+    static char buf[16][100];
+    static int next;
+    char *b = buf[next];
+    next = (next + 1) % 16;
+    va_list ap;
+    va_start(ap, fmt);
+    SDL_vsnprintf(b, sizeof buf[0], fmt, ap);
+    va_end(ap);
+    dialog_dos_text((line_ptr - UW(box + 9)) / 2, b);
+}
+
+/* the lines of DOC.EXE's own box (13 bytes in its data segment: as the booter's, with
+ * a far pointer to a table of far pointers), for the next dialog in its mode */
+void dialog_dos_box(int doc_box)
+{
+    if (!DOS_MODES) return;
+    int n = (int8_t)DB(doc_box + 2), tab = (uint16_t)DW(doc_box + 9);
+    for (int i = 0; i < n && i < 16; i++) dos_text[i] = (const char *)&gfx_assets()->doc_ds[(uint16_t)DW(tab + 4 * i)];
+}
+
 int dialog(int box)
 {
     int x0 = (int8_t)B(box), y0 = B(box + 1), n = (int8_t)B(box + 2), wd = (int8_t)B(box + 3);
@@ -229,14 +259,20 @@ int dialog(int box)
         int x = x0 * 4 + 20, y = y0 + 13;
         for (int i = 0; i < n; i++) {
             const uint8_t *s = &ds[UW(lines + 2 * i)];
+            const char *d = i < 16 && DOS_MODES ? dos_text[i] : NULL;
             for (; *s; s++) {
-                gfx_glyph(x, y, *s);
+                gfx_glyph_m(d ? BOOT_MODES : MODES_ALL, x, y, *s);
                 x += gfx_glyph_advance(*s);
+            }
+            for (x = x0 * 4 + 20; d && *d; d++) {   /* in the DOS version's mode, its own line in its own font */
+                gfx_glyph_m(DOS_MODES, x, y, (uint8_t)*d);
+                x += gfx_glyph_advance_m(MODE_CGA1, (uint8_t)*d);
             }
             x = x0 * 4 + 20;
             y += 11;
         }
     }
+    SDL_zeroa(dos_text);
     present();
     int si = first;
     if (si < 0) { wait_ticks(wait); return si; }
@@ -277,18 +313,24 @@ int dialog(int box)
  * white, a pause of 2 ticks, the same 11 rounds put back, the centre put back,
  * then d ticks. Each round waits a busy loop of DS:0005 x 1500 (about 7 ms
  * on the machines the speed classes were made for). */
+static void twinkle_pixel(int x, int y)
+{
+    gfx_put_pixel_m(BOOT_MODES, PAGE_SCREEN, x, y, 0xF);
+    gfx_put_pixel_m(DOS_MODES, PAGE_SCREEN, x, y, 1);   /* DOC 021C:086F: colour 1 (green), put whole (093C:000F) */
+}
+
 static int title_twinkle(int x, int y, int d)
 {
     int saved[MODE_COUNT][45];
     int k = 0;
     for (int m = 0; m < MODE_COUNT; m++) saved[m][0] = gfx_get_pixel((Mode)m, PAGE_SCREEN, x, y);
-    gfx_put_pixel(PAGE_SCREEN, x, y, 0xF);
+    twinkle_pixel(x, y);
     for (int r = 0; r < 11; r++) {
         for (int i = 0; i < 4; i++) {
             k++;
             int px = x + (int8_t)B(0x936 + 2 * k), py = y + (int8_t)B(0x937 + 2 * k);
             for (int m = 0; m < MODE_COUNT; m++) saved[m][k] = gfx_get_pixel((Mode)m, PAGE_SCREEN, px, py);
-            gfx_put_pixel(PAGE_SCREEN, px, py, 0xF);
+            twinkle_pixel(px, py);
         }
         sys_frame_done();
         SDL_DelayNS(7000000);
@@ -549,8 +591,11 @@ static void new_game(void)
         sys_skip_arm(&skip);
         gfx_show_picture(PIC_SCROLL);
         gfx_set_palette();
+        dialog_dos_box(0x239);   /* DOC 021C:01BE, and its own texts below ("Master Designer Software"; two credits left blank) */
         dialog(0x12D4);
         play_tune(0x97, W(D_TUNE_ONCE));
+        if (g_dos_rules) { gfx_show_picture(PIC_SCROLL); gfx_no_wipe(); }   /* DOC 021C:01E3: the scroll again, at once */
+        dialog_dos_box(0x310);
         dialog(0x1351);
         gfx_show_picture(PIC_TITLE);
         present();
@@ -561,20 +606,30 @@ static void new_game(void)
         for (int i = 0; i < 6 && !skip; i++) skip = (title_twinkle(TW[i][0], TW[i][1], TW[i][2]) & 0xFF) != 0;
         if (!skip) {
             gfx_show_picture(PIC_SCROLL);
+            gfx_put_sprite_m(DOS_MODES, 0x1C, 10, F_CHARS, 12);   /* DOC 021C:0341: the crown (TITLE item 12) */
+            dialog_dos_box(0x3C3);
             dialog(0x1405);
             gfx_fill_rect(20, 61, 42, 78, 0xDDFF);
+            dialog_dos_box(0x426);
             dialog(0x14A9);
+            dialog_dos_box(0x483);
             dialog(0x1505);
+            dialog_dos_box(0x52E);
             dialog(0x155B);
             gfx_fill_rect(20, 61, 42, 78, 0xDDFF);
+            dialog_dos_box(0x579);
             dialog(0x15F7);
+            dialog_dos_box(0x5CC);
             dialog(0x163D);
+            dialog_dos_box(0x627);
             dialog(0x1689);
             gfx_show_picture(PIC_CAST);
+            gfx_no_wipe();   /* DOC 021C:032D-04FA: the cast and the introduction at once */
             present();
             gfx_set_palette();
             wait_ticks(108);
             gfx_show_picture(PIC_INTRO);
+            gfx_no_wipe();
             present();
             gfx_set_palette();
             wait_ticks(180);
@@ -606,6 +661,7 @@ static void new_game(void)
     play_tune(0x98, W(D_TUNE_ONCE));
     gfx_show_picture(PIC_SHERWOOD);
     gfx_set_palette();
+    dialog_dos_box(0x96A);   /* DOC's own text ("Killing the King") */
     dialog(0x1865);
     while (tune_playing(0x98, 0)) fire_flicker(4);
     fire_flicker(125);

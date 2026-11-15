@@ -523,7 +523,7 @@ static void load_dos(Assets *a, const GameDat *g)
     /* DOCCHARS.LIB holds what the booter split into its font (BA), its map and
      * portraits (BP) and its sword fight (BV), each item at the booter's number */
     if (a->have_doc && dos_sprites(a, "DOCCHARS.LIB", F_FONT, 0, 181, true)) {
-        dos_glyphs(a, 0x21, 0x7A);
+        dos_glyphs(a, 0x20, 0x7A);
         dos_key0(a, F_FONT, 0x14, 0x1D);            /* the boxes' edges */
         dos_key0(a, F_FONT, 0x7B, 0x7E);            /* and corners */
         dos_sprites(a, "DOCCHARS.LIB", F_PORTRAITS, 0, 181, true);

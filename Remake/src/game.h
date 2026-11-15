@@ -152,6 +152,9 @@ void play_tune(int tune, int flags); /* 9559 */
 void wait_tune(int tune);            /* 958E */
 int  tune_playing(int tune, int n);  /* 95BE */
 int  dialog(int box);                /* 7A80: the 12-byte description at DS:box */
+void dialog_dos_text(int line, const char *s);
+void dialog_dos_box(int doc_box);
+void dialog_dos_fmt(int box, int line_ptr, const char *fmt, ...);   /* one line of the next dialog, DOC.EXE's way */   /* the next dialog's lines in the CGA (1987) mode from DOC.EXE's own box */   /* the next dialog's line in the CGA (1987) mode, as DOC.EXE wrote it */
 void beep(int divisor, int ticks);   /* 9520 */
 
 #endif

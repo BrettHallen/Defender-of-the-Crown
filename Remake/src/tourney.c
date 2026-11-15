@@ -138,7 +138,14 @@ static void lance_step(int item)
     snd_speaker_tone(W(D_GALLOP));
     int si = get_key() - 0x47;
     if (si < 0 || si > 10) si = 3;
-    if (item) slot_set(1, W(0xC8C + 4 * item) * 4, W(0xC8E + 4 * item) + 1, F_LANE, item, 0);
+    if (item) {
+        int x = W(0xC8C + 4 * item) * 4, y = W(0xC8E + 4 * item) + 1;
+        slot_set(1, x, y, F_LANE, item, 0);
+        gfx_video()->slot[1].modes = BOOT_MODES;
+        /* DOC 02D3:0AAE: put whole and left on the picture (each picture covers the last
+         * and the distant knight the lane picture starts with); its own y (oy -1) */
+        gfx_put_sprite_m(DOS_MODES, x / 4, y, F_LANE, item);
+    }
     int dx = W(0xCDC + 4 * si);
     if (dx || item) {
         SW(D_LANCE_X, W(D_LANCE_X) + dx);

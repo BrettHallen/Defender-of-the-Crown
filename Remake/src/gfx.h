@@ -80,7 +80,8 @@ void gfx_copy_page(int dst, int src);            /* 9A1F */
 void gfx_clear_back(int value);                  /* 865F (CGA: the byte; EGA, Tandy: the byte) */
 void gfx_fill_rect(int x, int y, int w, int h, int colour);   /* 80EA: the colour word as each program read it */
 void gfx_xor_rect(int x, int y, int w, int h, int colour);    /* 8223 */
-void gfx_xor_rect3(int x, int y, int w, int h, int cga, int ega, int tandy);   /* the programs passing their own colours */
+void gfx_xor_rect3(int x, int y, int w, int h, int cga, int ega, int tandy);
+void gfx_xor_rect4(int x, int y, int w, int h, int cga_dos, int cga, int ega, int tandy);   /* and the CGA (1987) mode's own (with DOC.EXE) */   /* the programs passing their own colours */
 void gfx_put_sprite(int x, int y, FileId f, int item);        /* 8495: opaque */
 void gfx_put_sprite_m(unsigned modes, int x, int y, FileId f, int item);   /* only in those modes */
 void gfx_xor_sprite(int x, int y, FileId f, int item);        /* 82D2 */
@@ -88,7 +89,9 @@ void gfx_xor_sprite_m(unsigned modes, int x, int y, FileId f, int item);   /* on
 void gfx_xor_sprite_t(int x, int x_tandy, int y, FileId f, int item);   /* the same, the Tandy program at another x */
 void gfx_xor_mask(int x, int y, FileId f, int item);          /* 83E2: a territory's shape (its colour from set_region_colour) */
 void gfx_glyph(int xpx, int y, int ch);                       /* 8591: a letter of the font, x in pixels */
-int  gfx_glyph_advance(int ch);                               /* the width word / 2 + 1 */
+int  gfx_glyph_advance(int ch);
+int  gfx_glyph_advance_m(Mode m, int ch);                      /* in that mode's font */
+void gfx_glyph_m(unsigned modes, int xpx, int y, int ch);                               /* the width word / 2 + 1 */
 /* the font's pointer for `from` replaced by the one for `to` (-1: put back), as the army tables
  * do with the space (AB 5684, 39C7: 1000:0040 = 1000:007C) */
 void gfx_glyph_alias(int from, int to);

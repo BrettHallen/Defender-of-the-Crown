@@ -127,6 +127,14 @@ static void transfer_forces(void)
             e = str_append(TEXT[i], str_append(0x432A, e));
             num_append((unsigned)arm[i], e);
         }
+        if (DOS_MODES) {   /* DOC's own lines, the numbers right-aligned (%4d) */
+            static const char *const FMT[4] = { 0, "%4d   Soldiers <@@%4d>", "%4d   Knights  <>@%4d>", "%4d   Catapults@@%4d>" };
+            static char dos[4][40];
+            for (int i = 1; i < 4; i++) {
+                SDL_snprintf(dos[i], sizeof dos[i], FMT[i], gar[i], arm[i]);
+                dialog_dos_text((LINE[i] - UW(0x3967 + 9)) / 2, dos[i]);
+            }
+        }
         SB(0x396E, si);
         snd_speaker_off();
         si = dialog(0x3967);
@@ -172,6 +180,8 @@ static void territory_info(void)
         }
         dialog(0x1FFF);
     }
+    dialog_dos_fmt(0x1FEB, 0x1FF8, "%d gold / month", B(TERR(t) + T_INCOME));   /* DOC DS:39D6, 39E6 */
+    dialog_dos_fmt(0x1FEB, 0x1FFA, "%d vassals", B(TERR(t) + T_VASSALS));
     dialog(0x1FEB);
 }
 

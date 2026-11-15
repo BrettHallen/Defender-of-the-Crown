@@ -177,11 +177,13 @@ static int xor_fn(int m, int old, int x, int c)
     return old ^ byte_pixel(m, c & 0xFF, x);
 }
 
-void gfx_xor_rect3(int x, int y, int w, int h, int cga, int ega, int tandy)
+void gfx_xor_rect3(int x, int y, int w, int h, int cga, int ega, int tandy) { gfx_xor_rect4(x, y, w, h, cga, cga, ega, tandy); }
+
+void gfx_xor_rect4(int x, int y, int w, int h, int cga_dos, int cga, int ega, int tandy)
 {
     gfx_lock();
     for (int m = 0; m < MODE_COUNT; m++) {
-        int c = is_cga(m) ? cga : m == MODE_EGA ? ega : tandy;
+        int c = m == MODE_CGA1 && A->have_doc ? cga_dos : is_cga(m) ? cga : m == MODE_EGA ? ega : tandy;
         for (int r = 0; r < h; r++) hspan(m, PAGE_BACK, x_px(m, x), y + r, w_px(m, w), xor_fn, c);
     }
     gfx_unlock();
@@ -300,21 +302,26 @@ static int alias_from = -1, alias_to = -1;
 void gfx_glyph_alias(int from, int to) { alias_from = to < 0 ? -1 : from; alias_to = to; }
 static int aliased(int ch) { return ch == alias_from ? alias_to : ch; }
 
-int gfx_glyph_advance(int ch)
+int gfx_glyph_advance(int ch) { return gfx_glyph_advance_m(MODE_EGA, ch); }
+
+int gfx_glyph_advance_m(Mode m, int ch)
 {
     ch = aliased(ch);
-    const SpriteFile *f = &A->set[MODE_EGA].file[F_FONT];
+    const SpriteFile *f = &A->set[m].file[F_FONT];
     if (ch < 0 || ch >= MAX_ITEMS || f->kind[ch] != IT_GLYPH) return 0;
     return (f->adv[ch] >> 1) + 1;
 }
 
 /* EGA and Tandy: the letter ANDed in, shifted to the pixel (AB 85B4, AC 73BB);
  * CGA: put whole, w/2 pixels wide (AA 727B) */
-void gfx_glyph(int xpx, int y, int ch)
+void gfx_glyph(int xpx, int y, int ch) { gfx_glyph_m(MODES_ALL, xpx, y, ch); }
+
+void gfx_glyph_m(unsigned modes, int xpx, int y, int ch)
 {
     ch = aliased(ch);
     gfx_lock();
     for (int m = 0; m < MODE_COUNT; m++) {
+        if (!(modes & (1u << m))) continue;
         const SpriteFile *f = &A->set[m].file[F_FONT];
         if (ch < 0 || ch >= MAX_ITEMS || f->kind[ch] != IT_GLYPH) continue;
         const Image *im = &f->img[ch];

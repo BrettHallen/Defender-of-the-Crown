@@ -85,6 +85,13 @@ static void game(void)
         gamelog_end("test over");
         return;
     }
+    if (SDL_getenv("FIELD")) {   /* FIELD=s,k,s,k: a field battle (no castle), your soldiers and knights against his */
+        int n[4] = { 0 };
+        SDL_sscanf(SDL_getenv("FIELD"), "%d,%d,%d,%d", &n[0], &n[1], &n[2], &n[3]);
+        SB(TERR(1) + T_CASTLE, 0);
+        SW(GARRISON(1) + A_SOLDIERS, n[0]); SW(GARRISON(1) + A_KNIGHTS, n[1]);
+        SW(ARMY(4) + A_SOLDIERS, n[2]); SW(ARMY(4) + A_KNIGHTS, n[3]); SW(ARMY(4) + A_CATAPULTS, 0);
+    }
     attack(4, 1, 1);
 }
 int main(int argc, char **argv)

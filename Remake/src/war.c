@@ -209,12 +209,19 @@ static void show_armies(int enemy, int yours)
         SB(e, '>');
         SB(e + 1, 0);
     }
+    /* DOC 0079:0000: sprintf into its own lines, the numbers right-aligned (%4d) */
+    static const char *const DOS_FMT[3] = { "  %4d      Soldiers <@@%4d>", "  %4d      Knights  <>@%4d>", "  %4d      Catapults@@%4d>" };
+    static char dos[3][40];
+    for (int i = 0; i < 3 && DOS_MODES; i++) {
+        SDL_snprintf(dos[i], sizeof dos[i], DOS_FMT[i], W(yours + FIELD[i]), W(enemy + FIELD[i]));
+        dialog_dos_text((LINE[i] - UW(0x35D2 + 9)) / 2, dos[i]);
+    }
     dialog(0x35D2);
     gfx_glyph_alias(0x20, -1);
 }
 
 static void cursor_rect(int x, int y, int w)  { gfx_xor_rect3(x, y, w, 11, 0xFFFF, 0x0F0F, 0xFFFF); }
-static void chosen_rect(int x, int y, int w)  { gfx_xor_rect3(x, y, w, 11, 0x5555, 0x0F04, 0x8888); }
+static void chosen_rect(int x, int y, int w)  { gfx_xor_rect4(x, y, w, 11, 0xAAAA, 0x5555, 0x0F04, 0x8888); }   /* DOC 0940:000F: XOR AAh (colour 2) */
 
 static void slot(int k, int xpx, int y, int item)
 {
@@ -414,6 +421,11 @@ static int choose_ammo(int t)
         num_append((unsigned)W(D_SIEGE_DISEASE), str_append(0x4212, W(0x369A)));
         num_append((unsigned)W(D_SIEGE_BOULDERS), str_append(0x4225, W(0x369C)));
         SB(0x368A, W(D_SIEGE_AMMO) + 4);
+        dialog_dos_fmt(0x3683, 0x3692, "Days remaining in Siege: %d", W(D_SIEGE_DAYS));   /* DOC DS:3B99-3BEE */
+        dialog_dos_fmt(0x3683, 0x3694, "Enemy Garrison: %d", w16(W(GARRISON(t) + A_SOLDIERS) + W(GARRISON(t) + A_KNIGHTS)));
+        dialog_dos_fmt(0x3683, 0x3698, "      Greek Fire: %d", W(D_SIEGE_FIRE));
+        dialog_dos_fmt(0x3683, 0x369A, "      Disease:@>  %d", W(D_SIEGE_DISEASE));
+        dialog_dos_fmt(0x3683, 0x369C, "      Boulders:=  %d", W(D_SIEGE_BOULDERS));
         int c = dialog(0x3683);
         SW(D_SIEGE_AMMO, c);
         static const int LEFT[4] = { D_SIEGE_FIRE, D_SIEGE_DISEASE, D_SIEGE_BOULDERS, 0 };
@@ -658,6 +670,8 @@ static int siege_of_player(int att, int def, int t, int shown)
         str_append(0x42C3, e);
         if (lost == 1) str_append(0x42CD, W(0x2A99));
         else str_append(0x42F2, num_append((unsigned)lost, W(0x2A99)));
+        dialog_dos_fmt(0x2A8A, 0x2A97, "Your castle strength is %d percent.", pct);   /* DOC DS:3C88, 3CD1 */
+        if (lost != 1) dialog_dos_fmt(0x2A8A, 0x2A99, "%d men were killed during the siege.", lost);
         dialog(0x2A8A);
     }
     return battle(att, def, t, pct, shown);
