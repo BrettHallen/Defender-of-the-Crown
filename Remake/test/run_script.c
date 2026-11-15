@@ -36,6 +36,7 @@ int main(int argc, char **argv)
     sound_data(A.tunes, A.tunes_len, A.bg, A.bg_len);
     const char *logdir = SDL_getenv("DOTC_LOG");
     if (logdir) gamelog_setup(GLOG_VERBOSE, logdir);
+    if (SDL_getenv("DOTC_RULES") && SDL_strcmp(SDL_getenv("DOTC_RULES"), "dos") == 0) set_dos_rules(true);   /* as --rules=dos */
     if (SDL_getenv("DOTC_FIX")) {   /* as --fix= */
         char err[128];
         if (!fixes_parse(SDL_getenv("DOTC_FIX"), err, sizeof err)) { SDL_Log("DOTC_FIX: %s", err); return 1; }

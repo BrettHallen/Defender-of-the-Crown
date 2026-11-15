@@ -8,13 +8,14 @@
  * main.c: the window, the keyboard and the command line. The game itself
  * runs on its own thread (sys.h, game.c).
  *
- * Usage: DefenderOfTheCrown [--video=cga1|cga2|ega|tandy] [--log | --log=verbose] [--fix=NAME,...|all] [--catapult-pull=N] [game-folder]
+ * Usage: DefenderOfTheCrown [--video=cga1|cga2|ega|tandy] [--log | --log=verbose] [--rules=booter|dos] [--fix=NAME,...|all] [--catapult-pull=N] [game-folder]
  *   --video: the mode to start in (EGA if not given): cga1 the 1987 DOS version's
  *            CGA, cga2 the booter's CGA, ega, tandy. Tab goes through them in the game.
  *   --log:   a log of each game played (gamelog.h), in the remake's folder under Logs/
  *   --fix:   fixes these flaws of the original (none by default, the game as it was):
  *            viking, hostility, targets, catapult, siege-merge, joust-opponent,
  *            joust-margin, battle-text, siege-sprite, or all (game.h, Remake/README.md)
+ *   --rules: booter (the default) or dos, the 1987 DOS version's rules and timing
  *   --catapult-pull: screen refreshes per step of the catapult's pull, 1 (the
  *            original's speed on a fast PC, 0.4 s) to 8; 2 if not given
  *   game-folder: the folder with your GAME.DAT (and the 1987 version's .LIB files),
@@ -56,7 +57,7 @@ static struct {
     Uint32        ev_folder;
     char          chosen[1024];
     bool          dialog_open;
-    const char   *src[5];          /* where each setting came from (SET_...), for the game log */
+    const char   *src[6];          /* where each setting came from (SET_...), for the game log */
     const char   *folder_src;
     Mode          start_mode;      /* the mode the settings asked for */
     const char   *log_name;        /* off, normal, verbose */
@@ -64,7 +65,7 @@ static struct {
 
 static const char *const MODE_KEYS[MODE_COUNT] = { "cga1", "cga2", "ega", "tandy" };
 
-enum { SET_VIDEO, SET_FIX, SET_PULL, SET_LOG, SET_FOLDER };
+enum { SET_VIDEO, SET_FIX, SET_PULL, SET_LOG, SET_FOLDER, SET_RULES, SET_COUNT };
 
 /* ------------------------------------------------------------------ the settings file */
 
@@ -89,6 +90,10 @@ static const char DEFAULT_SETTINGS[] =
     "video = ega\n"
     "\n"
     "[play]\n"
+    "; The rules: booter (the self-booting release, as the EGA program plays) or dos\n"
+    "; (the 1987 DOS version: its random numbers, its computer lords' odds, and its\n"
+    "; waits, which make its scenes slower: the catapult, the joust, the sword fight).\n"
+    "rules = booter\n"
     "; Fixes for the original's flaws, by name and separated by commas, or all.\n"
     "; Empty: the game as it was. The names: viking, hostility, targets, catapult,\n"
     "; siege-merge, joust-opponent, joust-margin, battle-text, siege-sprite\n"
@@ -356,11 +361,13 @@ static void log_settings(const char *folder)
                  "Settings (the settings file %s, then the command line):\n"
                  "  folder = %s (%s)\n"
                  "  video = %s at the start (%s)\n"
+                 "  rules = %s (%s)\n"
                  "  fix = %s (%s)\n"
                  "  catapult_pull = %d (%s)\n"
                  "  log = %s (%s)\n",
                  path, folder, App.folder_src ? App.folder_src : "found",
                  MODE_KEYS[App.start_mode], App.src[SET_VIDEO] ? App.src[SET_VIDEO] : "the default",
+                 g_dos_rules ? "dos" : "booter", App.src[SET_RULES] ? App.src[SET_RULES] : "the default",
                  *fx ? fx : "none, the game as it was", App.src[SET_FIX] ? App.src[SET_FIX] : "the default",
                  g_catapult_pull, App.src[SET_PULL] ? App.src[SET_PULL] : "the default",
                  App.log_name, App.src[SET_LOG] ? App.src[SET_LOG] : "the default");
@@ -388,6 +395,14 @@ static void set_catapult_pull(const char *v, const char *from)
     else SDL_Log("%s=%s: use 1 (the original's speed) to 8", from, v);
 }
 
+static void set_rules(const char *v, const char *from)
+{
+    if (SDL_strcasecmp(v, "booter") == 0) set_dos_rules(false);
+    else if (SDL_strcasecmp(v, "dos") == 0) set_dos_rules(true);
+    else { SDL_Log("%s=%s: use booter or dos", from, v); return; }
+    App.src[SET_RULES] = source(from);
+}
+
 static void set_log(const char *v, GameLogLevel *level, const char *from)
 {
     if (SDL_strcasecmp(v, "off") == 0 || !*v) *level = GLOG_OFF;
@@ -408,6 +423,7 @@ int main(int argc, char **argv)
     settings_load(&settings);
     const char *v;
     if ((v = ini_get(&settings, "display", "video")) && *v) set_video(v, SETTINGS_FILE " video");
+    if ((v = ini_get(&settings, "play", "rules")) && *v) set_rules(v, SETTINGS_FILE " rules");
     if ((v = ini_get(&settings, "play", "fix"))) set_fixes(v, SETTINGS_FILE " fix");
     if ((v = ini_get(&settings, "play", "catapult_pull")) && *v) set_catapult_pull(v, SETTINGS_FILE " catapult_pull");
     if ((v = ini_get(&settings, "debug", "log"))) set_log(v, &log_level, SETTINGS_FILE " log");
@@ -420,6 +436,8 @@ int main(int argc, char **argv)
             set_video(SDL_strchr(argv[i], '=') + 1, "--video");
         } else if (SDL_strcmp(argv[i], "--video") == 0 && i + 1 < argc) {
             set_video(argv[++i], "--video");
+        } else if (SDL_strncmp(argv[i], "--rules=", 8) == 0) {
+            set_rules(argv[i] + 8, "--rules");
         } else if (SDL_strncmp(argv[i], "--fix=", 6) == 0) {
             set_fixes(argv[i] + 6, "--fix");
         } else if (SDL_strncmp(argv[i], "--catapult-pull=", 16) == 0) {

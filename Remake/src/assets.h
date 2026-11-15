@@ -33,6 +33,7 @@ typedef struct {
     int      w, h;
     uint8_t *pix;       /* w*h pixel values */
     uint8_t *mask;      /* w*h: the background bits kept (ANDed), 0 = opaque, 3 or 15 = transparent; NULL: drawn whole */
+    int      ox, oy;    /* drawn this far from where it is put (the DOS version's sprites where its places differ by a constant) */
 } Image;
 
 /* The 20 pictures, A-T (GAME.DAT's C and Q files; the DOS .LIB pictures) */
@@ -92,7 +93,10 @@ typedef struct {
     uint8_t *tunes;              /* BB: the PC-speaker tunes are items 97h-9Eh */
     size_t   tunes_len;
     char     dir[1024];
-    bool     dos_file[F_COUNT];  /* the CGA (1987) set has the DOS version's own sprites for this file (LOVE1/2.LIB) */
+    bool     dos_file[F_COUNT];  /* the CGA (1987) set has the DOS version's own sprites for this file (the .LIB files) */
+    bool     have_doc;           /* DOC.EXE was found: doc_ds is its data segment */
+    uint8_t  doc_ds[65536];
+    size_t   doc_ds_len;
 } Assets;
 
 /* dir: a folder with GAME.DAT, and/or DOC.EXE's .LIB files (also looked for in

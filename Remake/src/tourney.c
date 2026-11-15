@@ -48,10 +48,18 @@ static void slot_set(int k, int xpx, int y, FileId f, int item, int rows)
     gfx_video()->slot[k] = (Slot){ true, xpx, y, f, item, 0, 0, rows, 0 };
 }
 
+/* the same in the booter's modes, and in the CGA (1987) mode the DOS version's sprite
+ * at its own place (slot k + 2) */
+static void slot_set2(int k, int xpx, int y, FileId f, int item, int dos_xpx, int dos_y, int dos_item)
+{
+    Slot *s = gfx_video()->slot;
+    s[k] = (Slot){ true, xpx, y, f, item, 0, 0, 0, BOOT_MODES };
+    s[k + 2] = (Slot){ DOS_MODES != 0, dos_xpx, dos_y, f, dos_item, 0, 0, 0, DOS_MODES };
+}
+
 static void slots_off(void)
 {
-    gfx_video()->slot[0].active = false;
-    gfx_video()->slot[1].active = false;
+    for (int k = 0; k < 4; k++) { gfx_video()->slot[k].active = false; gfx_video()->slot[k].modes = 0; }
 }
 
 static void next_beat(int addr)   /* the gallop's pitch falls by 500 a step, from 30000 to 28500 and round again */
@@ -69,33 +77,41 @@ static void joust_approach(void)
 {
     int p = W(D_PLAYER);
     gfx_show_picture(PIC_TOURNAMENT);
+    /* the DOS version (02D3:0737) puts the same items 2 units further on and 2 lines
+     * higher (x 43-63, y 74), turns with 24 and 25 (at 62 and 61), and so rides back
+     * with the next item each time; its other knight starts a unit on (16, y 86) */
     int di = 41, si;
     for (si = 2; si < 23; si++) {
-        slot_set(0, di++ * 4, 76, F_TOURN, si, 0);
+        slot_set2(0, di * 4, 76, F_TOURN, si, (di + 2) * 4, 74, si);
+        di++;
         gfx_sprites_draw(); present(); gfx_sprites_erase();
         wait_ticks(3);
         get_key();
     }
     for (int k = 0; k < 2; k++) {
-        slot_set(0, 60 * 4, 76, F_TOURN, si++, 0);
+        slot_set2(0, 60 * 4, 76, F_TOURN, si, (62 - k) * 4, 74, si + 1);
+        si++;
         gfx_sprites_draw(); present(); gfx_sprites_erase();
         wait_ticks(3);
     }
     di = 60;
     int x2 = 15;
     while (si < 30) {
-        slot_set(0, di-- * 4, 76, F_TOURN, si++, 0);
+        slot_set2(0, di * 4, 76, F_TOURN, si, di * 4, 74, si + 1);
+        di--;
+        si++;
         gfx_sprites_draw(); present(); gfx_sprites_erase();
         wait_ticks(1);
-        slot_set(1, x2++ * 4, 88, F_TOURN, si + 4, 0);
+        slot_set2(1, x2 * 4, 88, F_TOURN, si + 4, (x2 + 1) * 4, 86, si + 4);
+        x2++;
         gfx_sprites_draw(); present(); gfx_sprites_erase();
         wait_ticks(2);
         get_key();
     }
-    slot_set(1, x2 * 4, 88, F_TOURN, si + 5, 0);
+    slot_set2(1, x2 * 4, 88, F_TOURN, si + 5, x2 * 4, 86, si + 5);
     gfx_sprites_draw(); present(); gfx_sprites_erase();
     slots_off();
-    wait_ticks(4);
+    wait_ticks(g_dos_rules ? 9 : 4);   /* DOC 02D3:0737: 9 */
     int o = W(D_OPPONENT);
     show_portrait(W(SIDE(o) + S_PORTRAIT), 9, 3);
     SW(0x2F64, W(SIDE(o) + S_NAME));
@@ -151,6 +167,7 @@ static void joust_outcome(int r)
 {
     flush_keys();
     gfx_show_picture(PIC_STANDS);
+    gfx_no_wipe();   /* DOC 02D3:0BC8: at once */
     present();
     gfx_set_palette();
     const SpriteFile *f = &gfx_assets()->set[MODE_EGA].file[F_TOURN];   /* the three programs' scripts are the same */
@@ -214,7 +231,7 @@ static int joust(int opp)
         slots_off();
         int pj = W(SIDE(p) + S_JOUST), oj = W(SIDE(opp) + S_JOUST);
         int l4 = w16(pj + 2 - oj);
-        if (fixed(FIX_JOUST_MARGIN) ? l4 < 1 : (uint16_t)l4 < 1) l4 = 1;
+        if (fixed(FIX_JOUST_MARGIN) || g_dos_rules ? l4 < 1 : (uint16_t)l4 < 1) l4 = 1;
         int l6 = (uint16_t)pj > (uint16_t)oj ? 1 : 0;
         uint16_t x = (uint16_t)W(D_LANCE_X), y = (uint16_t)W(D_LANCE_Y);
         if (!((uint16_t)(26 - l6) > x) && !((uint16_t)(26 + l6) < x) && !((uint16_t)(138 - l4) > y) && !((uint16_t)(138 + l4) < y))

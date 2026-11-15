@@ -353,22 +353,138 @@ static bool load_set(Assets *a, const GameDat *g, Mode m, char *err, size_t errl
 
 /* DOS .LIB sprites into a file of the CGA (1987) set: LIB item j (DOC.EXE's
  * 1-based number j + 1, as the booter's tables count) becomes item j + 1, for j in
- * first..last; the booter's items of that file are dropped. */
-static bool dos_sprites(Assets *a, const char *lib, FileId f, int first, int last)
+ * first..last; with clear, the booter's items of that file are dropped first. They
+ * are put whole (no mask) unless dos_mask and the others below give them one. */
+static bool dos_sprites(Assets *a, const char *lib, FileId f, int first, int last, bool clear)
 {
     char path[1200];
     LibFile l;
     if (!find_file(a->dir, lib, path, sizeof path) || !lib_open(&l, path)) return false;
     SpriteFile *sf = &a->set[MODE_CGA1].file[f];
-    for (int i = 0; i < MAX_ITEMS; i++) { img_free(&sf->img[i]); sf->kind[i] = IT_NONE; }
+    if (clear)
+        for (int i = 0; i < MAX_ITEMS; i++) { img_free(&sf->img[i]); sf->kind[i] = IT_NONE; }
     int n = 0;
     for (int j = first; j <= last && j < l.count && j + 1 < MAX_ITEMS; j++) {
-        Image *im = &sf->img[j + 1];
-        if (lib_sprite(l.item[j], l.item_len[j], &im->w, &im->h, &im->pix)) { sf->kind[j + 1] = IT_BIG; n++; }
+        Image t;
+        SDL_zero(t);
+        if (lib_sprite(l.item[j], l.item_len[j], &t.w, &t.h, &t.pix)) {
+            img_free(&sf->img[j + 1]);
+            sf->img[j + 1] = t;
+            sf->kind[j + 1] = IT_BIG;
+            n++;
+        }
     }
     lib_close(&l);
-    a->dos_file[f] = n > 0;
+    if (n) a->dos_file[f] = true;
     return n > 0;
+}
+
+/* DOC.EXE draws most of its sprites as a pair: the mask ANDed in (0952:000E),
+ * then the picture ORed (096B:0000). Item `item` gets item `mask`'s pixels as its
+ * mask (the same size, or nothing is done). */
+static void dos_mask(Assets *a, FileId f, int item, int mask)
+{
+    SpriteFile *sf = &a->set[MODE_CGA1].file[f];
+    Image *im = &sf->img[item], *mk = &sf->img[mask];
+    if (!im->pix || !mk->pix || im->w != mk->w || im->h != mk->h) return;
+    SDL_free(im->mask);
+    im->mask = SDL_malloc((size_t)im->w * im->h);
+    if (im->mask) SDL_memcpy(im->mask, mk->pix, (size_t)im->w * im->h);
+}
+
+/* ORed alone (096B:0000): every background bit kept */
+static void dos_or(Assets *a, FileId f, int first, int last)
+{
+    SpriteFile *sf = &a->set[MODE_CGA1].file[f];
+    for (int i = first; i <= last && i < MAX_ITEMS; i++) {
+        Image *im = &sf->img[i];
+        if (!im->pix) continue;
+        SDL_free(im->mask);
+        im->mask = SDL_malloc((size_t)im->w * im->h);
+        if (im->mask) SDL_memset(im->mask, 3, (size_t)im->w * im->h);
+    }
+}
+
+/* 08F4:000D (the siege's sprites): colour 0 transparent, the others XORed with 1
+ * (through the table at CS:0084: each byte XOR 55h, its 01 pixels kept from the
+ * screen) */
+static void dos_offset(Assets *a, FileId f, int first, int last, int ox, int oy)
+{
+    SpriteFile *sf = &a->set[MODE_CGA1].file[f];
+    for (int i = first; i <= last && i < MAX_ITEMS; i++) { sf->img[i].ox = ox; sf->img[i].oy = oy; }
+}
+
+/* LIB item j into item `to` of a file (where the numbers differ from the booter's) */
+static void dos_move(Assets *a, FileId f, int to, int from)
+{
+    SpriteFile *sf = &a->set[MODE_CGA1].file[f];
+    if (to == from || !sf->img[from].pix) return;
+    img_free(&sf->img[to]);
+    sf->img[to] = sf->img[from];
+    sf->kind[to] = sf->kind[from];
+    SDL_zero(sf->img[from]);
+    sf->kind[from] = IT_NONE;
+}
+
+static void dos_key1(Assets *a, FileId f, int first, int last)
+{
+    SpriteFile *sf = &a->set[MODE_CGA1].file[f];
+    for (int i = first; i <= last && i < MAX_ITEMS; i++) {
+        Image *im = &sf->img[i];
+        if (!im->pix) continue;
+        SDL_free(im->mask);
+        im->mask = SDL_malloc((size_t)im->w * im->h);
+        if (im->mask)
+            for (int k = 0; k < im->w * im->h; k++) {
+                im->mask[k] = im->pix[k] ? 0 : 3;
+                if (im->pix[k]) im->pix[k] ^= 1;
+            }
+    }
+}
+
+/* colour 0 transparent (0894:0003, the message boxes' edges) */
+static void dos_key0(Assets *a, FileId f, int first, int last)
+{
+    SpriteFile *sf = &a->set[MODE_CGA1].file[f];
+    for (int i = first; i <= last && i < MAX_ITEMS; i++) {
+        Image *im = &sf->img[i];
+        if (!im->pix) continue;
+        SDL_free(im->mask);
+        im->mask = SDL_malloc((size_t)im->w * im->h);
+        if (im->mask)
+            for (int k = 0; k < im->w * im->h; k++) im->mask[k] = im->pix[k] ? 0 : 3;
+    }
+}
+
+/* the font (0910:0003 puts the NOT of a glyph's bytes, as the booter's CGA program
+ * does): glyphs for characters first..last, advancing width / 2 + 1 */
+static void dos_glyphs(Assets *a, int first, int last)
+{
+    SpriteFile *sf = &a->set[MODE_CGA1].file[F_FONT];
+    for (int c = first; c <= last && c < MAX_ITEMS; c++) {
+        Image *im = &sf->img[c];
+        if (!im->pix) continue;
+        sf->adv[c] = im->w * 2;
+        for (int k = 0; k < im->w * im->h; k++) im->pix[k] ^= 3;
+        sf->kind[c] = IT_GLYPH;
+    }
+}
+
+/* DOC.EXE's data segment (DGROUP 0BCE), for its own tables */
+static void load_doc_ds(Assets *a)
+{
+    char path[1200];
+    if (!find_file(a->dir, "DOC.EXE", path, sizeof path)) return;
+    size_t n;
+    uint8_t *d = SDL_LoadFile(path, &n);
+    if (!d) return;
+    size_t hdr = n >= 10 ? (size_t)(d[8] | (d[9] << 8)) * 16 : 0, o = hdr + 0xBCE * 16;
+    if (n > o && d[0] == 'M' && d[1] == 'Z') {
+        a->doc_ds_len = SDL_min(n - o, sizeof a->doc_ds);
+        SDL_memcpy(a->doc_ds, d + o, a->doc_ds_len);
+        a->have_doc = true;
+    }
+    SDL_free(d);
 }
 
 /* The 1987 DOS version: its own pictures (the .LIB files) and the romance's
@@ -400,9 +516,42 @@ static void load_dos(Assets *a, const GameDat *g)
     if (found < PIC_COUNT) SDL_Log("CGA (1987): %d of the DOS pictures found; the booter's CGA pictures stand in for the rest", found);
     /* the romance (DOC 050E:03BE-0733): the ladies and their eyes; the couple
      * (whole figures, 1-9); the couple at the window (11-20) */
-    dos_sprites(a, "LOVE1.LIB", F_LADIES, 1, 24);
-    dos_sprites(a, "LOVE2.LIB", F_ROMANCE, 1, 9);
-    dos_sprites(a, "LOVE2.LIB", F_WINDOW, 11, 20);
+    dos_sprites(a, "LOVE1.LIB", F_LADIES, 1, 24, true);
+    dos_sprites(a, "LOVE2.LIB", F_ROMANCE, 1, 9, true);
+    dos_sprites(a, "LOVE2.LIB", F_WINDOW, 11, 20, true);
+    load_doc_ds(a);
+    /* DOCCHARS.LIB holds what the booter split into its font (BA), its map and
+     * portraits (BP) and its sword fight (BV), each item at the booter's number */
+    if (a->have_doc && dos_sprites(a, "DOCCHARS.LIB", F_FONT, 0, 181, true)) {
+        dos_glyphs(a, 0x21, 0x7A);
+        dos_key0(a, F_FONT, 0x14, 0x1D);            /* the boxes' edges */
+        dos_key0(a, F_FONT, 0x7B, 0x7E);            /* and corners */
+        dos_sprites(a, "DOCCHARS.LIB", F_PORTRAITS, 0, 181, true);
+        dos_mask(a, F_PORTRAITS, 30, 31);           /* the castles (0423:0384) */
+        dos_mask(a, F_PORTRAITS, 35, 36);
+        dos_mask(a, F_PORTRAITS, 127, 37);          /* the campaign army */
+        dos_sprites(a, "DOCCHARS.LIB", F_SWORD, 0, 181, true);
+        dos_or(a, F_SWORD, 160, 179);               /* the fighters, ORed over the hall (050E:0960) */
+    }
+    if (a->have_doc) dos_sprites(a, "TITLE.LIB", F_CHARS, 7, 11, true);   /* the name plates, the crown */
+    /* the tournament: the knights riding in (JOUST1 1-34, put whole, 02D3:0737, at
+     * the DOS version's own places and steps: tourney.c), and over the stands (JOUST2 20-39: the
+     * booter's BJ 41-60, put as the siege's sprites, 02D3:0BA7); down the lane, the
+     * opponent (JOUST2 2-18, put whole, a line higher, 02D3:0A16) and the lance
+     * (JOUST1 35, ORed: the booter's BK 20) */
+    if (a->have_doc && dos_sprites(a, "JOUST2.LIB", F_TOURN, 20, 39, true)) {
+        for (int i = 40; i >= 21; i--) dos_move(a, F_TOURN, i + 20, i);
+        dos_key1(a, F_TOURN, 41, 60);
+        dos_sprites(a, "JOUST1.LIB", F_TOURN, 1, 34, false);
+        dos_sprites(a, "JOUST2.LIB", F_LANE, 2, 18, true);
+        dos_offset(a, F_LANE, 3, 19, 0, -1);
+        dos_sprites(a, "JOUST1.LIB", F_LANE, 35, 35, false);
+        dos_move(a, F_LANE, 20, 36);
+        dos_or(a, F_LANE, 20, 20);
+    }
+    if (a->have_doc) dos_sprites(a, "RAID.LIB", F_END, 5, 9, true);   /* THE END (put whole), the bars, the sparks (XORed) */
+    if (a->have_doc && dos_sprites(a, "SIEGE.LIB", F_SIEGE, 2, 51, true))
+        dos_key1(a, F_SIEGE, 3, 51);   /* 52, the Greek Fire's flame, is XORed */
 }
 
 bool assets_load(Assets *a, const char *dir, char *err, size_t errlen)

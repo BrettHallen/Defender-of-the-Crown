@@ -1,6 +1,6 @@
 ﻿/* joust_test GAME OUTDIR RESULT: plays joust_outcome(RESULT) (0 near miss,
  * 1 opponent unhorsed, 2 player unhorsed, 3 the horse) and writes every frame
- * presented (EGA) as OUTDIR/oNNN.bmp, to compare with DOSBox frame by frame.
+ * presented (EGA, or JMODE=cga1|cga2|tandy) as OUTDIR/oNNN.bmp, to compare with DOSBox frame by frame.
  * RESULT "lane": a pass down the lane with no keys, then its outcome;
  * "approach": the knights riding in. */
 #define tournament tournament_copy   /* this file has its own copy of tourney.c's routines */
@@ -34,6 +34,7 @@ static void game(void)
 }
 int main(int argc, char **argv)
 {
+    if (SDL_getenv("DOTC_RULES") && SDL_strcmp(SDL_getenv("DOTC_RULES"), "dos") == 0) set_dos_rules(true);   /* as --rules=dos */
     char err[256];
     if (argc < 4) { SDL_Log("usage: joust_test GAME OUTDIR RESULT"); return 1; }
     SDL_Init(0);
@@ -50,7 +51,9 @@ int main(int argc, char **argv)
     while (sys_running()) {
         if (sys_frames() != seen) {
             seen = sys_frames();
-            gfx_to_rgb(MODE_EGA, rgb);
+            Mode jm = MODE_EGA;
+            if (SDL_getenv("JMODE")) mode_from_name(SDL_getenv("JMODE"), &jm);   /* JMODE=cga1 ...: that mode's frames */
+            gfx_to_rgb(jm, rgb);
             SDL_Surface *s = SDL_CreateSurfaceFrom(SCREEN_W, SCREEN_H, SDL_PIXELFORMAT_XRGB8888, rgb, SCREEN_W * 4);
             char path[600];
             SDL_snprintf(path, sizeof path, "%s/o%03d.bmp", argv[2], n++);

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """C-like pseudocode for one routine of a flatdis.py listing (AA/AB/AC.ASM).
 
-Usage: dec.py [-f AB.ASM] NAME|ADDR [...]
+Usage: dec.py [-f AB.ASM] [-n ds_names.txt] NAME|ADDR [...]
+(DOC.EXE: dec.py -f DOC_flat.ASM -n doc_ds_names.txt, from docflat.py)
 Data-segment offsets are named from ds_names.txt (beside this file: HEX name [size]),
 e.g. [0x4e7 + bx] -> lord[bx]. Arguments are a1, a2 ... (word-sized, from [bp+N]),
 locals l2, l4 ... ([bp-N]). Calls show their pushed arguments; compares show as
@@ -13,11 +14,15 @@ import re, sys, os
 here = os.path.dirname(os.path.abspath(__file__))
 args = sys.argv[1:]
 asm = os.path.join(here, '..', 'AB.ASM')
-if args and args[0] == '-f': asm = args[1]; args = args[2:]
+names_file = os.path.join(here, 'ds_names.txt')
+while args and args[0] in ('-f', '-n'):
+    if args[0] == '-f': asm = args[1]
+    else: names_file = args[1]
+    args = args[2:]
 L = open(asm).read().split('\n')
 
 DS = []   # (start, size, name, record size, {field offset: name})
-p = os.path.join(here, 'ds_names.txt')
+p = names_file
 if os.path.exists(p):
     for l in open(p):
         l = l.split('#')[0].strip()
@@ -32,8 +37,20 @@ if os.path.exists(p):
         DS.append((int(f[0], 16), size, f[1], rec, fields))
 DS.sort()
 
+SCALE_PATTERNS = {   # how the two compilers multiply by a record size (AB: imul; DOC.EXE: shifts and adds)
+    28: [r'^\(\(\(\((\w+) << 3\) - \1\) << 1\) << 1\)$'],
+    19: [r'^\(\(\(\((\w+) << 3\) \+ \1\) << 1\) \+ \1\)$'],
+    10: [r'^\(\(\(\((\w+) << 1\) << 1\) \+ \1\) << 1\)$'],
+    14: [r'^\(\(\((\w+) << 3\) - \1\) << 1\)$'],
+}
+
 def strip_scale(idx, rec):
     if idx is None: return None
+    for pat in SCALE_PATTERNS.get(rec, []):
+        m = re.match(pat, idx)
+        if m: return m.group(1)
+        m = re.match(r'^\(' + pat[1:-1] + r' \+ (.*)\)$', idx)
+        if m: return None
     for pat in (r'^\((.*) \* %d\)$' % rec, r'^\(\((.*) \* %d\) \+ (.*)\)$' % rec):
         m = re.match(pat, idx)
         if m and len(m.groups()) == 1: return m.group(1)
@@ -102,6 +119,8 @@ class Dec:
             if ins[k][1:] == ('mov', 'bp, sp'):
                 pushes = sum(1 for j in range(k) if ins[j][1] == 'push')
                 s.argbase = 2 + 2 * pushes   # return address + pushed regs (bp included)
+        if any(it[0] != 'label' and it[0] != 'comment' and it[1] == 'retf' for it in ins):
+            s.argbase += 2   # a far routine (DOC.EXE): the return address is 4 bytes
         s.r = {}; s.stack = []; s.cmp = None; s.out = []
     def emit(s, t): s.out.append('    ' + t)
     def mem(s, a, byte=False):

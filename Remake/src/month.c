@@ -74,11 +74,13 @@ static void draw_castles(void)
     for (int t = 1; t < 19; t++) {
         int c = (int8_t)B(TERR(t) + T_CASTLE);
         if (!B(TERR(t) + T_CASTLE)) continue;
-        gfx_slot_sprite(B(0xC14 + 2 * t) * 4, B(0xC15 + 2 * t), F_PORTRAITS, c);
+        gfx_slot_sprite_m(BOOT_MODES, B(0xC14 + 2 * t) * 4, B(0xC15 + 2 * t), F_PORTRAITS, c);
+        gfx_slot_sprite_m(DOS_MODES, DB(0x3977 + 2 * t) * 4, DB(0x3978 + 2 * t), F_PORTRAITS, c);   /* DOC 0423:0357 */
     }
     SW(0xC60, W(ARMY(W(D_PLAYER)) + A_AT));
     int at = W(0xC60);
-    gfx_slot_sprite(B(0xC3A + 2 * at) * 4, B(0xC3B + 2 * at), F_PORTRAITS, 127);
+    gfx_slot_sprite_m(BOOT_MODES, B(0xC3A + 2 * at) * 4, B(0xC3B + 2 * at), F_PORTRAITS, 127);
+    gfx_slot_sprite_m(DOS_MODES, DB(0x399D + 2 * at) * 4, DB(0x399E + 2 * at), F_PORTRAITS, 127);
     present();
 }
 
@@ -136,31 +138,37 @@ static void month_status(void)
         SW(LADY(lady) + L_TERR, home);
         if (home) show_portrait(lady + 0x92, 0x38, 3);
     }
-    wait_ticks(9);
+    wait_ticks(g_dos_rules ? 18 : 9);   /* DOC 070A:0C19 */
     SW(D_MONTH_NO, W(D_MONTH_NO) + 1);
     if (W(D_MONTH_NO) > 11) { SW(D_MONTH_NO, 0); SW(D_YEAR, W(D_YEAR) + 1); }
     e = str_append(W(0x372B + 2 * W(D_MONTH_NO)), W(0x1C31));
     num_append((unsigned)W(D_YEAR), e);
     beep(1000, 2);
     dialog(0x1C26);
-    wait_ticks(9);
+    wait_ticks(g_dos_rules ? 18 : 9);
     GLOG(GLOG_NORMAL, "STATUS your income %d (less any lost this month), treasure %d; morale %d; army at %s: %s, %s, %s",
          si, W(SIDE(p) + S_GOLD), W(D_MORALE), glog_terr(W(ARMY(p) + A_AT)), glog_count(W(ARMY(p) + A_SOLDIERS), "soldier"),
          glog_count(W(ARMY(p) + A_KNIGHTS), "knight"), glog_count(W(ARMY(p) + A_CATAPULTS), "catapult"));
-    while (si) {   /* the treasure counts up, 5 at a time while more than 10 are left */
+    while (si) {   /* the treasure counts up, 5 at a time while more than 10 are left (DOC: 1 at a time, a tick apart) */
         int step;
-        if ((unsigned)si > 10) { si -= 5; step = 5; }
+        if ((unsigned)si > 10 && !g_dos_rules) { si -= 5; step = 5; }
         else { si--; step = 1; }
         e = str_append(0x404D, W(0x1C4F)); num_append((unsigned)si, e);
-        beep(250, 2);
+        beep(250, g_dos_rules ? 1 : 2);
         dialog(0x1C44);
         e = str_append(0x4061, W(0x1C51));
         SW(SIDE(p) + S_GOLD, W(SIDE(p) + S_GOLD) + step);
         num_append((unsigned)W(SIDE(p) + S_GOLD), e);
-        beep(250, 2);
-        dialog(0x1C44);
+        if (g_dos_rules) {
+            beep(500, 1);
+            dialog(0x1C44);
+            wait_ticks(1);
+        } else {
+            beep(250, 2);
+            dialog(0x1C44);
+        }
     }
-    wait_ticks(40);
+    wait_ticks(g_dos_rules ? 54 : 40);
 }
 
 /* ------------------------------------------------------------------ the events (2F4E) */

@@ -59,8 +59,24 @@ void gfx_picture_to(int pic, int pg)
     gfx_unlock();
 }
 
+static bool wipe_due;
+
+bool gfx_take_wipe(void) { bool w = wipe_due; wipe_due = false; return w; }
+void gfx_no_wipe(void)   { wipe_due = false; }
+
+void gfx_present_rows_m(unsigned modes, int first, int step)
+{
+    gfx_lock();
+    for (int m = 0; m < MODE_COUNT; m++)
+        if (modes & (1u << m))
+            for (int y = first; y < SCREEN_H; y += step)
+                SDL_memcpy(page(m, PAGE_SCREEN) + y * SCREEN_W, page(m, PAGE_BACK) + y * SCREEN_W, SCREEN_W);
+    gfx_unlock();
+}
+
 void gfx_show_picture(int pic)
 {
+    wipe_due = true;
     gfx_lock();
     for (int m = 0; m < MODE_COUNT; m++) SDL_memcpy(V.pal_next[m], A->set[m].pal[pic], 16);
     gfx_unlock();
@@ -88,12 +104,7 @@ void gfx_use_palette(int slot)
     gfx_unlock();
 }
 
-void gfx_present(void)
-{
-    gfx_lock();
-    for (int m = 0; m < MODE_COUNT; m++) SDL_memcpy(page(m, PAGE_SCREEN), page(m, PAGE_BACK), SCREEN_W * SCREEN_H);
-    gfx_unlock();
-}
+void gfx_present(void) { gfx_present_rows_m(MODES_ALL, 0, 1); }
 
 void gfx_present_bottom(void)
 {
@@ -183,6 +194,8 @@ enum { OP_COPY, OP_XOR, OP_MASKED };
 static void blit(int m, int pg, int x0, int y0, const Image *im, int op, int rows)
 {
     if (!im || !im->pix) return;
+    x0 += im->ox;
+    y0 += im->oy;
     uint8_t *p = page(m, pg);
     if (rows > im->h) rows = im->h;
     for (int y = 0; y < rows; y++) {
@@ -405,10 +418,13 @@ void gfx_sprites_erase(void)
     gfx_unlock();
 }
 
-void gfx_slot_sprite(int xpx, int y, FileId f, int item)
+void gfx_slot_sprite(int xpx, int y, FileId f, int item) { gfx_slot_sprite_m(MODES_ALL, xpx, y, f, item); }
+
+void gfx_slot_sprite_m(unsigned modes, int xpx, int y, FileId f, int item)
 {
     gfx_lock();
-    for (int m = 0; m < MODE_COUNT; m++) blit(m, PAGE_BACK, slot_x(m, xpx), y, asset_item(A, (Mode)m, f, item), OP_MASKED, 999);
+    for (int m = 0; m < MODE_COUNT; m++)
+        if (modes & (1u << m)) blit(m, PAGE_BACK, slot_x(m, xpx), y, asset_item(A, (Mode)m, f, item), OP_MASKED, 999);
     gfx_unlock();
 }
 

@@ -29,7 +29,7 @@ Left out on purpose: "Please insert reel two and press any key to continue..." a
 
 The CGA program's picture bobbing with the joust's gallop (a CRT controller trick it uses on one GameSYS configuration only) is left out.
 
-The CGA (1987) mode has the DOS version's pictures, with the booter's CGA sprites, font and boxes over them for now (DOC.EXE's own are decoded in `../Graphics/CGA_DOS` but not placed yet). Where its pictures have something drawn in that the booter adds as a sprite, the mode follows DOC.EXE: so far the raid's strength bars and the romance, which uses DOC.EXE's own sprites and places from `LOVE1.LIB` and `LOVE2.LIB` (its bedchamber picture already has the couple in it).
+The CGA (1987) mode is the DOS version's look: its pictures, and DOC.EXE's own font, boxes, map, castles, army marker, portraits, name plates, sword fighters, joust, siege, THE END, sparks and romance, each at DOC.EXE's own places and drawn its way (`../Analysis/DOC_vs_AB.md`, *The graphics*). The map, the boxes, the sword fight, the siege and the joust's approach and lane were compared with DOSBox running DOC.EXE; the battle screen, the events and the endings not yet.
 
 ## Building on macOS
 Install the tools with [Homebrew](https://brew.sh):
@@ -61,11 +61,14 @@ build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --video=cga1 ../O
 |---|---|---|---|
 | `[game]` | `folder` | the folder argument | your game files' folder (empty: look for it, else ask) |
 | `[display]` | `video` | `--video=` | `cga1`, `cga2`, `ega` or `tandy` (`ega`) |
+| `[play]` | `rules` | `--rules=` | `booter` or `dos` (`booter`) |
 | `[play]` | `fix` | `--fix=` | flaw names separated by commas, or `all` (empty: none) |
 | `[play]` | `catapult_pull` | `--catapult-pull=` | 1 to 8 (2) |
 | `[debug]` | `log` | `--log`, `--log=verbose`, `--log=off` | `off`, `normal` or `verbose` (`off`) |
 
 Comments are lines starting with `;` or `#`.
+
+**Rules:** `--rules=dos` plays the game as DOC.EXE (the 1987 DOS version) does, in any video mode: its random numbers (Aztec C's `ran()`), the computer lords' odds (home 1 in 3, conquest 6 in 7), their targets compared signed, the joust's margin, and its pace: one-tick waits that really wait (the DOS version ran its animations off the 18.2 Hz clock, the booter at the screen's 60 Hz), the slower month's box with its counting beeps, the slower sword fight and catapult pull, and the blinds wipe between pictures. `booter` (the default) plays as the booter version. The differences are listed in `../Analysis/DOC_vs_AB.md`.
 
 **Video:** `--video=cga1|cga2|ega|tandy` chooses the mode to start in (EGA if not given). Tab goes through them in the game: CGA (1987) → CGA → EGA → Tandy.
 
@@ -118,8 +121,8 @@ The log only reads the game: it never calls the random numbers, so a logged game
 
 ## Tests
 `test/build.sh NAME` builds `test/NAME.c` with the remake's sources (ASan and UBSan; SDL3 from pkg-config or `SDL3_DIR`). Run headless with `SDL_AUDIODRIVER=dummy`.
-- `run_script GAME OUTDIR SPEED t:key ... t:shot:NAME`: plays the game at SPEED times its pace, pressing keys (scan codes in hex) and writing the screen of all four modes as BMPs at given times (game seconds). Set `DOTC_LOG=folder/` for a verbose log. `DOTC_FIX=list` as `--fix=list`.
+- `run_script GAME OUTDIR SPEED t:key ... t:shot:NAME`: plays the game at SPEED times its pace, pressing keys (scan codes in hex) and writing the screen of all four modes as BMPs at given times (game seconds). Set `DOTC_LOG=folder/` for a verbose log. `DOTC_FIX=list` as `--fix=list`, `DOTC_RULES=dos` as `--rules=dos` (also for `battle_test` and `joust_test`).
 - `t:w:ADDR:VALUE` in a script waits until the word at DS:ADDR (hex) is VALUE, e.g. `100:w:43:5` until month 5; the times after it count from there.
 - `battle_test GAME OUTDIR`: a Norman lord besieges your home with a large army; the battle screen of the four modes every quarter second. `battle_test GAME OUTDIR siege t:key ...`: you besiege a Saxon castle instead, with a key script as `run_script`'s (`PASSAGE=1`: that Saxon offers safe passage first; `PULL=N` as `--catapult-pull=N`). `battle_test GAME OUTDIR raid t:key ...`: you raid a Norman's home (`ROMANCE=0`-`3`: only the romance with that lady, over the hall). `DOTC_LOG=folder/` writes a log of these too.
-- `joust_test GAME OUTDIR approach|lane|0-3`: the knights riding in, a pass down the lane with no keys, or an outcome (0 near miss, 1 opponent unhorsed, 2 player unhorsed, 3 the horse), every frame written as a BMP (to compare with a DOSBox recording).
+- `joust_test GAME OUTDIR approach|lane|0-3`: the knights riding in, a pass down the lane with no keys, or an outcome (0 near miss, 1 opponent unhorsed, 2 player unhorsed, 3 the horse; `JMODE=` the mode to write), every frame written as a BMP (to compare with a DOSBox recording).
 - `dump_assets GAME OUTDIR`: every picture and sprite of the four modes as BMPs.

@@ -20,6 +20,7 @@ uint8_t ds[65536] = { 0 };
 const char *const FIX_NAMES[FIX_COUNT] = { "viking", "hostility", "targets", "catapult", "siege-merge",
                                            "joust-opponent", "joust-margin", "battle-text", "siege-sprite" };
 unsigned g_fixes;
+bool g_dos_rules;
 int g_catapult_pull = 2;
 
 bool fixes_parse(const char *list, char *err, size_t errlen)
@@ -46,7 +47,31 @@ bool fixes_parse(const char *list, char *err, size_t errlen)
 
 /* ------------------------------------------------------------------ helpers */
 
-void present(void)        { sys_retrace(); gfx_present(); sys_frame_done(); }          /* 9902 */
+/* DOC.EXE unpacks a picture off screen and shows it (070A:01B3) in 4 passes, two
+ * ticks each: lines 2p + 8k after a tick, then lines 2p + 8k + 1 after another
+ * (its CGA's two banks): the first present after a picture, in the CGA (1987)
+ * mode under the DOS rules (the other modes show it at once, then wait as well) */
+static void dos_wipe(void)
+{
+    gfx_present_rows_m(BOOT_MODES, 0, 1);
+    sys_frame_done();
+    for (int p = 0; p < 4; p++) {
+        wait_ticks(1);
+        gfx_present_rows_m(DOS_MODES, 2 * p, 8);
+        sys_frame_done();
+        wait_ticks(1);
+        gfx_present_rows_m(DOS_MODES, 2 * p + 1, 8);
+        sys_frame_done();
+    }
+}
+
+void present(void)                                                                     /* 9902 */
+{
+    sys_retrace();
+    if (gfx_take_wipe() && g_dos_rules) dos_wipe();
+    else gfx_present();
+    sys_frame_done();
+}
 void present_bottom(void) { sys_retrace(); gfx_present_bottom(); sys_frame_done(); }   /* 994A */
 
 /* 9DDB */
@@ -72,6 +97,31 @@ static void seed_random(void)
     SW(D_RANDOM_N, 0xFFFF);
 }
 
+/* DOC.EXE's random numbers: Aztec C's ran() (0AFF:0009), seed = seed x 125 mod
+ * 2796203 from 100001 (DS:40D2), as a double in 0..1 */
+static uint32_t dos_seed = 100001;
+
+static double dos_ran(void)
+{
+    dos_seed = (uint32_t)(((uint64_t)dos_seed * 125u) % 2796203u);
+    return dos_seed / 2796203.0;
+}
+
+void set_dos_rules(bool on)
+{
+    g_dos_rules = on;
+    sys_dos_ticks(on);
+}
+
+/* DOC 021C:0002, the first game only: ran() (BIOS ticks & 1FFh) + 1 times */
+static void dos_seed_random(void)
+{
+    static bool seeded;
+    if (seeded) return;
+    seeded = true;
+    for (int si = (int)(sys_ticks() & 0x1FF); si >= 0; si--) dos_ran();
+}
+
 /* 9D96 */
 unsigned random_next(void)
 {
@@ -89,6 +139,11 @@ unsigned random_next(void)
 int random_n(int n)
 {
     if (!n) return 0;
+    if (g_dos_rules) {   /* DOC 070A:000D */
+        unsigned d = (unsigned)(int)(dos_ran() * 32767.0) & 0xFFFF;
+        if (n < 0x100) d >>= 8;
+        return (int)(d % (unsigned)n);
+    }
     unsigned v = (random_next() * 0x7FFFu) & 0xFFFF;
     if ((unsigned)n < 0x100) v >>= 8;
     return (int)(v % (unsigned)n);
@@ -99,7 +154,8 @@ static void shuffle(int *a, int n)
 {
     for (int i = 0; i < n; i++) a[i] = i;
     for (int i = 0; i < n; i++) {
-        int j = (int)(((random_next() * 0x7FFFu) & 0xFFFF) % (unsigned)n);
+        int j = g_dos_rules ? (int)(dos_ran() * 32767.0) % n   /* DOC 070A:005C */
+                            : (int)(((random_next() * 0x7FFFu) & 0xFFFF) % (unsigned)n);
         int t = a[j]; a[j] = a[i]; a[i] = t;
     }
 }
@@ -271,7 +327,7 @@ static void fire_flicker(int frames)
     for (int i = 0; i < frames; i++) {
         get_key();
         rnd = rnd * 1103515245u + 12345u;
-        int pos = (rnd >> 16) & 3;
+        int pos = g_dos_rules ? random_n(4) : (int)((rnd >> 16) & 3);   /* DOC 021C:0996: the game's random(4) */
         gfx_fire_draw(fire_phase, 144, 121, B(0x92E + 2 * pos), B(0x92F + 2 * pos));
         present_bottom();
         gfx_fire_erase();
@@ -463,9 +519,13 @@ static void character_choice(void)
             if (nb) SW(D_PLAYER, nb);
         }
         if (W(D_PLAYER) != di) {
-            if (di >= 0) gfx_xor_sprite(W(0x8F2 + 2 * di), W(0x8FC + 2 * di), F_CHARS, di + 7);
+            if (di >= 0) {
+                gfx_xor_sprite_m(BOOT_MODES, W(0x8F2 + 2 * di), W(0x8FC + 2 * di), F_CHARS, di + 7);
+                gfx_xor_sprite_m(DOS_MODES, DW(0x3214 + 2 * di), DW(0x321E + 2 * di), F_CHARS, di + 7);   /* DOC 021C:061F */
+            }
             di = W(D_PLAYER);
-            gfx_xor_sprite(W(0x8F2 + 2 * di), W(0x8FC + 2 * di), F_CHARS, di + 7);
+            gfx_xor_sprite_m(BOOT_MODES, W(0x8F2 + 2 * di), W(0x8FC + 2 * di), F_CHARS, di + 7);
+            gfx_xor_sprite_m(DOS_MODES, DW(0x3214 + 2 * di), DW(0x321E + 2 * di), F_CHARS, di + 7);
         }
         present();
         si = wait_key();
@@ -475,7 +535,8 @@ static void character_choice(void)
 
 static void new_game(void)
 {
-    seed_random();
+    if (g_dos_rules) dos_seed_random();
+    else seed_random();
     SW(0x67, 0);
     SW(D_PLAYER, 1);
     play_tune(0x97, W(D_TUNE_STOP));

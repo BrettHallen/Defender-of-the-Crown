@@ -169,31 +169,42 @@ int wait_key(void)
 
 void flush_keys(void) { while (get_key()) {} }
 
+/* DOC.EXE keeps the tick each wait ended on in a variable (DS:41D6 wait_ticks,
+ * DS:41DE delay_ticks), so its next wait counts from there: wait_ticks(1) waits for
+ * the next tick. The booter's sit on the stack (below). */
+static bool dos_ticks;
+static uint32_t dos_last_wait, dos_last_delay;
+
+void sys_dos_ticks(bool on) { dos_ticks = on; }
+
 /* 7EF2: counts n changes of the tick count, reading (and dropping) keys meanwhile.
  * Its first comparison is with whatever was on the stack, so the first change
- * counts at once: n - 1 whole ticks and part of one. */
+ * counts at once: n - 1 whole ticks and part of one. (DOC 070A:08B2: with the
+ * tick the last wait ended on.) */
 int wait_ticks(int n)
 {
-    uint32_t last = sys_ticks() + 1;   /* never equal at first */
+    uint32_t last = dos_ticks ? dos_last_wait : sys_ticks() + 1;   /* never equal at first */
     int k = 0;
     while (n) {
         k = get_key();
         uint32_t t = sys_ticks();
         if (t != last) { last = t; n--; }
     }
+    if (dos_ticks) dos_last_wait = last;
     return k;
 }
 
-/* 9CAF: as wait_ticks, without reading the keys */
+/* 9CAF: as wait_ticks, without reading the keys (DOC 070A:08E9) */
 void delay_ticks(int n)
 {
-    uint32_t last = sys_ticks() + 1;
+    uint32_t last = dos_ticks ? dos_last_delay : sys_ticks() + 1;
     while (n) {
         sys_check();
         uint32_t t = sys_ticks();
         if (t != last) { last = t; n--; }
         else SDL_DelayNS(500000);
     }
+    if (dos_ticks) dos_last_delay = last;
 }
 
 void sys_retrace(void)

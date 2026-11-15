@@ -460,7 +460,7 @@ static int catapult_aim(int ammo)
         present();
         delay_ticks(1);
         int released = 0;
-        for (int f = 1; f < g_catapult_pull && !released; f++) {
+        for (int f = 1; f < g_catapult_pull && !released && !g_dos_rules; f++) {   /* the DOS rules: its two waits pace it */
             if (get_key() == KEY_ENTER) released = 1;
             else present();
         }
@@ -529,7 +529,7 @@ static void show_shot(int h, int ammo)
         l2++;
         wait_ticks(1);
         int y = B(0x992 + h * 30 + l2);
-        if (l2 == 10) di++;
+        if (l2 == 10 || (g_dos_rules && l2 == 20)) di++;   /* tested at frames 2, 5, 8 ...: never 10 (DOC: 20 is one of them) */
         v->slot[1].y = y;
         v->slot[1].x = di * 4;
         gfx_sprites_draw(); present(); gfx_sprites_erase();

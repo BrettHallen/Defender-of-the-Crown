@@ -155,8 +155,8 @@ bool lib_sprite(const uint8_t *item, size_t n, int *w, int *h, uint8_t **pix)
 {
     if (!item || n < 4 || (n >= 8 && SDL_memcmp(item, "COMPRESS", 8) == 0)) return false;
     int wb = item[0] | (item[1] << 8), hh = item[2] | (item[3] << 8);
-    int bpr = wb / 8, wp = bpr * 4;
-    if (bpr <= 0 || hh <= 0 || hh > 200 || wp > 320 || 4 + (size_t)bpr * hh > n) return false;
+    int bpr = (wb + 7) / 8, wp = wb / 2;
+    if (bpr <= 0 || wp <= 0 || hh <= 0 || hh > 200 || wp > 320 || 4 + (size_t)bpr * hh > n) return false;
     uint8_t *p = SDL_malloc((size_t)wp * hh);
     if (!p) return false;
     for (int y = 0; y < hh; y++)

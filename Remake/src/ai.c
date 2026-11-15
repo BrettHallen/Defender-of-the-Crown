@@ -35,7 +35,7 @@ static int target_value(int side, int t, int steps)   /* 2704 */
     if (t == 0 || owner == side) return -1;
     if (owner == -1) return w16(1000 - steps);
     int enmity = W(ENMITY(side, owner));
-    if (enmity == 0) return -1;
+    if (g_dos_rules ? enmity <= 0 : enmity == 0) return -1;   /* DOC 0045:0046: none or less */
     int own = army_strength(ARMY(side));
     int defenders = army_strength(GARRISON(t));
     if (W(ARMY(owner) + A_AT) == t) defenders = w16(defenders + army_strength(ARMY(owner)));
@@ -67,7 +67,7 @@ static void ai_search(int side, int t, int depth, const int16_t *path)
         }
         SW(D_SEARCH_SEEN + 2 * nb, 1);
         int v = target_value(side, nb, depth);
-        bool best = v != -1 && (fixed(FIX_TARGETS) ? v > W(D_SEARCH_BEST) : (uint16_t)v > UW(D_SEARCH_BEST));
+        bool best = v != -1 && (fixed(FIX_TARGETS) || g_dos_rules ? v > W(D_SEARCH_BEST) : (uint16_t)v > UW(D_SEARCH_BEST));
         GLOG(GLOG_VERBOSE, "AI %s: looks at %s (%s%s), %d step%s away: value %d%s", glog_side(side), glog_terr(nb),
              (int8_t)B(TERR(nb) + T_OWNER) == -1 ? "nobody's" : glog_side((int8_t)B(TERR(nb) + T_OWNER)),
              B(TERR(nb) + T_CASTLE) ? ", castle" : "", depth, depth == 1 ? "" : "s",
@@ -226,7 +226,23 @@ static int ai_choose_order(int di, int *target, int16_t *path)
 {
     int si;
     const char *why;
-    if (W(SIDE(di) + S_AT) != W(SIDE(di) + S_HOME) && (random_next(), !(W(D_RANDOM) & 3))) {
+    if (g_dos_rules) {   /* DOC 04BA:0485: random() where the booter reads its generator's bits */
+        if (W(SIDE(di) + S_AT) != W(SIDE(di) + S_HOME) && !random_n(3)) {
+            si = 9; why = "its army is away from home and the 1 in 3 to go home came up";
+        } else if (W(D_LAST_ORDER + 2 * di) != 4 && !random_n(4)) {
+            si = 4; why = "it did not buy last time and the 1 in 4 to buy came up";
+        } else if (random_n(7)) {
+            if (ai_find_target(di, target, path)) { si = 2; why = "the 6 in 7 for conquest came up and it has a target"; }
+            else if (random_n(2)) { si = 4; why = "the 6 in 7 for conquest came up, no target: buys (even chances)"; }
+            else { si = 6; why = "the 6 in 7 for conquest came up, no target: passes (even chances)"; }
+        } else if (di > 3) {
+            si = 3; why = "the 1 in 7 came up: a Norman raids";
+        } else if (W(D_YEAR) > 1149) {
+            si = 1; why = "the 1 in 7 came up: a Saxon after 1149 holds a tournament";
+        } else {
+            si = 4; why = "the 1 in 7 came up: a Saxon in 1149 buys";
+        }
+    } else if (W(SIDE(di) + S_AT) != W(SIDE(di) + S_HOME) && (random_next(), !(W(D_RANDOM) & 3))) {
         si = 9; why = "its army is away from home and the 1 in 4 to go home came up";
     } else if (W(D_LAST_ORDER + 2 * di) != 4 && (random_next(), !(W(D_RANDOM) & 3))) {
         si = 4; why = "it did not buy last time and the 1 in 4 to buy came up";
@@ -294,9 +310,9 @@ void ai_turn(int si)
          glog_side(si), W(SIDE(si) + S_INCOME), W(SIDE(si) + S_GOLD), glog_terr(W(ARMY(si) + A_AT)), glog_count(W(ARMY(si) + A_SOLDIERS), "soldier"),
          glog_count(W(ARMY(si) + A_KNIGHTS), "knight"), glog_count(W(ARMY(si) + A_CATAPULTS), "catapult"));
     ai_reinforce_garrison(si);
-    flash_territory(home, 7);
+    flash_territory(home, g_dos_rules ? 14 : 7);   /* DOC 04BA:0000: 14 */
     get_key();
-    flash_territory(home, 7);
+    flash_territory(home, g_dos_rules ? 14 : 7);   /* DOC 04BA:0000: 14 */
     get_key();
     int target = 0;
     int16_t path[5] = { 0 };

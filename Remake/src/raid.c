@@ -138,6 +138,10 @@ static void spark(int x, int y, int item, int bar)
     gfx_xor_sprite(x, y, F_END, item);
     present();
     bar_shorten(bar);
+    if (g_dos_rules) {   /* DOC 050E:0EB0 and 103A: the spark stays 3 ticks */
+        if (item == 9) wait_ticks(3);
+        else delay_ticks(3);
+    }
     gfx_xor_sprite(x, y, F_END, item);
 }
 
@@ -150,7 +154,9 @@ static int sword_fight(int attack)
 {
     int p = W(D_PLAYER), di = -1, result;
     for (;;) {
+        if (g_dos_rules) delay_ticks(1);   /* DOC 050E:0B3D: a tick before the fighters behind, and one before the two in front */
         if (attack) background_fighters();
+        if (g_dos_rules) delay_ticks(1);
         sword_pose(0, 0);
         gfx_sprites_draw();
         present();
@@ -288,6 +294,7 @@ static int raid_attack(void)
 static int raid_defense(void)
 {
     gfx_show_picture(PIC_HALL);
+    gfx_no_wipe();   /* DOC 050E:11DF: at once */
     bars();
     wait_ticks(39);
     present();
@@ -414,16 +421,31 @@ void romance(int lady)
     dialog(0x2781);
     gfx_show_picture(PIC_BEDCHAMBER);
     gfx_set_palette();
-    for (int n = 4; n < 10; n += 2) {
-        figure(3, n, 0);
-        figure(1, n + 1, 0);
-        gfx_sprites_draw();
-        present();
-        gfx_sprites_erase();
-        fire_flicker2(40);
+    if (g_dos_rules) {   /* DOC 050E:0637: 350 frames of the fire, then one figure a step, from 2 */
+        figure(3, 2, 0);
+        figure(1, 3, 0);
+        fire_flicker2(350);
+        for (int n = 2; n <= 10; n++) {
+            fire_flicker2(40);
+            if (n == 10) {
+                figure(3, 10, MODES_ALL & ~MODE_BIT(MODE_TANDY));
+                figure(7, 8, MODE_BIT(MODE_TANDY));
+            } else {
+                figure(n & 1 ? 1 : 3, n, 0);
+            }
+        }
+    } else {
+        for (int n = 4; n < 10; n += 2) {
+            figure(3, n, 0);
+            figure(1, n + 1, 0);
+            gfx_sprites_draw();
+            present();
+            gfx_sprites_erase();
+            fire_flicker2(40);
+        }
+        figure(3, 10, MODES_ALL & ~MODE_BIT(MODE_TANDY));
+        figure(7, 8, MODE_BIT(MODE_TANDY));
     }
-    figure(3, 10, MODES_ALL & ~MODE_BIT(MODE_TANDY));
-    figure(7, 8, MODE_BIT(MODE_TANDY));
     gfx_sprites_draw();
     present();
     gfx_sprites_erase();

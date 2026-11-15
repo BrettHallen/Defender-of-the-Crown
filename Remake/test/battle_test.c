@@ -94,6 +94,7 @@ int main(int argc, char **argv)
     SDL_Init(0);
     if (!assets_load(&A, argv[1], err, sizeof err)) { SDL_Log("%s", err); return 1; }
     gfx_init(&A);
+    if (SDL_getenv("DOTC_RULES") && SDL_strcmp(SDL_getenv("DOTC_RULES"), "dos") == 0) set_dos_rules(true);   /* as --rules=dos */
     if (SDL_getenv("PULL")) g_catapult_pull = SDL_atoi(SDL_getenv("PULL"));   /* --catapult-pull */
     if (SDL_getenv("DOTC_LOG")) gamelog_setup(GLOG_VERBOSE, SDL_getenv("DOTC_LOG"));
     sound_data(A.tunes, A.tunes_len, A.bg, A.bg_len);

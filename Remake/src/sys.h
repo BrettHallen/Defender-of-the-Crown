@@ -43,6 +43,7 @@ void delay_ticks(int n);              /* 9CAF: n ticks, keys left alone */
 void sys_retrace(void);               /* 9CE3: the next vertical retrace (60 a second) */
 void sys_frame_done(void);            /* present has put a new screen up */
 void sys_check(void);                 /* leaves the game thread if the window is closing */
+void sys_dos_ticks(bool on);          /* wait_ticks and delay_ticks as DOC.EXE's (the last tick kept between calls) */
 
 /* The remake's own: while armed, Enter is not passed to the game but makes the
  * next wait (any key read, tick wait or retrace) longjmp to `to` (the opening

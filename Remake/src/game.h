@@ -127,6 +127,21 @@ bool fixes_parse(const char *list, char *err, size_t errlen);   /* "viking,joust
  * its picture every refresh (and in DOSBox); on the PCs of 1987 that copy took two
  * or three refreshes. The remake takes 2 unless told otherwise. */
 extern int g_catapult_pull;
+
+/* The rules (--rules=, the settings' rules): the booter's (false), or the 1987 DOS
+ * version's (true): its random numbers, its computer lords' odds, its signed
+ * comparisons, its waits that wait (../Analysis/DOC_vs_AB.md). One game runs under
+ * either, whatever the video mode. */
+extern bool g_dos_rules;
+void set_dos_rules(bool on);
+
+/* The CGA (1987) mode draws with DOC.EXE's own sprites and tables when DOC.EXE and its
+ * .LIB files are there (assets.c): DOS_MODES is then that mode's mask (else 0), and
+ * DB / DW read DOC.EXE's data segment (DGROUP 0BCE). The booter's modes are the rest. */
+#define DOS_MODES   (gfx_assets()->have_doc ? MODES_DOS : 0u)
+#define BOOT_MODES  (MODES_ALL & ~DOS_MODES)
+#define DB(off)     (gfx_assets()->doc_ds[(off) & 0xFFFF])
+#define DW(off)     ((int16_t)(DB(off) | (DB((off) + 1) << 8)))
 void play_tune(int tune, int flags); /* 9559 */
 void wait_tune(int tune);            /* 958E */
 int  tune_playing(int tune, int n);  /* 95BE */

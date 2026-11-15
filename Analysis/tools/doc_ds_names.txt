@@ -1,0 +1,34 @@
+# DOC.EXE's data segment (DGROUP 0BCE) names for dec.py -n: HEX name size [record_size field_offset=name ...]
+# The same tables as the booter's BH (tools/ds_names.txt, the remake's game.h), with every near
+# pointer made a far one (so the records grow by 2 bytes a pointer). Found by aligning the DS
+# references of routines paired by docmatch.py, and checked by reading.
+4444 side 196 28 0=name 4=pad 8=portrait 10=lady 12=home 14=at 16=spend 18=joust 20=lead 22=sword 24=income 26=gold
+364A terr 361 19 0=label 4=owner 5=castle 6=vassals 7=income 8=nb 15=name
+4340 army 260 10 0=at 2=base 4=soldiers 6=knights 8=catapults   # 0-6 campaign armies by side, 7+t garrison of territory t
+32E4 enmity 98 14
+38B9 nav 152 8      # per territory: the territory reached with each of the 8 keypad directions
+450C player
+46D6 morale
+46E0 month          # months played
+471E kidnapped
+41E2 event_in
+4722 cur_terr
+414C dmg_b          # battle_round: AB 0B4E
+414E dmg_a          # AB 0B4C
+470C robin_4B       # AB 004B
+4516 robin_4D       # AB 004D (Robin's help)
+41BA siege_boulders # AB 0A82
+41BC siege_fire     # AB 0A8C
+41BE siege_disease  # AB 0A86
+41C2 siege_0A8E
+41C4 siege_wall     # AB 0A8A
+41C6 siege_days     # AB 0A88
+4510 font           # far pointer to DOCCHARS.LIB's item table
+4702 lib_scene      # far pointer: the scene's .LIB buffer
+4706 scene_items    # far pointer to the scene .LIB's item table (offset)
+4708 scene_items_seg
+4336 speed          # 1: multiplies the busy-wait counts
+46DE bright         # 10h: the bright palette 0 (the bedchamber)
+3A36 lady_item 8    # by lady: the 1-based LOVE1 item of her portrait (2, 8, 14, 20)
+3A3E bed_pos 44 4   # by step 0-10: x (units), y of the bedchamber's figures
+33F6 lady 40 10 0=name 4=side 6=terr 8=flag

@@ -220,6 +220,7 @@ where the defenders are the garrison plus the owner's campaign army if it is the
 ## Notes
 - **A side whose home falls** (result 4 against its home, or a rescue for the ward): all its territories go to the winner (side_falls 2406), its campaign army is disbanded, and it does nothing more (ai_turn skips a side without its home).
 - Routine 44F4 (a share of a side's gold: 15, or 40% above 38) is never called.
+- **The 1987 DOS version** (DOC.EXE) has the same game with a different random generator, slightly different odds for the computer lords, signed comparisons where the booter's are unsigned, and clock-paced timing: see `DOC_vs_AB.md` (the remake's `--rules=dos`).
 
 ## The random numbers (random_next 9D96)
 A 16-bit Galois LFSR at DS:005B: shift right; if a 1 fell out, xor 0B400h. random(n) (9CFC; 0 when n is 0) takes the new value v, (v x 7FFFh) & FFFFh, shifted right by 8 when n < 256, then modulo n. seed_random (9DB3, at the start of every game) seeds it with the low word of the BIOS tick count (never 0) and then steps it a tick-dependent number of times; every 65535 calls (counter DS:0025) it is reseeded the same way. ai_choose_order uses the generator's last value directly (see *The computer lords*). The remake can use the same generator, seeded from the clock.

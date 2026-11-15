@@ -73,6 +73,9 @@ void gfx_keep_palette(int pic, int slot);        /* 9C31: a picture's palette to
 void gfx_use_palette(int slot);                  /* 9C5F: a slot to CS:0103 */
 void gfx_present(void);                          /* 9902: the back page to the screen */
 void gfx_present_bottom(void);                   /* 994A: lines 100-199 */
+void gfx_present_rows_m(unsigned modes, int first, int step);   /* lines first, first + step ... in those modes */
+bool gfx_take_wipe(void);                        /* a picture was put up since: true once */
+void gfx_no_wipe(void);                          /* this one comes up at once (DOC.EXE's DS:46D8) */
 void gfx_copy_page(int dst, int src);            /* 9A1F */
 void gfx_clear_back(int value);                  /* 865F (CGA: the byte; EGA, Tandy: the byte) */
 void gfx_fill_rect(int x, int y, int w, int h, int colour);   /* 80EA: the colour word as each program read it */
@@ -96,6 +99,7 @@ void gfx_sprites_draw(void);                     /* 88CF */
 void gfx_sprites_erase(void);                    /* 8816 */
 void gfx_set_region_colour(int item, const int colour[MODE_COUNT]);   /* 9719 */
 void gfx_slot_sprite(int xpx, int y, FileId f, int item);     /* a slot sprite drawn once (sprites_draw with nothing to erase) */
+void gfx_slot_sprite_m(unsigned modes, int xpx, int y, FileId f, int item);
 /* the fire (AB 18C9, AA 09D2, AC 09FB): EGA and Tandy show flame 1 or 2 (or none: frame 0)
  * at (144, 121) until fire_erase; the CGA program XORs its flame at one of four places
  * (DS:092E, chosen at random: cga_x, cga_y) and leaves it */
