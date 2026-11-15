@@ -19,6 +19,9 @@
  *            original's speed on a fast PC, 0.4 s) to 8; 2 if not given
  *   game-folder: the folder with your GAME.DAT (and the 1987 version's .LIB files),
  *            also looked for in its ega/ and cga/ subfolders; remembered once found.
+ * The same settings are read first from DefenderOfTheCrown.ini in the remake's
+ * folder (written with the defaults if it is not there); the command line wins
+ * for that run. The game folder found or chosen is remembered there.
  *
  * Keys: the original's (the arrows or the keypad, Enter; keypad + and F1 are
  * Enter too), plus Tab the video mode, F2 4:3 or square pixels,
@@ -34,6 +37,7 @@
 #include "game.h"
 #include "gamelog.h"
 #include "icon.h"
+#include "ini.h"
 
 #define APP_ORG  "DefenderOfTheCrown"
 #define APP_NAME "Remake"
@@ -54,42 +58,107 @@ static struct {
     bool          dialog_open;
 } App;
 
-/* ------------------------------------------------------------------ the game folder */
+/* ------------------------------------------------------------------ the settings file */
 
-static void pref_file(char *out, size_t n)
+#define SETTINGS_FILE "DefenderOfTheCrown.ini"
+
+/* written when there is no settings file: the defaults, as without any option */
+static const char DEFAULT_SETTINGS[] =
+    "; Defender of the Crown - Remake: settings\n"
+    ";\n"
+    "; Read at every start. An option given on the command line wins over the same\n"
+    "; setting here, for that run only. Delete this file to get the defaults back.\n"
+    "\n"
+    "[game]\n"
+    "; The folder with your GAME.DAT (and the 1987 version's .LIB files). Empty: look\n"
+    "; next to the app (game/, ../Original), else ask for it. The remake fills it in\n"
+    "; when you choose a folder, or give one on the command line.\n"
+    "folder =\n"
+    "\n"
+    "[display]\n"
+    "; The video mode to start in: cga1 (the 1987 DOS version's CGA), cga2 (the\n"
+    "; booter's CGA), ega or tandy. Tab goes through them in the game.\n"
+    "video = ega\n"
+    "\n"
+    "[play]\n"
+    "; Fixes for the original's flaws, by name and separated by commas, or all.\n"
+    "; Empty: the game as it was. The names: viking, hostility, targets, catapult,\n"
+    "; siege-merge, joust-opponent, joust-margin, battle-text, siege-sprite\n"
+    "; (what each one does: the remake's README.md).\n"
+    "fix =\n"
+    "; Screen refreshes for each step of the catapult's arm as you draw it back:\n"
+    "; 1 (the original on a fast PC: 0.4 seconds for a full pull) to 8. 2: 0.8 s.\n"
+    "catapult_pull = 2\n"
+    "\n"
+    "[debug]\n"
+    "; A log of each game played, in Logs/ beside this file: off, normal or verbose.\n"
+    "log = off\n";
+
+static void settings_path(char *out, size_t n)
 {
     char *pref = SDL_GetPrefPath(APP_ORG, APP_NAME);
-    SDL_snprintf(out, n, "%sgamedir.txt", pref ? pref : "");
+    SDL_snprintf(out, n, "%s%s", pref ? pref : "", SETTINGS_FILE);
     SDL_free(pref);
 }
 
+/* the settings file, written with the defaults first if it is not there */
+static void settings_load(Ini *ini)
+{
+    char path[1100];
+    settings_path(path, sizeof path);
+    if (ini_load(ini, path)) { SDL_Log("Settings: %s", path); return; }
+    ini_text(ini, DEFAULT_SETTINGS);
+    if (ini_save(ini, path)) SDL_Log("Settings: %s (new, with the defaults)", path);
+    else SDL_Log("Could not write the settings file %s", path);
+}
+
+/* ------------------------------------------------------------------ the game folder */
+
+/* the settings file's folder = (read again, so that edits made since the start stay) */
 static void save_game_dir(const char *dir)
 {
     char path[1100];
-    pref_file(path, sizeof path);
-    SDL_IOStream *io = SDL_IOFromFile(path, "w");
-    if (io) { SDL_WriteIO(io, dir, SDL_strlen(dir)); SDL_CloseIO(io); }
+    settings_path(path, sizeof path);
+    Ini ini;
+    if (!ini_load(&ini, path)) ini_text(&ini, DEFAULT_SETTINGS);
+    const char *old = ini_get(&ini, "game", "folder");
+    if (!old || SDL_strcmp(old, dir) != 0) {
+        ini_set(&ini, "game", "folder", dir);
+        if (!ini_save(&ini, path)) SDL_Log("Could not write the settings file %s", path);
+    }
+    ini_free(&ini);
 }
 
-static bool saved_game_dir(char *out, size_t n)
+/* the settings file's folder; else gamedir.txt, where earlier builds kept it (moved
+ * into the settings file) */
+static bool saved_game_dir(const char *setting, char *out, size_t n)
 {
+    if (setting && *setting) {
+        SDL_strlcpy(out, setting, n);
+        if (assets_dir_ok(out)) return true;
+        SDL_Log("The settings file's game folder %s has no usable GAME.DAT", setting);
+    }
     char path[1100];
     size_t len = 0;
-    pref_file(path, sizeof path);
+    char *pref = SDL_GetPrefPath(APP_ORG, APP_NAME);
+    SDL_snprintf(path, sizeof path, "%sgamedir.txt", pref ? pref : "");
+    SDL_free(pref);
     char *data = SDL_LoadFile(path, &len);
     if (!data) return false;
     while (len > 0 && (data[len - 1] == '\n' || data[len - 1] == '\r')) len--;
     data[len] = 0;
     SDL_strlcpy(out, data, n);
     SDL_free(data);
-    return assets_dir_ok(out);
+    if (!assets_dir_ok(out)) return false;
+    save_game_dir(out);
+    return true;
 }
 
 /* the command line, then the remembered folder, then next to the app (game/, ../Original), then the current folder */
-static bool find_game_dir(const char *arg, char *out, size_t n)
+static bool find_game_dir(const char *arg, const char *setting, char *out, size_t n)
 {
     if (arg) { SDL_strlcpy(out, arg, n); return assets_dir_ok(out); }
-    if (saved_game_dir(out, n)) return true;
+    if (saved_game_dir(setting, out, n)) return true;
     const char *base = SDL_GetBasePath();
     if (base) {
         static const char *const TRY[] = { "game", "", "../Original", "../../Original", "../../../Original", "../../../../Original",
@@ -259,28 +328,65 @@ static int scan_code(SDL_Keycode k)
 
 /* ------------------------------------------------------------------ main */
 
+/* the settings, from the settings file or the command line (from: where, for the messages) */
+static void set_video(const char *v, const char *from)
+{
+    if (!mode_from_name(v, &App.mode)) SDL_Log("%s=%s: use cga1, cga2, ega or tandy", from, v);
+}
+
+static void set_fixes(const char *v, const char *from)
+{
+    char err[128];
+    if (!fixes_parse(v, err, sizeof err))
+        SDL_Log("%s: %s; use viking, hostility, targets, catapult, siege-merge, joust-opponent, joust-margin, "
+                "battle-text, siege-sprite or all, separated by commas", from, err);
+}
+
+static void set_catapult_pull(const char *v, const char *from)
+{
+    char *end;
+    long n = SDL_strtol(v, &end, 10);
+    if (end != v && !*end && n >= 1 && n <= 8) g_catapult_pull = (int)n;
+    else SDL_Log("%s=%s: use 1 (the original's speed) to 8", from, v);
+}
+
+static void set_log(const char *v, GameLogLevel *level, const char *from)
+{
+    if (SDL_strcasecmp(v, "off") == 0 || !*v) *level = GLOG_OFF;
+    else if (SDL_strcasecmp(v, "normal") == 0 || SDL_strcasecmp(v, "on") == 0) *level = GLOG_NORMAL;
+    else if (SDL_strcasecmp(v, "verbose") == 0) *level = GLOG_VERBOSE;
+    else SDL_Log("%s=%s: use off, normal or verbose", from, v);
+}
+
 int main(int argc, char **argv)
 {
     const char *dir_arg = NULL;
     GameLogLevel log_level = GLOG_OFF;
     App.mode = MODE_EGA;
     App.aspect_43 = true;
+
+    Ini settings;
+    settings_load(&settings);
+    const char *v;
+    if ((v = ini_get(&settings, "display", "video")) && *v) set_video(v, SETTINGS_FILE " video");
+    if ((v = ini_get(&settings, "play", "fix"))) set_fixes(v, SETTINGS_FILE " fix");
+    if ((v = ini_get(&settings, "play", "catapult_pull")) && *v) set_catapult_pull(v, SETTINGS_FILE " catapult_pull");
+    if ((v = ini_get(&settings, "debug", "log"))) set_log(v, &log_level, SETTINGS_FILE " log");
+    char folder_setting[1024] = "";
+    if ((v = ini_get(&settings, "game", "folder"))) SDL_strlcpy(folder_setting, v, sizeof folder_setting);
+    ini_free(&settings);
+
     for (int i = 1; i < argc; i++) {
         if (SDL_strncmp(argv[i], "--video=", 8) == 0 || SDL_strncmp(argv[i], "video=", 6) == 0) {
-            const char *v = SDL_strchr(argv[i], '=') + 1;
-            if (!mode_from_name(v, &App.mode)) SDL_Log("--video=%s: use cga1, cga2, ega or tandy", v);
+            set_video(SDL_strchr(argv[i], '=') + 1, "--video");
         } else if (SDL_strcmp(argv[i], "--video") == 0 && i + 1 < argc) {
-            if (!mode_from_name(argv[++i], &App.mode)) SDL_Log("--video %s: use cga1, cga2, ega or tandy", argv[i]);
+            set_video(argv[++i], "--video");
         } else if (SDL_strncmp(argv[i], "--fix=", 6) == 0) {
-            char err[128];
-            if (!fixes_parse(argv[i] + 6, err, sizeof err))
-                SDL_Log("--fix: %s; use viking, hostility, targets, catapult, siege-merge, joust-opponent, joust-margin, "
-                        "battle-text, siege-sprite or all, separated by commas", err);
+            set_fixes(argv[i] + 6, "--fix");
         } else if (SDL_strncmp(argv[i], "--catapult-pull=", 16) == 0) {
-            int n = SDL_atoi(argv[i] + 16);
-            if (n >= 1 && n <= 8) g_catapult_pull = n;
-            else SDL_Log("--catapult-pull=%s: use 1 (the original's speed) to 8", argv[i] + 16);
+            set_catapult_pull(argv[i] + 16, "--catapult-pull");
         } else if (SDL_strcmp(argv[i], "--log=verbose") == 0) log_level = GLOG_VERBOSE;
+        else if (SDL_strcmp(argv[i], "--log=off") == 0) log_level = GLOG_OFF;
         else if (SDL_strcmp(argv[i], "--log") == 0 || SDL_strcmp(argv[i], "--log=normal") == 0) {
             log_level = GLOG_NORMAL;
             if (i + 1 < argc && SDL_strcmp(argv[i + 1], "verbose") == 0) { log_level = GLOG_VERBOSE; i++; }
@@ -309,7 +415,7 @@ int main(int argc, char **argv)
     }
 
     char dir[1024];
-    if (find_game_dir(dir_arg, dir, sizeof dir)) load_from(dir, dir_arg != NULL);
+    if (find_game_dir(dir_arg, folder_setting, dir, sizeof dir)) load_from(dir, dir_arg != NULL);
     if (!App.have_assets) ask_for_folder();
     update_title();
 

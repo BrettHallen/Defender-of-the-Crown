@@ -22,6 +22,7 @@ add_executable(DefenderOfTheCrown MACOSX_BUNDLE
     src/tourney.c
     src/gamelog.c
     src/icon.c
+    src/ini.c
 )
 target_link_libraries(DefenderOfTheCrown PRIVATE SDL3::SDL3)
 

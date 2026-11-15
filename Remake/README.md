@@ -50,10 +50,22 @@ The app's icon is the title picture ("Defender of the Crown" on the stone wall, 
 ```sh
 open build/DefenderOfTheCrown.app
 ```
-The app looks for your game files in the folder given on the command line, then the one it remembers, then `game/` or `../Original` next to the app (so the repository's `Original/` folder is found when you run it from `Remake/build`), then the current folder. If it finds none it asks for the folder, and remembers it.
+The app looks for your game files in the folder given on the command line, then the one it remembers (the settings file's `folder`, below), then `game/` or `../Original` next to the app (so the repository's `Original/` folder is found when you run it from `Remake/build`), then the current folder. If it finds none it asks for the folder, and remembers it.
 ```sh
 build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --video=cga1 ../Original
 ```
+
+**The settings file:** every option below can also be set in `DefenderOfTheCrown.ini`, so you don't have to give it each time. The remake reads it at every start and writes it with the defaults (and a comment for each setting) if it isn't there: on macOS it is `~/Library/Application Support/DefenderOfTheCrown/Remake/DefenderOfTheCrown.ini`, beside `Logs/`. An option given on the command line wins over the file for that run only; delete the file to get the defaults back. The game folder you choose (or give on the command line) is remembered in it; earlier builds kept it in `gamedir.txt`, which is read once and moved over.
+
+| Section | Setting | Command line | Values (default) |
+|---|---|---|---|
+| `[game]` | `folder` | the folder argument | your game files' folder (empty: look for it, else ask) |
+| `[display]` | `video` | `--video=` | `cga1`, `cga2`, `ega` or `tandy` (`ega`) |
+| `[play]` | `fix` | `--fix=` | flaw names separated by commas, or `all` (empty: none) |
+| `[play]` | `catapult_pull` | `--catapult-pull=` | 1 to 8 (2) |
+| `[debug]` | `log` | `--log`, `--log=verbose`, `--log=off` | `off`, `normal` or `verbose` (`off`) |
+
+Comments are lines starting with `;` or `#`.
 
 **Video:** `--video=cga1|cga2|ega|tandy` chooses the mode to start in (EGA if not given). Tab goes through them in the game: CGA (1987) → CGA → EGA → Tandy.
 
@@ -100,6 +112,7 @@ The log only reads the game: it never calls the random numbers, so a logged game
 - `src/gfx.c`: every picture is drawn into all four modes at once, each with its own pictures, sprites and the way its program drew them (the EGA program puts sprites on whole bytes of 8 pixels, the CGA one on 4; the territories' colours each from their own table ...), so Tab can switch at any moment.
 - `src/assets.c`, `src/dat.c`: GAME.DAT (two floppy images, LZW) and the .LIB files, decoded as in `../Analysis/DOTC_file_reference.md`.
 - `src/sound.c`: the speaker tunes (AB 968A) and AC's Tandy music driver.
+- `src/main.c`, `src/ini.c`: the window, the keys, the command line and the settings file (`DefenderOfTheCrown.ini`: read, written with the defaults when missing, and the game folder set in it without touching the rest of the file).
 - `src/icon.c`, `tools/make_icon.c`: the app icon from the player's own copy of the game: the title picture in its 4:3 shape on a rounded square; `make_icon` writes the macOS `.iconset` at build time and `iconutil` turns it into `AppIcon.icns` (as in The Ancient Art of War remake).
 
 ## Tests
