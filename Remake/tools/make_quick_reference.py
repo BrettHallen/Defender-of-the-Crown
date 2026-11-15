@@ -214,6 +214,8 @@ s.append(P("macOS: " + c("~/Library/Application Support/DefenderOfTheCrown/Remak
            "folder for the app)."))
 s += table(["File or folder", "Contents"], [
     ["DefenderOfTheCrown.ini", "The settings (above), including the game folder you chose"],
+    ["Territories.ini", "Each territory\u2019s gold a month and vassals, written with the original\u2019s values the first time; "
+     "change them for a different game (0 to 127; read at every start), delete the file to get the original\u2019s back"],
     ["Logs/", "The " + c("--log") + " files, one per game, named by the date, time and the lord you chose"],
 ], [48, 126], mono_first=True)
 s.append(P("The game itself has no saved games, as in the original. Full details: the remake’s " + c("README.md") + "; the game’s "

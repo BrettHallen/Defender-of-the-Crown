@@ -24,6 +24,8 @@ bool g_dos_rules;
 int g_catapult_pull = 2;
 int g_sword_pace = 3;
 int g_joust_pace = 4;
+int g_terr_gold[19] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+int g_terr_vassals[19] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
 bool fixes_parse(const char *list, char *err, size_t errlen)
 {
@@ -698,6 +700,10 @@ void game_main(void)
 {
     const Assets *a = gfx_assets();
     SDL_memcpy(ds, a->bh, a->bh_len);
+    for (int t = 1; t < 19; t++) {   /* the remake's own: Territories.ini (the game never changes these two) */
+        if (g_terr_gold[t] >= 0) SB(TERR(t) + T_INCOME, g_terr_gold[t]);
+        if (g_terr_vassals[t] >= 0) SB(TERR(t) + T_VASSALS, g_terr_vassals[t]);
+    }
     SB(D_MEMORY, 10);      /* int 2Ch: memory enough to keep every file */
     SB(D_SPEED, 1);
     SW(0x0006, 1);         /* video type: EGA */

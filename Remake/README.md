@@ -72,6 +72,17 @@ build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --video=cga1 ../O
 
 Comments are lines starting with `;` or `#`. Settings added in later versions of the remake are added to an existing file, with their defaults and comments, the next time it starts.
 
+**The territories (for fun):** each territory's gold a month and vassals are in their own file, `Territories.ini`, beside the settings file. The remake writes it with the original's values the first time it starts (they come from the game's data file, BH, where the original keeps them in its territory table), and reads it at every start. Change them for a different game; delete the file to get the original's back.
+
+```
+[Cornwall]
+gold = 8
+vassals = 0
+```
+
+`gold` is what the territory brings its owner each month, and `vassals` the soldiers holding it when the game starts; each 0 to 127.
+The vassals of the six territories with a castle are not used: they are the lords' homes, whose garrisons the game sets itself (5, and 10 for yours). Values that differ from the original's are listed in the remake's output and at the start of the game log.
+
 **Rules:** `--rules=dos` plays the game as DOC.EXE (the 1987 DOS version) does, in any video mode: its random numbers (Aztec C's `ran()`), the computer lords' odds (home 1 in 3, conquest 6 in 7), their targets compared signed, the joust's margin, and its pace: one-tick waits that really wait (the DOS version ran its animations off the 18.2 Hz clock, the booter at the screen's 60 Hz), the slower month's box with its counting beeps, the slower sword fight and catapult pull, and the blinds wipe between pictures. `booter` (the default) plays as the booter version. The differences are listed in `../Analysis/DOC_vs_AB.md`.
 
 **Video:** `--video=cga1|cga2|ega|tandy` chooses the mode to start in (EGA if not given). Tab goes through them in the game: CGA (1987) → CGA → EGA → Tandy.
@@ -124,7 +135,7 @@ The log only reads the game: it never calls the random numbers, so a logged game
 - `src/gfx.c`: every picture is drawn into all four modes at once, each with its own pictures, sprites and the way its program drew them (the EGA program puts sprites on whole bytes of 8 pixels, the CGA one on 4; the territories' colours each from their own table ...), so Tab can switch at any moment.
 - `src/assets.c`, `src/dat.c`: GAME.DAT (two floppy images, LZW) and the .LIB files, decoded as in `../Analysis/DOTC_file_reference.md`.
 - `src/sound.c`: the speaker tunes (AB 968A) and AC's Tandy music driver.
-- `src/main.c`, `src/ini.c`: the window, the keys, the command line and the settings file (`DefenderOfTheCrown.ini`: read, written with the defaults when missing, and the game folder set in it without touching the rest of the file).
+- `src/main.c`, `src/ini.c`: the window, the keys, the command line, the settings file (`DefenderOfTheCrown.ini`: read, written with the defaults when missing, and the game folder set in it without touching the rest of the file) and `Territories.ini`.
 - `src/icon.c`, `tools/make_icon.c`: the app icon from the player's own copy of the game: the title picture in its 4:3 shape on a rounded square; `make_icon` writes the macOS `.iconset` at build time and `iconutil` turns it into `AppIcon.icns` (as in The Ancient Art of War remake).
 
 ## Tests

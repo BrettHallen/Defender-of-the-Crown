@@ -242,6 +242,67 @@ static void set_window_icon(void)
 
 static void log_settings(const char *folder);
 
+/* ------------------------------------------------------------------ Territories.ini */
+
+#define TERRITORIES_FILE "Territories.ini"
+static char terr_changes[1024];   /* for the game log: what differs from the original's */
+
+static const char *terr_name(const Assets *a, int t)
+{
+    unsigned p = a->bh[0x695 + 15 * t] | a->bh[0x695 + 15 * t + 1] << 8;
+    return p < a->bh_len ? (const char *)&a->bh[p] : "?";
+}
+
+/* The territories' gold a month and vassals, in their own file beside the settings
+ * (written with the original's values the first time), for a different game */
+static void territories_load(const Assets *a)
+{
+    char path[1100];
+    char *pref = SDL_GetPrefPath(APP_ORG, APP_NAME);
+    SDL_snprintf(path, sizeof path, "%s%s", pref ? pref : "", TERRITORIES_FILE);
+    SDL_free(pref);
+    Ini ini;
+    SDL_zero(ini);
+    if (!ini_load(&ini, path)) {
+        ini_text(&ini,
+                 "; Defender of the Crown remake: each territory's gold a month and vassals.\n"
+                 "; Change them for a different game: the remake reads them when it starts.\n"
+                 "; Delete this file to get the original's values back.\n"
+                 ";   gold:    what the territory brings its owner each month, 0 to 127\n"
+                 ";   vassals: the soldiers holding it when the game starts, 0 to 127. The six\n"
+                 ";            territories with a castle are the lords' homes, whose garrisons\n"
+                 ";            the game sets itself (5, and 10 for yours): theirs are not used.\n");
+        for (int t = 1; t < 19; t++) {
+            char v[8];
+            SDL_snprintf(v, sizeof v, "%d", a->bh[0x695 + 15 * t + 7]);
+            ini_set(&ini, terr_name(a, t), "gold", v);
+            SDL_snprintf(v, sizeof v, "%d", a->bh[0x695 + 15 * t + 6]);
+            ini_set(&ini, terr_name(a, t), "vassals", v);
+        }
+        if (ini_save(&ini, path)) SDL_Log("Territories: wrote %s with the original's values", path);
+    } else SDL_Log("Territories: %s", path);
+    *terr_changes = 0;
+    for (int t = 1; t < 19; t++) {
+        static const char *const KEY[2] = { "gold", "vassals" };
+        int *to[2] = { &g_terr_gold[t], &g_terr_vassals[t] };
+        for (int k = 0; k < 2; k++) {
+            *to[k] = -1;
+            const char *v = ini_get(&ini, terr_name(a, t), KEY[k]);
+            if (!v || !*v) continue;
+            char *end;
+            long n = SDL_strtol(v, &end, 10);
+            if (end == v || *end || n < 0 || n > 127) { SDL_Log("%s [%s] %s = %s: use 0 to 127", TERRITORIES_FILE, terr_name(a, t), KEY[k], v); continue; }
+            int orig = a->bh[0x695 + 15 * t + (k ? 6 : 7)];
+            if (n == orig) continue;
+            *to[k] = (int)n;
+            size_t l = SDL_strlen(terr_changes);
+            SDL_snprintf(terr_changes + l, sizeof terr_changes - l, "%s%s %s %ld (the original %d)", l ? ", " : "", terr_name(a, t), KEY[k], n, orig);
+        }
+    }
+    if (*terr_changes) SDL_Log("Territories changed: %s", terr_changes);
+    ini_free(&ini);
+}
+
 static bool load_from(const char *dir, bool remember)
 {
     char err[256] = "";
@@ -257,6 +318,7 @@ static bool load_from(const char *dir, bool remember)
     }
     if (remember) save_game_dir(dir);
     SDL_Log("Loaded the game from %s", dir);
+    territories_load(&App.a);
     log_settings(dir);
     gamelog_display(MODE_NAMES[App.mode], App.aspect_43);
     set_window_icon();
@@ -386,7 +448,8 @@ static void log_settings(const char *folder)
                  "  catapult_pull = %d (%s)\n"
                  "  sword_pace = %d (%s)\n"
                  "  joust_pace = %d (%s)\n"
-                 "  log = %s (%s)\n",
+                 "  log = %s (%s)\n"
+                 "  territories (" TERRITORIES_FILE "): %s\n",
                  path, folder, App.folder_src ? App.folder_src : "found",
                  MODE_KEYS[App.start_mode], App.src[SET_VIDEO] ? App.src[SET_VIDEO] : "the default",
                  g_dos_rules ? "dos" : "booter", App.src[SET_RULES] ? App.src[SET_RULES] : "the default",
@@ -394,7 +457,8 @@ static void log_settings(const char *folder)
                  g_catapult_pull, App.src[SET_PULL] ? App.src[SET_PULL] : "the default",
                  g_sword_pace, App.src[SET_SWORD] ? App.src[SET_SWORD] : "the default",
                  g_joust_pace, App.src[SET_JOUST] ? App.src[SET_JOUST] : "the default",
-                 App.log_name, App.src[SET_LOG] ? App.src[SET_LOG] : "the default");
+                 App.log_name, App.src[SET_LOG] ? App.src[SET_LOG] : "the default",
+                 *terr_changes ? terr_changes : "the original's gold and vassals");
     gamelog_settings(t);
 }
 static void set_video(const char *v, const char *from)

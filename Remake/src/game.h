@@ -139,6 +139,9 @@ extern int g_sword_pace;
  * DOSBox); DOC.EXE waits a tick a step (68 steps: 3.7 s). The remake takes 4 (3.4 s)
  * unless told otherwise. Not with the DOS rules: its waits pace it. */
 extern int g_joust_pace;
+/* The territories' gold a month and vassals from Territories.ini (main.c), -1 for
+ * the original's; game_main puts them into the territory table */
+extern int g_terr_gold[19], g_terr_vassals[19];
 
 /* The rules (--rules=, the settings' rules): the booter's (false), or the 1987 DOS
  * version's (true): its random numbers, its computer lords' odds, its signed
