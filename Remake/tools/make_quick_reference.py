@@ -126,7 +126,7 @@ s += codeblock("DefenderOfTheCrown [--video=MODE] [--rules=booter|dos] [--fix=NA
                "                   [--log | --log=verbose | --log=off] [game-folder]")
 s += table(["Option", "What it does"], [
     ["game-folder", "The folder with your original game files. Any argument that doesn’t start with - is taken as the folder."],
-    ["--video=MODE", "The video mode to start in (EGA if not given). MODE is one of the names in the next table. Tab changes the mode while playing."],
+    ["--video=MODE", "The video mode to start in (Tandy if not given). MODE is one of the names in the next table. Tab changes the mode while playing."],
     ["--rules=booter<br/>--rules=dos", "Whose rules and timing to play by: the booter version’s (the default), or the 1987 DOS version’s "
      "(DOC.EXE): its random numbers, the computer lords’ odds, its signed comparisons and its slower, clock-paced scenes. "
      "Works in any video mode."],
@@ -145,8 +145,8 @@ s.append(P("Video modes (--video=MODE)", h1))
 s += table(["MODE", "Mode", "What you see"], [
     ["cga1", "CGA (1987)", "The 1987 DOS version (DOC.EXE): its pictures, font, boxes, map and sprites, in the CGA’s green, red and brown *"],
     ["cga2", "CGA", "The booter’s CGA program: its own redrawn CGA pictures and sprites"],
-    ["ega", "EGA (default)", "The booter’s EGA program, 16 colours"],
-    ["tandy", "Tandy 1000", "The booter’s Tandy program, 16 colours, with the Tandy’s three-voice music"],
+    ["ega", "EGA", "The booter’s EGA program, 16 colours"],
+    ["tandy", "Tandy 1000 (default)", "The booter’s Tandy program, 16 colours, with the Tandy’s three-voice music"],
 ], [22, 30, 122], mono_first=True)
 s.append(P("* Needs the 1987 version’s files (above). Tab goes through the modes in the order of this table. "
            "The video mode only changes the look and the sound; the rules are set with " + c("--rules") + ".", small))
@@ -157,7 +157,7 @@ s.append(P("Every option can also be set in " + c("DefenderOfTheCrown.ini") + ",
            "by a later version. An option on the command line wins for that run only; delete the file to get the defaults back."))
 s += table(["Section", "Setting", "Command line", "Values (default)"], [
     ["[game]", c("folder"), "the folder argument", "your game files’ folder (empty: look for it, else ask)"],
-    ["[display]", c("video"), c("--video="), c("cga1") + ", " + c("cga2") + ", " + c("ega") + " or " + c("tandy") + " (" + c("ega") + ")"],
+    ["[display]", c("video"), c("--video="), c("cga1") + ", " + c("cga2") + ", " + c("ega") + " or " + c("tandy") + " (" + c("tandy") + ")"],
     ["[play]", c("rules"), c("--rules="), c("booter") + " or " + c("dos") + " (" + c("booter") + ")"],
     ["[play]", c("fix"), c("--fix="), "flaw names separated by commas, or " + c("all") + " (empty: none)"],
     ["[play]", c("catapult_pull"), c("--catapult-pull="), "1 to 8 (2)"],

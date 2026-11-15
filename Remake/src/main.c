@@ -9,7 +9,7 @@
  * runs on its own thread (sys.h, game.c).
  *
  * Usage: DefenderOfTheCrown [--video=cga1|cga2|ega|tandy] [--log | --log=verbose] [--rules=booter|dos] [--fix=NAME,...|all] [--catapult-pull=N] [--sword-pace=N] [--joust-pace=N] [game-folder]
- *   --video: the mode to start in (EGA if not given): cga1 the 1987 DOS version's
+ *   --video: the mode to start in (Tandy if not given): cga1 the 1987 DOS version's
  *            CGA, cga2 the booter's CGA, ega, tandy. Tab goes through them in the game.
  *   --log:   a log of each game played (gamelog.h), in the remake's folder under Logs/
  *   --fix:   fixes these flaws of the original (none by default, the game as it was):
@@ -90,8 +90,9 @@ static const char DEFAULT_SETTINGS[] =
     "\n"
     "[display]\n"
     "; The video mode to start in: cga1 (the 1987 DOS version's CGA), cga2 (the\n"
-    "; booter's CGA), ega or tandy. Tab goes through them in the game.\n"
-    "video = ega\n"
+    "; booter's CGA), ega or tandy (the best pictures and the three-voice music).\n"
+    "; Tab goes through them in the game.\n"
+    "video = tandy\n"
     "\n"
     "[play]\n"
     "; The rules: booter (the self-booting release, as the EGA program plays) or dos\n"
@@ -520,7 +521,7 @@ int main(int argc, char **argv)
 {
     const char *dir_arg = NULL;
     GameLogLevel log_level = GLOG_OFF;
-    App.mode = MODE_EGA;
+    App.mode = MODE_TANDY;   /* the Tandy 1000's: the EGA's pictures and the three-voice music */
     App.aspect_43 = true;
 
     Ini settings;

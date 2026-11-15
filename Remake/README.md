@@ -62,7 +62,7 @@ build/DefenderOfTheCrown.app/Contents/MacOS/DefenderOfTheCrown --video=cga1 ../O
 | Section | Setting | Command line | Values (default) |
 |---|---|---|---|
 | `[game]` | `folder` | the folder argument | your game files' folder (empty: look for it, else ask) |
-| `[display]` | `video` | `--video=` | `cga1`, `cga2`, `ega` or `tandy` (`ega`) |
+| `[display]` | `video` | `--video=` | `cga1`, `cga2`, `ega` or `tandy` (`tandy`) |
 | `[play]` | `rules` | `--rules=` | `booter` or `dos` (`booter`) |
 | `[play]` | `fix` | `--fix=` | flaw names separated by commas, or `all` (empty: none) |
 | `[play]` | `catapult_pull` | `--catapult-pull=` | 1 to 8 (2) |
@@ -85,7 +85,7 @@ The vassals of the six territories with a castle are not used: they are the lord
 
 **Rules:** `--rules=dos` plays the game as DOC.EXE (the 1987 DOS version) does, in any video mode: its random numbers (Aztec C's `ran()`), the computer lords' odds (home 1 in 3, conquest 6 in 7), their targets compared signed, the joust's margin, and its pace: one-tick waits that really wait (the DOS version ran its animations off the 18.2 Hz clock, the booter at the screen's 60 Hz), the slower month's box with its counting beeps, the slower sword fight and catapult pull, and the blinds wipe between pictures. `booter` (the default) plays as the booter version. The differences are listed in `../Analysis/DOC_vs_AB.md`.
 
-**Video:** `--video=cga1|cga2|ega|tandy` chooses the mode to start in (EGA if not given). Tab goes through them in the game: CGA (1987) → CGA → EGA → Tandy.
+**Video:** `--video=cga1|cga2|ega|tandy` chooses the mode to start in (Tandy if not given: the EGA's pictures with the Tandy 1000's three-voice music). Tab goes through them in the game: CGA (1987) → CGA → EGA → Tandy.
 
 **Fixing the original's flaws:** the remake plays the game as it was, flaws included. `--fix=` with a list of names, separated by commas (or `--fix=all`), fixes those you choose:
 ```sh
