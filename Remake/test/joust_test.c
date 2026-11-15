@@ -35,6 +35,7 @@ static void game(void)
 int main(int argc, char **argv)
 {
     if (SDL_getenv("DOTC_RULES") && SDL_strcmp(SDL_getenv("DOTC_RULES"), "dos") == 0) set_dos_rules(true);   /* as --rules=dos */
+    g_joust_pace = SDL_getenv("JPACE") ? SDL_atoi(SDL_getenv("JPACE")) : 1;   /* a step a frame, to compare with DOSBox; JPACE=N as --joust-pace=N */
     char err[256];
     if (argc < 4) { SDL_Log("usage: joust_test GAME OUTDIR RESULT"); return 1; }
     SDL_Init(0);

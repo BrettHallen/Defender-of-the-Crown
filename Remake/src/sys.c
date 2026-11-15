@@ -28,7 +28,7 @@ static struct {
     SDL_AtomicInt done_ticks;     /* ticks given to the sound so far */
     int          keys[64];
     int          head, count;
-    jmp_buf     *skip_to;         /* sys_skip_arm: where Enter jumps */
+    jmp_buf     *skip_to;         /* sys_skip_arm: where S jumps */
     SDL_AtomicInt skip_armed, skip_hit;
 } Y;
 
@@ -124,7 +124,7 @@ void sys_frame_done(void) { SDL_AddAtomicInt(&Y.frames, 1); }
 void sys_key(int scan)
 {
     if (!Y.lock) return;
-    if (scan == KEY_ENTER && SDL_GetAtomicInt(&Y.skip_armed)) {   /* skips, and is not kept */
+    if (scan == KEY_SKIP && SDL_GetAtomicInt(&Y.skip_armed)) {   /* skips, and is not kept */
         SDL_SetAtomicInt(&Y.skip_hit, 1);
         return;
     }

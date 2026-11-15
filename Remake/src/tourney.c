@@ -75,7 +75,6 @@ static void next_beat(int addr)   /* the gallop's pitch falls by 500 a step, fro
  * (30-35, x 15 on); then the two portraits and names, and "An expectant hush..." */
 static void joust_approach(void)
 {
-    int p = W(D_PLAYER);
     gfx_show_picture(PIC_TOURNAMENT);
     /* the DOS version (02D3:0737) puts the same items 2 units further on and 2 lines
      * higher (x 43-63, y 74), turns with 24 and 25 (at 62 and 61), and so rides back
@@ -112,6 +111,12 @@ static void joust_approach(void)
     gfx_sprites_draw(); present(); gfx_sprites_erase();
     slots_off();
     wait_ticks(g_dos_rules ? 9 : 4);   /* DOC 02D3:0737: 9 */
+}
+
+/* the end of 6D3F: the two lords' portraits and names, and "An expectant hush..." */
+static void joust_meet(void)
+{
+    int p = W(D_PLAYER);
     int o = W(D_OPPONENT);
     show_portrait(W(SIDE(o) + S_PORTRAIT), 9, 3);
     SW(0x2F64, W(SIDE(o) + S_NAME));
@@ -162,6 +167,7 @@ static void lance_step(int item, int bob)
     slot_set(0, W(D_LANCE_X) * 4, W(D_LANCE_Y), F_LANE, lance_item, 0);
     gfx_sprites_draw();
     present_bottom();
+    for (int f = 1; f < g_joust_pace && !g_dos_rules; f++) present_bottom();   /* g_joust_pace refreshes a step (game.h); keys pressed meanwhile are read next */
     gfx_sprites_erase();
     SW(D_BOB_LEFT, W(D_BOB_LEFT) - 1);
     if (!W(D_BOB_LEFT)) { SW(D_BOB_LEFT, 6); SW(D_BOB, -W(D_BOB)); }
@@ -266,6 +272,47 @@ static int joust(int opp)
 
 /* ------------------------------------------------------------------ a round (6475) */
 
+/* the remake's own: S skips the knights riding in (and the rest of the fanfare) */
+static void ride_in(void)
+{
+    jmp_buf skip;
+    if (setjmp(skip)) {
+        play_tune(0x9A, W(D_TUNE_STOP));
+        slots_off();
+        gfx_show_picture(PIC_TOURNAMENT);
+        present();
+        flush_keys();
+        return;
+    }
+    sys_skip_arm(&skip);
+    gfx_show_picture(PIC_TOURNAMENT);
+    slot_set(0, 41 * 4, 76, F_TOURN, 2, 0);
+    slot_set(1, 15 * 4, 88, F_TOURN, 30, 0);
+    gfx_sprites_draw(); present(); gfx_sprites_erase();
+    gfx_video()->slot[0].active = false;   /* the other knight (slot 1) waits on */
+    wait_tune(0x9A);
+    joust_approach();
+    sys_skip_disarm();
+}
+
+/* the remake's own: S skips the trumpeters' fanfare */
+static void fanfare(void)
+{
+    jmp_buf skip;
+    if (setjmp(skip)) {
+        play_tune(0x9A, W(D_TUNE_STOP));
+        flush_keys();
+        return;
+    }
+    sys_skip_arm(&skip);
+    gfx_show_picture(PIC_TRUMPETERS);
+    present();
+    gfx_set_palette();
+    play_tune(0x9A, W(D_TUNE_ONCE));
+    wait_tune(0x9A);
+    sys_skip_disarm();
+}
+
 static int choose_opponent(void)   /* 7094: a menu of the lords still in the tournament */
 {
     int k = 0, side[8] = { 0 };
@@ -340,14 +387,9 @@ static int joust_round(void)
     if (fame) GLOG(GLOG_NORMAL, "JOUST for fame against %s (judged by the jousting of %s)", glog_side(o), glog_side(di));
     else GLOG(GLOG_NORMAL, "JOUST for land: %s against your %s, with %s (judged by the jousting of %s)", glog_terr(l2), glog_terr(si),
               glog_side(o), glog_side(di));
-    gfx_show_picture(PIC_TOURNAMENT);
-    slot_set(0, 41 * 4, 76, F_TOURN, 2, 0);
-    slot_set(1, 15 * 4, 88, F_TOURN, 30, 0);
-    gfx_sprites_draw(); present(); gfx_sprites_erase();
-    gfx_video()->slot[0].active = false;   /* the other knight (slot 1) waits on */
-    SW(D_IN_TOURN + 2 * o, 0);
-    wait_tune(0x9A);
-    joust_approach();
+    SW(D_IN_TOURN + 2 * o, 0);   /* (the booter does this after showing the two knights) */
+    ride_in();
+    joust_meet();
     gfx_show_picture(PIC_LANE);
     int r = joust(di);
     if (r == 1) {
@@ -412,11 +454,7 @@ int tournament(int di)
     redraw_map();
     str_append(W(SIDE(di) + S_NAME), W(0x2FF5));
     dialog(0x2FEA);   /* "... bids all knights to attend the games of Chivalry." */
-    gfx_show_picture(PIC_TRUMPETERS);
-    present();
-    gfx_set_palette();
-    play_tune(0x9A, W(D_TUNE_ONCE));
-    wait_tune(0x9A);
+    fanfare();
     int r = 0;
     for (int si = 0; si < 3; si++)
         if ((r = joust_round()) != 1) break;

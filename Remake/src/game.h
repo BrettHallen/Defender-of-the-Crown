@@ -133,6 +133,12 @@ extern int g_catapult_pull;
  * of 1987 that copy took two or three refreshes. The remake takes 3 (20 frames a
  * second) unless told otherwise. Not with the DOS rules: its waits pace it. */
 extern int g_sword_pace;
+/* Screen refreshes for each step of the joust's charge (--joust-pace=N, 1-8). The
+ * booter takes a step a refresh (51 steps: 0.85 s down the lane, too quick to aim)
+ * on a PC fast enough to copy the lower half of its picture every refresh (and in
+ * DOSBox); DOC.EXE waits a tick a step (68 steps: 3.7 s). The remake takes 4 (3.4 s)
+ * unless told otherwise. Not with the DOS rules: its waits pace it. */
+extern int g_joust_pace;
 
 /* The rules (--rules=, the settings' rules): the booter's (false), or the 1987 DOS
  * version's (true): its random numbers, its computer lords' odds, its signed

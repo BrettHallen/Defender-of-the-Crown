@@ -23,6 +23,7 @@ unsigned g_fixes;
 bool g_dos_rules;
 int g_catapult_pull = 2;
 int g_sword_pace = 3;
+int g_joust_pace = 4;
 
 bool fixes_parse(const char *list, char *err, size_t errlen)
 {
@@ -382,7 +383,7 @@ static void fire_flicker(int frames)
  * opening: the remake has both reels at once and leaves it out (a deliberate
  * difference). */
 
-/* after Enter has skipped part of the opening: what was left half done */
+/* after S has skipped part of the opening: what was left half done */
 static void skipped(int tune)
 {
     play_tune(tune, W(D_TUNE_STOP));
@@ -587,7 +588,7 @@ static void new_game(void)
     if (W(D_FIRST_GAME) && setjmp(skip)) {
         skipped(0x97);
     } else if (W(D_FIRST_GAME)) {
-        /* the remake's own: Enter skips the rest of the opening, to the choice of character */
+        /* the remake's own: S skips the rest of the opening, to the choice of character */
         sys_skip_arm(&skip);
         gfx_show_picture(PIC_SCROLL);
         gfx_set_palette();
@@ -651,7 +652,7 @@ static void new_game(void)
         skipped(0x98);
         goto setup;
     }
-    sys_skip_arm(&skip);   /* the remake's own: Enter skips Sherwood */
+    sys_skip_arm(&skip);   /* the remake's own: S skips Sherwood */
     gfx_show_picture(PIC_SHERWOOD);
     present();
     gfx_set_palette();

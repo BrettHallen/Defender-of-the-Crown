@@ -122,8 +122,8 @@ s.append(P("The app looks for your game files in the folder given on the command
 
 s.append(P("Command-line options", h1))
 s += codeblock("DefenderOfTheCrown [--video=MODE] [--rules=booter|dos] [--fix=NAME,...|all]\n"
-               "                   [--catapult-pull=N] [--sword-pace=N] [--log | --log=verbose | --log=off]\n"
-               "                   [game-folder]")
+               "                   [--catapult-pull=N] [--sword-pace=N] [--joust-pace=N]\n"
+               "                   [--log | --log=verbose | --log=off] [game-folder]")
 s += table(["Option", "What it does"], [
     ["game-folder", "The folder with your original game files. Any argument that doesn’t start with - is taken as the folder."],
     ["--video=MODE", "The video mode to start in (EGA if not given). MODE is one of the names in the next table. Tab changes the mode while playing."],
@@ -135,6 +135,8 @@ s += table(["Option", "What it does"], [
      "1 is the original on a fast PC: 0.4 seconds for a full pull."],
     ["--sword-pace=N", "Screen refreshes for each frame of the sword fight in a raid, 1 to 8 (3 if not given: 20 frames a second). "
      "1 is the original on a fast PC: 60 frames a second."],
+    ["--joust-pace=N", "Screen refreshes for each step of the joust\u2019s charge, 1 to 8 (4 if not given: 3.4 seconds down the lane). "
+     "1 is the original on a fast PC: 0.85 seconds."],
     ["--log<br/>--log=verbose<br/>--log=off", "Write a log of each game played: the settings, the setup, your orders, the computer lords’ "
      "decisions (with the random draws behind them), battles, jousts, raids and events. Verbose adds every territory weighed and every hit."],
 ], [42, 132], mono_first=True)
@@ -160,6 +162,7 @@ s += table(["Section", "Setting", "Command line", "Values (default)"], [
     ["[play]", c("fix"), c("--fix="), "flaw names separated by commas, or " + c("all") + " (empty: none)"],
     ["[play]", c("catapult_pull"), c("--catapult-pull="), "1 to 8 (2)"],
     ["[play]", c("sword_pace"), c("--sword-pace="), "1 to 8 (3)"],
+    ["[play]", c("joust_pace"), c("--joust-pace="), "1 to 8 (4)"],
     ["[debug]", c("log"), c("--log"), c("off") + ", " + c("normal") + " or " + c("verbose") + " (" + c("off") + ")"],
 ], [22, 30, 38, 84], mono_first=True)
 
@@ -177,7 +180,7 @@ s += table(["Key", "Action"], [
     ["F2", "The original monitor’s 4:3 shape, or square pixels"],
     ["⌘Enter or Alt+Enter", "Full screen"],
     ["⌘Q", "Quit"],
-    ["Enter (the opening)", "Skip to the choice of character; in Sherwood, skip to the game"],
+    ["S", "Skip: the opening (to the choice of character), Sherwood (to the game), a tournament\u2019s fanfare and the knights riding in"],
     ["O (no game files found)", "Choose the folder with your game files"],
 ], [48, 126])
 

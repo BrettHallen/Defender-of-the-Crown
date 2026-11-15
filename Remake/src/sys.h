@@ -19,7 +19,7 @@
 #include <stdint.h>
 
 enum {
-    KEY_ESC = 0x01, KEY_ENTER = 0x1C, KEY_SPACE = 0x39, KEY_F1 = 0x3B,
+    KEY_ESC = 0x01, KEY_ENTER = 0x1C, KEY_S = 0x1F, KEY_SPACE = 0x39, KEY_F1 = 0x3B,
     KEY_HOME = 0x47, KEY_UP = 0x48, KEY_PGUP = 0x49, KEY_KP_MINUS = 0x4A, KEY_LEFT = 0x4B,
     KEY_KP5 = 0x4C, KEY_RIGHT = 0x4D, KEY_KP_PLUS = 0x4E, KEY_END = 0x4F, KEY_DOWN = 0x50, KEY_PGDN = 0x51,
 };
@@ -45,9 +45,11 @@ void sys_frame_done(void);            /* present has put a new screen up */
 void sys_check(void);                 /* leaves the game thread if the window is closing */
 void sys_dos_ticks(bool on);          /* wait_ticks and delay_ticks as DOC.EXE's (the last tick kept between calls) */
 
-/* The remake's own: while armed, Enter is not passed to the game but makes the
- * next wait (any key read, tick wait or retrace) longjmp to `to` (the opening
- * and Sherwood can be skipped). Disarmed by the jump. */
+/* The remake's own: while armed, S (KEY_SKIP) is not passed to the game but makes
+ * the next wait (any key read, tick wait or retrace) longjmp to `to` (the opening,
+ * Sherwood and a tournament's fanfare and ride-in can be skipped; S rather than
+ * Enter, which would go on to choose in the box that follows). Disarmed by the jump. */
+#define KEY_SKIP KEY_S
 void sys_skip_arm(jmp_buf *to);
 void sys_skip_disarm(void);
 
