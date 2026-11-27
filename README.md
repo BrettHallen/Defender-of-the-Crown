@@ -26,6 +26,9 @@ The remake is completed:
 
 Build and run as in its [README](/Remake/README.md), or the [Quick Reference](/Remake/DOTC_Remake_Quick_Reference.pdf).
 
+## [Spectrum Next remake](/Remake_Spectrum_Next)
+A version for the ZX Spectrum Next from the booter's Tandy 1000 program: its pictures on Layer 2 (320×256) and its music on the AY chips, converted at build time from your own GAME.DAT. So far a first test: the title picture with the opening theme.
+
 ## [Analysis](/Analysis)
 What every file holds ([file reference](/Analysis/DOTC_file_reference.md)), the [findings](/Analysis/README.md) and what was checked against the originals, the game's rules as read from the code ([game logic](/Analysis/GAME_LOGIC.md)), the two PC versions compared ([DOC.EXE against the booter](/Analysis/DOC_vs_AB.md)), the printed manual checked against the code ([manual vs code](/Analysis/MANUAL_vs_CODE.md)), and the disassemblies of DOC.EXE, the booter's loader and its three game programs (CGA, EGA and Tandy 1000).
 

@@ -1,0 +1,3 @@
+# the converted game files and the built program (made from your own GAME.DAT)
+build/
+__pycache__/
