@@ -5,7 +5,7 @@
 ;
 ; tandy.asm: the booter's Tandy 1000 music driver (AC 7444-7C53), ported
 ; from the Mac remake's C (Remake/src/sound.c) to the Z80, playing the
-; original music data (BG from GAME.DAT, at BG_BASE) on the Next's first AY.
+; original music data (BG from GAME.DAT, in pages BG_PAGE on) on the Next's first AY.
 ;
 ; The Tandy's SN76496 writes become AY writes as they happen: a voice's tone
 ; register (n & 3FFh) through ay_period_tab, its attenuation through
@@ -37,16 +37,37 @@ V_SIZE      EQU 32
 
 ; ------------------------------------------------------------------ BG access
 
-; HL = the word at BG offset HL (BC, DE kept)
+; HL = the word at BG offset HL (BC, DE kept). BG is in its own pages
+; (BG_PAGE on); each byte is read through slot 1 (2000h-3FFFh), which is the
+; ROM again afterwards: only this driver uses it (and esxDOS, with interrupts off).
 bgw:
             push de
-            ld de, BG_BASE
-            add hl, de
-            ld e, (hl)
+            call bg_byte
+            ld e, a
             inc hl
-            ld d, (hl)
+            call bg_byte
+            ld d, a
             ex de, hl
+            nextreg $51, $FF
             pop de
+            ret
+
+; A = the byte at BG offset HL (HL kept)
+bg_byte:
+            push hl
+            ld a, h
+            rlca
+            rlca
+            rlca
+            and 7
+            add a, BG_PAGE
+            nextreg $51, a
+            ld a, h
+            and $1F
+            or $20
+            ld h, a
+            ld a, (hl)
+            pop hl
             ret
 
 ; ------------------------------------------------------------------ the chip
@@ -111,6 +132,7 @@ drv_stop:
 
 ; 7444: A = song
 drv_start:
+            ld (drv_song), a
             ld hl, $FFFF            ; no loop point yet
             ld (drv_loop_at), hl
             add a, a
@@ -522,6 +544,7 @@ en_next:
 ; ------------------------------------------------------------------ the driver's state
 
 drv_playing: db 0
+drv_song:    db 0               ; the song started last
 drv_subtick: db 0
 drv_tempo:   dw 0               ; PIT counts (1193182 Hz) between interrupts
 drv_loop_at: dw $FFFF

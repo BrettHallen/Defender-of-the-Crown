@@ -19,5 +19,6 @@ if ! command -v zxbasm >/dev/null 2>&1; then
 fi
 mkdir -p build
 python3 tools/convert.py "$GAME_DAT" build
-zxbasm --zxnext src/title.asm -o build/title.bin -M build/title.map
-python3 tools/make_nex.py build/title.bin build/sd/DOTC/DOTC.NEX
+zxbasm --zxnext src/main.asm -o build/main.bin -M build/main.map
+python3 tools/make_nex.py build/main.bin build/sd/DOTC/DOTC.NEX \
+    12:build/ds.bin 16:build/bg.bin 20:build/spr_font.bin 24:build/spr_chars.bin

@@ -1,1 +1,4 @@
 __pycache__/
+# the reference, built by test/ref/build.sh
+test/ref/ref
+test/ref/dump_tandy

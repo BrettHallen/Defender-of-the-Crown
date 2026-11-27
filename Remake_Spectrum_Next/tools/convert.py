@@ -11,14 +11,22 @@ music is kept in the repository.
 
   sd/DOTC/DOTC_GFX/CA.PIC ... CT.PIC
               the 20 Tandy pictures (C pictures A-T, as the Mac remake's
-              PIC_SCROLL ... PIC_WINDOW), for the SD card: each a Layer 2
-              320x256 screen (81920 bytes, one byte a pixel, in columns:
-              x * 256 + y; the 320x200 picture in rows 28-227, black above and
-              below), then its 17 colours (9-bit, two bytes each: the 16 of the
-              picture, then the black around it)
+              PIC_SCROLL ... PIC_WINDOW), for the SD card, in four 8K pages
+              (pic_file): the 160 pairs of columns, 40 to a page, each 200
+              bytes (a row each: the even column's pixel in the high nibble,
+              the odd one's in the low), and the 16 palette registers (each
+              one of the Tandy's 16 colours) at 1F40h in the last page
   preview/CA.png ... CT.png
-              previews of the screens as the Next will show them (colours
+              previews of the pictures as the Next will show them (colours
               rounded to the Next's 9-bit palette)
+  rgb16.bin   the Tandy's 16 colours as the Next's (NextReg 44h's two bytes each)
+  ds.bin      the data segment (BH: the game's texts, tables and variables),
+              24K, as the Next keeps it at 4000h-9FFFh
+  spr_font.bin, spr_chars.bin
+              the Tandy font and box pieces (BC) and the character-choice name
+              boxes (BF) in the Next's sprite format (sprite_blob below)
+  speaker.bin the PC-speaker tunes' note lengths (BB items 97h-9Eh): the game
+              times itself by them in every mode, under the Tandy music
   bg.bin      the Tandy music (BG), for the Next's port of the original's
               driver (src/tandy.asm)
   ay_period.bin  1024 words: the AY period for each Tandy tone register
@@ -143,25 +151,178 @@ def tandy_picture(dat, name):
     return pix, pal
 
 
-def next_screen(dat, name):
-    """picture NAME as a Layer 2 320x256 screen, its 17 colours, and a preview (RGB)"""
+def pic_file(dat, name):
+    """picture NAME as the Next keeps it (above), and a preview (RGB, 320x256 as Layer 2 shows it)"""
     pix, pal = tandy_picture(dat, name)
-    # palette entries 0-15 are the picture's 16 pixel values; 16 is the black around it
-    l2 = bytearray([16]) * (320 * 256)
+    f = bytearray(4 * PAGE)
+    for p in range(160):
+        o = (p // 40) * PAGE + (p % 40) * 200
+        for y in range(SCREEN_H):
+            f[o + y] = pix[y * SCREEN_W + 2 * p] << 4 | pix[y * SCREEN_W + 2 * p + 1]
+    f[3 * PAGE + 0x1F40:3 * PAGE + 0x1F50] = bytes(pal)
+    preview = bytearray(320 * 256 * 3)
     for y in range(SCREEN_H):
         for x in range(SCREEN_W):
-            l2[x * 256 + TOP + y] = pix[y * SCREEN_W + x]
-    colours = [RGB16[pal[i]] for i in range(16)] + [(0, 0, 0)]
-    pal_bytes = b"".join(next_colour(c) for c in colours)
-    # Layer 2 shows through (transparent) where a colour's first byte is the global
-    # transparency, NextReg 14h (E3h after a reset): none of these may be
-    if any(pal_bytes[2 * i] == 0xE3 for i in range(len(colours))):
-        raise SystemExit(f"a colour of {name} is the Next's transparent colour (E3h)")
-    preview = bytearray()
-    for y in range(256):
-        for x in range(320):
-            preview += bytes(from_333(to_333(colours[l2[x * 256 + y]])))
-    return bytes(l2), pal_bytes, preview
+            o = ((TOP + y) * 320 + x) * 3
+            preview[o:o + 3] = bytes(from_333(to_333(RGB16[pal[pix[y * SCREEN_W + x]]])))
+    return bytes(f[:3 * PAGE + 0x1F50]), preview
+
+
+# ------------------------------------------------------------------ the sprites (assets.c decode_file, Tandy)
+
+# the Tandy program's sprite files, by what they hold (assets.h FileId; AC's names)
+SPRITE_FILES = ["BC", "BF", "BR", "BX", "BY", "Ba", "Bb", "Be", "Bj", "Bk", "Bl"]
+F_FONT, F_CHARS, F_PORTRAITS = 0, 1, 2
+IT_NONE, IT_BIG, IT_SLOT, IT_MASK, IT_GLYPH = range(5)
+
+
+class Image:
+    """w x h pixel values (pix), the background bits kept where it is drawn
+    masked (mask: 0 opaque, 15 transparent; None: drawn whole)"""
+    def __init__(self, w, h, pix, mask=None, kind=IT_NONE, adv=0):
+        self.w, self.h, self.pix, self.mask, self.kind, self.adv = w, h, pix, mask, kind, adv
+
+
+def _word(d, o):
+    return d[o] | d[o + 1] << 8 if o + 1 < len(d) else 0
+
+
+def _tandy_pixels(d, o, h, bpr, mask_o=0):
+    """h rows of bpr bytes, 2 pixels a byte (high nibble first); and the mask's (AND values)"""
+    w = bpr * 2
+    ps = h * bpr
+    if h <= 0 or bpr <= 0 or h > 200 or w > 640 or o + ps > len(d) or (mask_o and mask_o + ps > len(d)):
+        return None
+    pix = bytearray(w * h)
+    mask = bytearray(w * h) if mask_o else None
+    for y in range(h):
+        for x in range(w):
+            b = d[o + y * bpr + (x >> 1)]
+            pix[y * w + x] = (b >> (0 if x & 1 else 4)) & 15
+            if mask_o:
+                b = d[mask_o + y * bpr + (x >> 1)]
+                mask[y * w + x] = (b >> (0 if x & 1 else 4)) & 15
+    return Image(w, h, pix, mask)
+
+
+def decode_sprite_file(raw, file_id, first_item=0, last_item=255):
+    """the items of a Tandy sprite file: {item: Image}"""
+    d = bytes(raw) + bytes(4096)          # the last item can reach past the end: zeros stand in
+    n, first = 0, 0
+    while 2 * n + 2 <= len(d) and n < 256 and (not first or 2 * n < first):
+        v = _word(d, 2 * n)
+        if v and (not first or v < first):
+            first = v
+        n += 1
+    items = {}
+    for i in range(first_item, min(n - 1, last_item) + 1):
+        p = _word(d, 2 * i)
+        if not p or p + 8 > len(d):
+            continue
+        if file_id == F_FONT and 0x97 <= i <= 0x9E:          # the PC-speaker tunes
+            continue
+        if file_id == F_FONT and 0x20 <= i <= 0x7A:          # a letter: ANDed in (AC 73BB)
+            wb, bpr, h = _word(d, p), _word(d, p + 2), _word(d, p + 4)
+            im = _tandy_pixels(d, p + 6, h, bpr)
+            if im:
+                im.mask = bytearray((~v) & 15 for v in im.pix)
+                im.pix = bytearray(len(im.pix))
+                im.kind, im.adv = IT_GLYPH, wb
+                items[i] = im
+            continue
+        if file_id == F_PORTRAITS and 1 <= i <= 19:          # a territory's shape
+            im = _tandy_pixels(d, p + 4, _word(d, p), _word(d, p + 2))
+            if im:
+                im.kind = IT_MASK
+                items[i] = im
+            continue
+        q = _word(d, p)
+        slot = first <= q and q + 4 < len(d) and d[q] and d[q + 1]
+        if slot:
+            q2 = _word(d, p + 2)
+            if q2 < first or q2 >= len(d):
+                slot = False
+        if slot:
+            h, bpr, ps = d[q], d[q + 1], _word(d, q + 2)
+            if ps >= h * bpr:
+                im = _tandy_pixels(d, q + 4 + ps, h, bpr, q + 4)
+                if im:
+                    im.kind = IT_SLOT
+                    items[i] = im
+                    continue
+        h, bpr = _word(d, p), _word(d, p + 2)
+        if 0 < h <= 200 and 0 < bpr <= 160:
+            im = _tandy_pixels(d, p + 4, h, bpr)
+            if im:
+                im.kind = IT_BIG
+                items[i] = im
+    return items
+
+
+def tandy_sprites(dat):
+    """{file: {item: Image}} for the Tandy program's sprite files, as assets.c's load_set"""
+    files = {}
+    for f, name in enumerate(SPRITE_FILES):
+        files[f] = decode_sprite_file(dat_file(dat, name), f, 0, 127 if f == F_PORTRAITS else 255)
+    bs = decode_sprite_file(dat_file(dat, "BS"), F_PORTRAITS, 128, 255)   # the portraits (128-149) are in BS
+    files[F_PORTRAITS].update(bs)
+    return files
+
+
+DS_SIZE = 0x6000                 # the data segment as the Next keeps it (4000h-9FFFh)
+PAGE = 0x2000
+
+
+def sprite_blob(items):
+    """a sprite file for the Next: 256 words, each item's offset in the blob (0: none),
+    then the items, none across an 8K page: kind, flags (bit 0: masked), w (word),
+    h, adv (the glyph's width word / 2 + 1, the original's advance), then the
+    pixels column by column (Layer 2 320x256 keeps its columns whole): for each
+    column its h pixels, top to bottom. A masked item has, for each column,
+    the row its span starts at and the span's length (the rows above and below
+    are see-through: mask 15, pixel 0), then each of the span's pixels as its
+    mask byte and the pixel"""
+    blob = bytearray(512)
+    for i in sorted(items):
+        im = items[i]
+        data = bytearray()
+        for x in range(im.w):
+            if im.mask is None:
+                data += bytes(im.pix[y * im.w + x] for y in range(im.h))
+                continue
+            seen = [y for y in range(im.h) if not (im.mask[y * im.w + x] == 15 and im.pix[y * im.w + x] == 0)]
+            first, n = (seen[0], seen[-1] - seen[0] + 1) if seen else (0, 0)
+            data += bytes([first, n])
+            for y in range(first, first + n):
+                data += bytes([im.mask[y * im.w + x], im.pix[y * im.w + x]])
+        adv = (im.adv >> 1) + 1 if im.kind == IT_GLYPH else 0
+        item = bytes([im.kind, 1 if im.mask is not None else 0, im.w & 255, im.w >> 8, im.h, adv]) + data
+        if len(item) > PAGE:
+            raise SystemExit(f"sprite item {i:02X}h is larger than 8K")
+        if len(blob) % PAGE + len(item) > PAGE:
+            blob += bytes(PAGE - len(blob) % PAGE)
+        struct.pack_into("<H", blob, 2 * i, len(blob))
+        blob += item
+    if len(blob) > 0x10000:
+        raise SystemExit("a sprite file is larger than 64K")
+    return bytes(blob)
+
+
+def speaker_tunes(dat):
+    """for tunes 97h-9Eh: 8 words, each tune's offset; at each, the note count (word)
+    and the notes' lengths in BIOS ticks (a byte each), as sound.c's tick_player reads BB"""
+    bb = dat_file(dat, "BB")
+    w = lambda o: bb[o] | bb[o + 1] << 8
+    out = bytearray(16)
+    for k, t in enumerate(range(0x97, 0x9F)):
+        base = w(2 * t)
+        n = w(base + 2)
+        ticks = [w(base + 6 + 4 * i) for i in range(1, n + 1)]
+        if max(ticks) > 255:
+            raise SystemExit(f"tune {t:02X}h has a note longer than 255 ticks")
+        struct.pack_into("<H", out, 2 * k, len(out))
+        out += struct.pack("<H", n) + bytes([0]) + bytes(ticks)   # index 1 is the first note
+    return bytes(out)
 
 
 def to_333(rgb):
@@ -418,10 +579,22 @@ def main():
     (out / "preview").mkdir(exist_ok=True)
     for i in range(PICTURES):
         name = "C" + chr(ord("A") + i)
-        l2, pal_bytes, preview = next_screen(dat, name)
-        (sd / f"{name}.PIC").write_bytes(l2 + pal_bytes)
+        data, preview = pic_file(dat, name)
+        (sd / f"{name}.PIC").write_bytes(data)
         write_png(out / "preview" / f"{name}.png", preview, 320, 256)
 
+    rgb16 = b"".join(next_colour(c) for c in RGB16)
+    if any(rgb16[2 * i] == 0xE3 for i in range(16)):    # Layer 2's transparent colour (NextReg 14h)
+        raise SystemExit("a Tandy colour is the Next's transparent colour (E3h)")
+    (out / "rgb16.bin").write_bytes(rgb16)
+    bh = dat_file(dat, "BH")
+    if len(bh) > DS_SIZE:
+        raise SystemExit("BH is larger than the Next's data segment")
+    (out / "ds.bin").write_bytes(bh + bytes(DS_SIZE - len(bh)))
+    sprites = tandy_sprites(dat)
+    (out / "spr_font.bin").write_bytes(sprite_blob(sprites[F_FONT]))
+    (out / "spr_chars.bin").write_bytes(sprite_blob(sprites[F_CHARS]))
+    (out / "speaker.bin").write_bytes(speaker_tunes(dat))
     bg = dat_file(dat, "BG")
     (out / "bg.bin").write_bytes(bg)
     periods, volumes = ay_tables()
@@ -429,6 +602,8 @@ def main():
     (out / "ay_volume.bin").write_bytes(volumes)
 
     print(f"sd/DOTC/DOTC_GFX/CA.PIC-{name}.PIC, preview/: the {PICTURES} Tandy pictures")
+    print(f"ds.bin: the data segment (BH, {len(bh)} bytes); spr_font.bin, spr_chars.bin: the font and name boxes; "
+          f"speaker.bin: the speaker tunes' timing")
     print(f"bg.bin: the Tandy music (BG, {len(bg)} bytes); ay_period.bin, ay_volume.bin: the AY tables")
 
 
