@@ -5,20 +5,24 @@ Nov 2026 using Claude Opus 5.5
 "Guided" by Brett Hallen
 Original game by Cinemaware (Kellyn Beeck, Jim Sachs, ...)
 
-convert.py: turns the booter's Tandy 1000 title picture and opening theme
+convert.py: turns the booter's Tandy 1000 pictures and music
 (from your own GAME.DAT) into files for the Next, so no original artwork or
 music is kept in the repository.
 
-  title.l2    the title picture as a Layer 2 320x256 screen (81920 bytes,
-              one byte a pixel, in columns: x * 256 + y), the 320x200
-              picture in rows 28-227, black above and below
-  title.pal   its palette: 16 Next colours (9-bit, two bytes each)
+  sd/DOTC/DOTC_GFX/CA.PIC ... CT.PIC
+              the 20 Tandy pictures (C pictures A-T, as the Mac remake's
+              PIC_SCROLL ... PIC_WINDOW), for the SD card: each a Layer 2
+              320x256 screen (81920 bytes, one byte a pixel, in columns:
+              x * 256 + y; the 320x200 picture in rows 28-227, black above and
+              below), then its 17 colours (9-bit, two bytes each: the 16 of the
+              picture, then the black around it)
+  preview/CA.png ... CT.png
+              previews of the screens as the Next will show them (colours
+              rounded to the Next's 9-bit palette)
   bg.bin      the Tandy music (BG), for the Next's port of the original's
               driver (src/tandy.asm)
   ay_period.bin  1024 words: the AY period for each Tandy tone register
   ay_volume.bin  16 bytes: the AY volume for each Tandy attenuation
-  title.png   a preview of the screen as the Next will show it (colours
-              rounded to the Next's 9-bit palette)
 
 It follows the Mac remake: GAME.DAT's directory and LZW (Remake/src/dat.c),
 and the C pictures and the Tandy palette mapping (assets.c picture_16). The
@@ -35,6 +39,7 @@ from pathlib import Path
 DISK_SIZE = 0x5A000
 SCREEN_W, SCREEN_H = 320, 200
 TOP = 28                       # 320x200 centred in 256 lines
+PICTURES = 20                  # CA-CT
 PIT_HZ = 1193182.0
 CHIP_HZ = 3579545.0            # the Tandy 1000's SN76496
 AY_HZ = 1750000.0              # the Next's AY chips (28 MHz / 16)
@@ -119,7 +124,7 @@ def dat_file(dat, name, raw=False):
     return lzw(p)
 
 
-# ------------------------------------------------------------------ the title picture (assets.c picture_16)
+# ------------------------------------------------------------------ the pictures (assets.c picture_16)
 
 def tandy_picture(dat, name):
     raw = dat_file(dat, name, raw=True)
@@ -136,6 +141,27 @@ def tandy_picture(dat, name):
     # the Tandy build maps the palette bytes as v & 0Fh, plus 8 if v & 30h
     pal = [(v & 15) | (8 if v & 0x30 else 0) for v in raw[:16]]
     return pix, pal
+
+
+def next_screen(dat, name):
+    """picture NAME as a Layer 2 320x256 screen, its 17 colours, and a preview (RGB)"""
+    pix, pal = tandy_picture(dat, name)
+    # palette entries 0-15 are the picture's 16 pixel values; 16 is the black around it
+    l2 = bytearray([16]) * (320 * 256)
+    for y in range(SCREEN_H):
+        for x in range(SCREEN_W):
+            l2[x * 256 + TOP + y] = pix[y * SCREEN_W + x]
+    colours = [RGB16[pal[i]] for i in range(16)] + [(0, 0, 0)]
+    pal_bytes = b"".join(next_colour(c) for c in colours)
+    # Layer 2 shows through (transparent) where a colour's first byte is the global
+    # transparency, NextReg 14h (E3h after a reset): none of these may be
+    if any(pal_bytes[2 * i] == 0xE3 for i in range(len(colours))):
+        raise SystemExit(f"a colour of {name} is the Next's transparent colour (E3h)")
+    preview = bytearray()
+    for y in range(256):
+        for x in range(320):
+            preview += bytes(from_333(to_333(colours[l2[x * 256 + y]])))
+    return bytes(l2), pal_bytes, preview
 
 
 def to_333(rgb):
@@ -387,26 +413,14 @@ def main():
     out = Path(sys.argv[2])
     out.mkdir(parents=True, exist_ok=True)
 
-    pix, pal = tandy_picture(dat, "CB")             # B: the title
-    # Layer 2 320x256: palette entries 0-15 are the picture's 16 pixel values; 16 is the black around it
-    l2 = bytearray([16]) * (320 * 256)
-    for y in range(SCREEN_H):
-        for x in range(SCREEN_W):
-            l2[x * 256 + TOP + y] = pix[y * SCREEN_W + x]
-    (out / "title.l2").write_bytes(l2)
-    colours = [RGB16[pal[i]] for i in range(16)] + [(0, 0, 0)]
-    pal_bytes = b"".join(next_colour(c) for c in colours)
-    # Layer 2 shows through (transparent) where a colour's first byte is the global
-    # transparency, NextReg 14h (E3h after a reset): none of these may be
-    if any(pal_bytes[2 * i] == 0xE3 for i in range(len(colours))):
-        raise SystemExit("a title colour is the Next's transparent colour (E3h)")
-    (out / "title.pal").write_bytes(pal_bytes)
-
-    preview = bytearray()
-    for y in range(256):
-        for x in range(320):
-            preview += bytes(from_333(to_333(colours[l2[x * 256 + y]])))
-    write_png(out / "title.png", preview, 320, 256)
+    sd = out / "sd" / "DOTC" / "DOTC_GFX"
+    sd.mkdir(parents=True, exist_ok=True)
+    (out / "preview").mkdir(exist_ok=True)
+    for i in range(PICTURES):
+        name = "C" + chr(ord("A") + i)
+        l2, pal_bytes, preview = next_screen(dat, name)
+        (sd / f"{name}.PIC").write_bytes(l2 + pal_bytes)
+        write_png(out / "preview" / f"{name}.png", preview, 320, 256)
 
     bg = dat_file(dat, "BG")
     (out / "bg.bin").write_bytes(bg)
@@ -414,7 +428,7 @@ def main():
     (out / "ay_period.bin").write_bytes(periods)
     (out / "ay_volume.bin").write_bytes(volumes)
 
-    print("title.l2, title.pal, title.png: the Tandy title picture (CB)")
+    print(f"sd/DOTC/DOTC_GFX/CA.PIC-{name}.PIC, preview/: the {PICTURES} Tandy pictures")
     print(f"bg.bin: the Tandy music (BG, {len(bg)} bytes); ay_period.bin, ay_volume.bin: the AY tables")
 
 

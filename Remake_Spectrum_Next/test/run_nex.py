@@ -7,11 +7,14 @@ Nov 2026 using Claude Opus 5.5
 run_nex.py: a check without a Next. Loads the .nex file as NextZXOS does and
 runs the program on a Z80 emulator (pip install z80), with a small model of
 the Next around it: the Next registers (and the NEXTREG instructions, which
-a plain Z80 doesn't have), Layer 2 320x256 and its palette, the AY, the keys,
-and the CTC's interrupts through the hardware IM2 controller. It checks:
+a plain Z80 doesn't have), MMU slot 3, Layer 2 320x256 and its two palettes,
+the AY, the keys, the CTC's interrupts through the hardware IM2 controller,
+and esxDOS's file calls (RST 08h) reading the SD card's files from build/sd/DOTC, the game's folder.
+It checks:
 
-  1. the set-up: Layer 2's screen is the converter's preview pixel for pixel;
-     IM2 with the vector table, CTC 0 alone enabled and programmed
+  1. the set-up: the title loaded from the SD card, Layer 2's screen the
+     converter's preview pixel for pixel; IM2 with the vector table, CTC 0
+     alone enabled and programmed
   2. the music driver: for each of the eight songs, the Z80 port (tandy.asm)
      and the Python one (tools/convert.py's Tandy, from the Mac remake's
      sound.c) run side by side, one driver interrupt at a time, and the AY
@@ -20,11 +23,17 @@ and the CTC's interrupts through the hardware IM2 controller. It checks:
   3. the timing: the whole program with CTC interrupts arriving; each one
      acknowledged; the driver run 1193182 / tempo times a second
   4. the keys: 3 starts the third tune; Space starts it again
+  5. the pictures: P steps through all 20 and O back, each screen the
+     converter's preview pixel for pixel, the two buffers and palettes taking
+     turns; every file call made with the 48K ROM paged, Layer 2 writes off and
+     interrupts off, and MMU slot 3 put back afterwards
+  6. a missing picture: a red border, the screen as it was, the file closed
 
 and writes the screen it saw to seen_on_next.png.
 
-Usage: python3 run_nex.py [BUILD-FOLDER]   (default: build; reads dotc_title.nex,
-       title.map, title.png, bg.bin, ay_period.bin, ay_volume.bin there)
+Usage: python3 run_nex.py [BUILD-FOLDER]   (default: build; reads sd/DOTC/DOTC.NEX,
+       sd/DOTC/DOTC_GFX/*.PIC, title.map, preview/*.png, bg.bin, ay_period.bin and
+       ay_volume.bin there)
 """
 import struct
 import sys
@@ -71,8 +80,16 @@ def load_map(path):
 
 
 class Next:
-    def __init__(self, nex, labels):
+    def __init__(self, nex, labels, sd):
         self.L = labels
+        self.sd = Path(sd)
+        self.files = {}                 # esxDOS handles: [data, position]
+        self.next_handle = 1
+        self.calls = 0
+        self.missing = set()            # names to treat as missing
+        self.port_7ffd, self.port_1ffd = 0x00, 0x00
+        self.l2_port = 0
+        self.border = 0
         self.banks, sp, pc, entry = load_nex(nex)
         for b in range(112):
             self.banks.setdefault(b, bytearray(16384))
@@ -84,11 +101,13 @@ class Next:
         self.m.set_memory_block(0, mem)
         self.m.pc, self.m.sp = pc, sp
         self.m.set_breakpoint(SENTINEL)
-        self.reg = {0x05: 0x00, 0x08: 0x00, 0x09: 0x00, 0x11: 0x00, 0x12: 9, 0x14: 0xE3, 0x70: 0x00}
+        self.reg = {0x05: 0x00, 0x08: 0x00, 0x09: 0x00, 0x11: 0x00, 0x12: 9, 0x14: 0xE3, 0x43: 0x00,
+                    0x53: 11, 0x70: 0x00}
         self.sel = 0
+        self.line = 0
         self.l2_on = False
         self.clip, self.clip_i = [0, 255, 0, 191], 0
-        self.pal = [0] * 256            # Layer 2 first palette, 9-bit
+        self.pals = {1: [0] * 256, 5: [0] * 256}    # Layer 2's first and second palettes, 9-bit
         self.pal_i, self.pal_half = 0, None
         self.ay = [0] * 16
         self.ay_sel, self.ay_chip = 0, 0
@@ -109,12 +128,12 @@ class Next:
         elif r == 0x40:
             self.pal_i, self.pal_half = v, None
         elif r == 0x43:
-            assert (v >> 4) & 7 == 1, "palette writes should go to Layer 2's first palette"
+            assert (v >> 4) & 7 in (1, 5), "palette writes should go to one of Layer 2's palettes"
         elif r == 0x44:
             if self.pal_half is None:
                 self.pal_half = v
             else:
-                self.pal[self.pal_i & 255] = (self.pal_half << 1) | (v & 1)
+                self.pals[(self.reg[0x43] >> 4) & 7][self.pal_i & 255] = (self.pal_half << 1) | (v & 1)
                 self.pal_i += 1
                 self.pal_half = None
         elif r == 0x69:
@@ -124,6 +143,9 @@ class Next:
 
     def port_in(self, port):
         if port == 0x253B:
+            if self.sel == 0x1F:          # the raster line moves on with each read
+                self.line = (self.line + 1) % 312
+                return self.line & 0xFF
             return self.reg.get(self.sel, 0)
         if port & 0xFF == 0xFE:         # the keyboard: rows by the high byte, 0 = held
             v = 0xFF
@@ -139,6 +161,11 @@ class Next:
             if not hi & 0x80:           # 7FFEh: Space on bit 0
                 if " " in self.keys:
                     v &= ~1
+            if not hi & 0x20:           # DFFEh: P on bit 0, O on bit 1
+                if "P" in self.keys:
+                    v &= ~1
+                if "O" in self.keys:
+                    v &= ~2
             return v & 0xFF
         return 0xFF
 
@@ -149,7 +176,14 @@ class Next:
             self.nextreg(self.sel, v)
         elif port == 0x123B:
             if not v & 0x10:
+                self.l2_port = v
                 self.l2_on = bool(v & 2)
+        elif port == 0x7FFD:
+            self.port_7ffd = v
+        elif port == 0x1FFD:
+            self.port_1ffd = v
+        elif port & 0xFF == 0xFE:
+            self.border = v & 7
         elif port == 0xFFFD:
             if v & 0x80:
                 assert (v & 0x1C) == 0x1C, "a Turbosound select needs bits 4-2 set"
@@ -163,10 +197,64 @@ class Next:
         elif port == 0x183B:
             self.ctc.append(v)
 
+    def esxdos(self):
+        """RST 08h: the code byte after it says which call"""
+        m = self.m
+        ret = m.memory[m.sp] | m.memory[(m.sp + 1) & 0xFFFF] << 8
+        m.sp = (m.sp + 2) & 0xFFFF
+        code = m.memory[ret]
+        m.pc = (ret + 1) & 0xFFFF
+        assert self.port_7ffd & 0x10 and self.port_1ffd & 0x04, "esxDOS needs the 48K BASIC ROM paged in"
+        assert not self.l2_port & 1, "Layer 2 writes must be off during esxDOS calls"
+        assert not m.iff1, "interrupts should be off during file calls"
+        self.calls += 1
+        fail = True
+        if code == 0x9A:                # F_OPEN: A drive, IX name, B mode
+            name = bytearray()
+            a = m.ix
+            while m.memory[a]:
+                name.append(m.memory[a])
+                a += 1
+            name = name.decode()
+            assert m.a == ord("*") and m.b == 0x01, "open for reading on the current drive"
+            path = self.sd / name
+            if name not in self.missing and path.is_file():
+                h = self.next_handle
+                self.next_handle += 1
+                self.files[h] = [path.read_bytes(), 0]
+                m.a = h
+                fail = False
+            else:
+                m.a = 5                 # not found
+        elif code == 0x9D:              # F_READ: A handle, IX address, BC count
+            f = self.files[m.a]
+            n = min(m.bc, len(f[0]) - f[1])
+            data = f[0][f[1]:f[1] + n]
+            f[1] += n
+            for i, byte in enumerate(data):
+                a = (m.ix + i) & 0xFFFF
+                if 0x6000 <= a < 0x8000:        # MMU slot 3
+                    page = self.reg[0x53]
+                    self.banks[page // 2][(page & 1) * 8192 + a - 0x6000] = byte
+                else:
+                    assert a >= 0x4000, "a read into the ROM"
+                    m.memory[a] = byte
+            m.bc = n
+            fail = False
+        elif code == 0x9B:              # F_CLOSE
+            del self.files[m.a]
+            fail = False
+        else:
+            raise AssertionError(f"esxDOS call {code:02X}h not modelled")
+        m.f = (m.f | 1) if fail else (m.f & ~1)
+
     def step(self):
-        """one instruction, the Next's NEXTREG included"""
+        """one instruction, the Next's NEXTREG and esxDOS's RST 08h included"""
         m = self.m
         pc = m.pc
+        if pc == 0x0008:
+            self.esxdos()
+            return
         op = m.memory[pc], m.memory[(pc + 1) & 0xFFFF]
         if op == (0xED, 0x91):          # NEXTREG n, v
             self.nextreg(m.memory[pc + 2], m.memory[pc + 3])
@@ -177,7 +265,7 @@ class Next:
         else:
             m.ticks_to_stop = 1
             m.run()
-        assert 0x8000 <= m.pc < self.L["code_end"] or m.pc == SENTINEL, f"PC left the program: {m.pc:04X}"
+        assert 0x8000 <= m.pc < self.L["code_end"] or m.pc in (SENTINEL, 0x0008), f"PC left the program: {m.pc:04X}"
 
     def run_to(self, addr, limit=2_000_000):
         for _ in range(limit):
@@ -216,10 +304,11 @@ class Next:
         assert self.clip == [0, 159, 0, 255], f"clip window {self.clip}"
         bank = self.reg[0x12]
         data = b"".join(self.banks[bank + i] for i in range(5))
+        pal = self.pals[5 if self.reg[0x43] & 0x04 else 1]
         rgb = bytearray()
         for y in range(256):
             for x in range(320):
-                c = self.pal[data[x * 256 + y]]
+                c = pal[data[x * 256 + y]]
                 assert c >> 1 != self.reg[0x14], "a transparent pixel"
                 r, g, b = c >> 6, (c >> 3) & 7, c & 7
                 rgb += bytes(((r * 255 + 3) // 7, (g * 255 + 3) // 7, (b * 255 + 3) // 7))
@@ -276,13 +365,15 @@ def main():
     L = load_map(build / "title.map")
     bg = (build / "bg.bin").read_bytes()
     ex = Expect(build)
-    nex = build / "dotc_title.nex"
+    sd = build / "sd" / "DOTC"                     # the game's folder, the current one when it runs
+    nex = sd / "DOTC.NEX"
 
     # 1. the set-up, up to the main loop
-    nx = Next(nex, L)
+    nx = Next(nex, L, sd)
     nx.run_to(L["main_loop"])
     shot = nx.screen()
-    assert shot == read_png_rgb(build / "title.png"), "the screen differs from the converter's preview"
+    assert shot == read_png_rgb(build / "preview" / "CB.png"), "the screen differs from the converter's preview"
+    assert nx.reg[0x53] == 11 and not nx.files and nx.border == 0, "after loading the title"
     write_png(build / "seen_on_next.png", shot, 320, 256)
     assert nx.m.i == L["vectors"] >> 8 and L["vectors"] & 0xFF == 0, "I and the vector table"
     v = L["vectors"] + 6
@@ -293,11 +384,11 @@ def main():
     assert nx.ay[7] == 0x38 and nx.reg[0x09] & 0x20, "the mixer and mono"
     assert nx.m.iff1, "interrupts on"
     assert nx.playing(), "the opening theme should be playing"
-    print("1. set-up: the screen matches the preview; IM2, CTC 0 at 28 MHz / 256 / 64; the opening theme started")
+    print("1. set-up: the title loaded from the SD card, the screen matches the preview; IM2, CTC 0 at 28 MHz / 256 / 64; the opening theme started")
 
     # 2. the driver, song by song, against the Python one
     for song in range(8):
-        nx = Next(nex, L)
+        nx = Next(nex, L, sd)
         nx.run_to(L["main_loop"])
         d = Tandy(bg)
         nx.call(L["drv_start"], a=song)
@@ -323,7 +414,7 @@ def main():
               f"{t + 1} interrupts identical, {end}" + (f", looped {loops} time(s)" if loops else ""))
 
     # 3. the timing: CTC interrupts into the running program
-    nx = Next(nex, L)
+    nx = Next(nex, L, sd)
     nx.run_to(L["main_loop"])
     d = Tandy(bg)
     d.start(5)
@@ -365,6 +456,48 @@ def main():
         d.start(KEY_SONGS[2])           # the same chip: its tone registers keep the last notes, as the Tandy's
         assert ay_now(nx) == ex.ay(d) and nx.playing(), f"key {key!r}: song {KEY_SONGS[2]} didn't start"
     print(f"4. keys: 3 starts song {KEY_SONGS[2]}; Space starts it again")
+    # 5. the pictures
+    def press(nx, key):
+        nx.keys = {key}
+        start = nx.calls
+        for _ in range(200_000):
+            nx.step()
+            if nx.calls > start and nx.m.pc == L["main_loop"]:
+                break
+        else:
+            raise AssertionError(f"{key} loaded nothing")
+        nx.keys = set()
+        for _ in range(200):            # the key let go
+            nx.step()
+
+    seen_banks, seen_pals = set(), set()
+    order = [(1 + k) % 20 for k in range(1, 21)] + [0, 19, 18]   # P through CC ... CA, CB; then O back
+    for k, pic in enumerate(order):
+        press(nx, "P" if k < 20 else "O")
+        name = "C" + chr(ord("A") + pic)
+        assert nx.m.memory[L["cur_pic"]] == pic, f"{name}: the picture number"
+        assert nx.screen() == read_png_rgb(build / "preview" / f"{name}.png"), f"{name} differs from its preview"
+        assert nx.reg[0x53] == 11 and not nx.files and nx.border == 0 and nx.m.iff1, f"{name}: after loading"
+        seen_banks.add(nx.reg[0x12])
+        seen_pals.add(nx.reg[0x43] & 0x04)
+    assert seen_banks == {20, 25} and seen_pals == {0, 4}, "the buffers and palettes should take turns"
+    print(f"5. pictures: P through all 20 and O back, each screen its preview pixel for pixel; "
+          f"{nx.calls} file calls, all with the 48K ROM, Layer 2 writes off, interrupts off")
+
+    # 6. a missing picture
+    before = nx.screen()
+    after = (nx.m.memory[L["cur_pic"]] + 1) % 20
+    nx.missing = {f"DOTC_GFX/C{chr(ord('A') + after)}.PIC"}       # the one P will load next
+    nx.keys = {"P"}
+    for _ in range(200_000):
+        nx.step()
+        if nx.border == 2 and nx.m.pc == L["main_loop"]:
+            break
+    else:
+        raise AssertionError("no red border for a missing picture")
+    nx.keys = set()
+    assert nx.screen() == before and nx.reg[0x53] == 11 and not nx.files and nx.m.iff1, "after a missing picture"
+    print("6. a missing picture: red border, the screen as it was")
     print("all checks passed")
 
 

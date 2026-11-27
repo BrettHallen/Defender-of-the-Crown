@@ -1,6 +1,7 @@
 #!/bin/sh
-# Defender of the Crown - Spectrum Next remake: builds build/dotc_title.nex
-# from your own GAME.DAT (default: ../Original/ega/GAME.DAT).
+# Defender of the Crown - Spectrum Next remake: builds build/sd/ from your own
+# GAME.DAT (default: ../Original/ega/GAME.DAT): the game's folder DOTC, with
+# DOTC.NEX and the pictures in DOTC_GFX beside it, to copy to the SD card as it is.
 #
 #   ./build.sh [path/to/GAME.DAT]
 #
@@ -19,4 +20,4 @@ fi
 mkdir -p build
 python3 tools/convert.py "$GAME_DAT" build
 zxbasm --zxnext src/title.asm -o build/title.bin -M build/title.map
-python3 tools/make_nex.py build/title.bin build/title.l2 build/dotc_title.nex
+python3 tools/make_nex.py build/title.bin build/sd/DOTC/DOTC.NEX

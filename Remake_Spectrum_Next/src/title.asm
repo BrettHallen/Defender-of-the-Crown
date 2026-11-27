@@ -3,13 +3,22 @@
 ; "Guided" by Brett Hallen
 ; Original game by Cinemaware (Kellyn Beeck, Jim Sachs, ...)
 ;
-; title.asm: the title test. Shows the Tandy 1000 title picture on Layer 2
-; (320x256, 256 colours) and plays the Tandy music with the original's own
-; driver (tandy.asm), timed by the Next's CTC.
+; title.asm: the title test. Shows the Tandy 1000 pictures on Layer 2
+; (320x256, 256 colours), loaded from the SD card, and plays the Tandy music
+; with the original's own driver (tandy.asm), timed by the Next's CTC.
 ;
 ;   1-8    the eight tunes, in the order of the game's tune numbers 97h-9Eh
 ;          (1 is the opening theme, which starts by itself)
 ;   Space  the current tune again from the top
+;   O, P   the previous, next picture (the title, CB, is shown first)
+;
+; The pictures: DOTC_GFX/CA.PIC-CT.PIC beside the .nex (tools/convert.py), each a
+; Layer 2 screen (81920 bytes) and its 17 colours. One is read, through
+; esxDOS (RST 08h), into the Layer 2 buffer not on show, 8K at a time through
+; MMU slot 3 (6000h-7FFFh), and its colours into the Layer 2 palette not in
+; use; then both are switched over together, below the picture, so it never
+; shows half loaded. Interrupts are off while a file is read (the API
+; document says nothing about them), so the music waits meanwhile.
 ;
 ; The timing: CTC channel 0 interrupts about 1700 times a second (28 MHz /
 ; 256 / 64; one channel, as CSpect doesn't chain them). Each interrupt adds
@@ -23,12 +32,18 @@
 ;   9F00h-9F1Fh  the IM2 vector table (hardware IM2: CTC 0 at offset 06h)
 ;   A000h-E72Dh  BG, the Tandy music (build/bg.bin)
 ;   the stack below 0000h
-;   banks 20-24  the picture (build/title.l2), shown by Layer 2
+;   banks 20-24, 25-29  the two Layer 2 buffers
 ;
 ; Assemble with Boriel's zxbasm (pip install zxbasic):
 ;   zxbasm --zxnext src/title.asm -o build/title.bin
 
-L2_BANK     EQU 20              ; the picture's first 16K bank
+L2_BANK_A   EQU 20              ; the two Layer 2 buffers' first 16K banks
+L2_BANK_B   EQU 25
+MMU3_HOME   EQU 11              ; MMU slot 3's page normally (bank 5's upper half)
+F_OPEN      EQU $9A             ; esxDOS calls (RST 08h, then the code)
+F_CLOSE     EQU $9B
+F_READ      EQU $9D
+PICTURES    EQU 20              ; CA-CT
 BG_BASE     EQU $A000           ; the music data
 REG_SELECT  EQU $243B           ; Next register select / access ports
 AY_SELECT   EQU $FFFD           ; AY register select (and Turbosound chip select)
@@ -45,12 +60,22 @@ start:
             nextreg $07, 3          ; 28 MHz
             xor a
             out ($FE), a            ; black border (hidden by Layer 2 320x256 anyway)
+            ld bc, $7FFD            ; the 48K BASIC ROM at 0000h, as esxDOS calls need
+            ld a, $10               ; (and RAM bank 0 at C000h, as it is)
+            out (c), a
+            ld b, $1F
+            ld a, $04
+            out (c), a
+            ld hl, $4000            ; the ULA screen black, until a picture is on
+            ld de, $4001
+            ld bc, $1AFF
+            ld (hl), 0
+            ldir
 
 ; ------------------------------------------------------------------ Layer 2, 320x256
 
             nextreg $15, $00        ; sprites off; layer order: sprites, Layer 2, ULA
             nextreg $70, $10        ; Layer 2 320x256 8-bit, palette offset 0
-            nextreg $12, L2_BANK    ; the picture's banks
             nextreg $16, 0          ; no scroll
             nextreg $71, 0
             nextreg $17, 0
@@ -60,19 +85,7 @@ start:
             nextreg $18, 0          ; y1
             nextreg $18, 255        ; y2
 
-            nextreg $43, $10        ; write Layer 2's first palette, auto-increment; show the first palettes
-            nextreg $40, 0          ; from entry 0
-            ld hl, palette
-            ld b, 17 * 2            ; 17 colours, two bytes each (9-bit)
-pal_loop:
-            ld a, (hl)
-            inc hl
-            nextreg $44, a
-            djnz pal_loop
-
-            ld bc, LAYER2_PORT
-            ld a, $02               ; Layer 2 on
-            out (c), a
+            ; Layer 2 stays off until the first picture is loaded
 
 ; ------------------------------------------------------------------ the AY
 
@@ -137,6 +150,9 @@ ay_init:
             ld a, CTC_TC
             out (c), a
 
+            ld a, 1                 ; the title (CB)
+            ld (cur_pic), a
+            call load_picture
             xor a                   ; key 1: the opening theme
             call play_key
             ei
@@ -151,11 +167,33 @@ main_loop:
             ld (hl), a
             cp $FF
             jp z, main_loop
+            cp 9
+            jp z, ml_prev
+            cp 10
+            jp z, ml_next
             cp 8
             jp nz, ml_tune
             ld a, (cur_key)         ; Space: the current tune again
 ml_tune:
             call play_key
+            jp main_loop
+ml_prev:
+            ld a, (cur_pic)         ; O: the previous picture
+            or a
+            jp nz, ml_prev1
+            ld a, PICTURES
+ml_prev1:
+            dec a
+            jp ml_pic
+ml_next:
+            ld a, (cur_pic)         ; P: the next picture
+            inc a
+            cp PICTURES
+            jp c, ml_pic
+            xor a
+ml_pic:
+            ld (cur_pic), a
+            call load_picture
             jp main_loop
 
 ; A = key 0-7: start the tune (interrupts off meanwhile)
@@ -173,7 +211,7 @@ play_key:
             ei
             ret
 
-; A = the key held: 0-7 for 1-8, 8 for Space, FFh for none
+; A = the key held: 0-7 for 1-8, 8 for Space, 9 for O, 10 for P, FFh for none
 read_key:
             ld bc, $F7FE            ; 1-5: bits 0-4
             in a, (c)
@@ -201,9 +239,151 @@ rk_low:
             ld e, 8
             rrca
             jp nc, rk_got
+            ld b, $DF               ; P, O: bits 0, 1
+            in a, (c)
+            ld e, 10
+            rrca
+            jp nc, rk_got
+            ld e, 9
+            rrca
+            jp nc, rk_got
             ld e, $FF
 rk_got:
             ld a, e
+            ret
+
+; ------------------------------------------------------------------ the pictures
+
+; A = picture 0-19: read DOTC_GFX/C?.PIC into the Layer 2 buffer not on show, and
+; its colours into the Layer 2 palette not in use, then show both. If it can't
+; be read, the screen stays as it was and the border turns red.
+load_picture:
+            add a, 'A'
+            ld (pic_name + 10), a   ; the second letter of the name
+            di
+            ld a, '*'               ; the current drive; the name is relative to the current folder
+            ld ix, pic_name
+            ld b, $01               ; read, the file must exist
+            rst $08
+            db F_OPEN
+            jp c, lp_failed
+            ld (pic_handle), a
+            ld a, (back_bank)
+            add a, a
+            ld (lp_pg), a           ; the buffer's first 8K page
+            ld b, 10                ; 81920 bytes: ten 8K pages
+lp_page:
+            push bc
+            ld a, (lp_pg)
+            nextreg $53, a          ; MMU slot 3 (6000h) onto the page
+            ld a, (pic_handle)
+            ld ix, $6000
+            ld bc, $2000
+            rst $08
+            db F_READ
+            pop de
+            jp c, lp_close
+            ld a, b                 ; all 8K?
+            cp $20
+            jp nz, lp_close
+            ld a, c
+            or a
+            jp nz, lp_close
+            ld hl, lp_pg
+            inc (hl)
+            ld b, d
+            djnz lp_page
+            nextreg $53, MMU3_HOME
+            ld a, (pic_handle)      ; the 17 colours
+            ld ix, pic_colours
+            ld bc, 17 * 2
+            rst $08
+            db F_READ
+            jp c, lp_close
+            ld a, c
+            cp 17 * 2
+            jp nz, lp_close
+            ld a, (pic_handle)
+            rst $08
+            db F_CLOSE
+
+            ld a, (back_pal)        ; the colours into the palette not in use:
+            or a                    ; NextReg 43h bits 6-4 = 001 (Layer 2's first) or 101 (second),
+            ld a, $10               ; bit 2 = the one shown, kept
+            jp z, lp_sel
+            ld a, $50
+lp_sel:
+            ld e, a
+            ld a, (back_pal)
+            xor 1                   ; the one shown now
+            add a, a
+            add a, a
+            or e
+            nextreg $43, a
+            nextreg $40, 0
+            ld hl, pic_colours
+            ld b, 17 * 2
+lp_colour:
+            ld a, (hl)
+            inc hl
+            nextreg $44, a
+            djnz lp_colour
+
+            ld a, 210               ; switch below the picture (in the black band at the bottom)
+            call wait_line
+            ld a, (back_bank)
+            nextreg $12, a          ; the new buffer ...
+            ld a, (back_pal)
+            add a, a
+            add a, a
+            or $10                  ; (writes still aimed at Layer 2's first palette)
+            nextreg $43, a          ; ... and its palette
+            ld bc, LAYER2_PORT
+            ld a, $02               ; Layer 2 on (it is off until the first picture)
+            out (c), a
+            ld a, (back_bank)       ; the other buffer is now the one not on show
+            cp L2_BANK_A
+            ld a, L2_BANK_B
+            jp z, lp_other
+            ld a, L2_BANK_A
+lp_other:
+            ld (back_bank), a
+            ld a, (back_pal)
+            xor 1
+            ld (back_pal), a
+            xor a
+            out ($FE), a
+            ei
+            ret
+
+lp_close:
+            nextreg $53, MMU3_HOME
+            ld a, (pic_handle)
+            rst $08
+            db F_CLOSE
+lp_failed:
+            nextreg $53, MMU3_HOME
+            ld a, 2                 ; red border
+            out ($FE), a
+            ei
+            ret
+
+; wait for the raster to reach line A (NextReg 1Fh: the line's low byte;
+; lines run 0-311, so lines below 56 are ambiguous: use 56-255)
+wait_line:
+            ld e, a
+            ld bc, REG_SELECT
+            ld a, $1F
+            out (c), a
+            inc b
+wl_leave:
+            in a, (c)
+            cp e
+            jp z, wl_leave
+wl_reach:
+            in a, (c)
+            cp e
+            jp nz, wl_reach
             ret
 
 ; ------------------------------------------------------------------ the interrupts
@@ -281,7 +461,14 @@ ctc_acc:    dw 0
 key_songs:  db 5, 6, 4, 2, 0, 3, 7, 1
 cur_key:    db 0
 last_key:   db $FF
-palette:    incbin "../build/title.pal"
+cur_pic:    db 0
+back_bank:  db L2_BANK_A        ; the Layer 2 buffer not on show
+back_pal:   db 0                ; the Layer 2 palette not in use (0 first, 1 second)
+pic_handle: db 0
+lp_pg:      db 0
+pic_name:   db "DOTC_GFX/CB.PIC", 0
+pic_colours:
+            ds 17 * 2
 ay_period_tab:
             incbin "../build/ay_period.bin"     ; 1024 words: the AY period for each Tandy tone register
 ay_vol_tab:
