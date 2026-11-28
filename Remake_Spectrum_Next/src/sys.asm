@@ -460,12 +460,12 @@ bk_got:
             ret
 bk_none:
             ld (keys_waiting), hl
-            call key_none
-            xor a
-            ret
+            jp key_none
 
-; no key (the test's model can press Enter here, after a while: then as idle)
+; no key: A = 0 (the test's model can press Enter after a while, or give a key
+; here as this read's: then as idle)
 key_none:
+            xor a
             jp idle
 
 ; 7F5E: keypad + and F1 are Enter (the Next has neither); 7F2A; 7FA7
@@ -762,13 +762,22 @@ load_sprites:
             or (iy + 0)
             ld (scene_has), a
             ret
-scene_files:
-            db 1, 2, SCENE_PAGE, 3  ; the siege: pages 60-62 (the tournament's)
+scene_files:                        ; (the bits of those whose pages it takes)
+            db 1, $3A, SCENE_PAGE, 3        ; 0 the siege: pages 60-62
             dw sn_siege
-            db 2, 1, SCENE_PAGE, 7  ; the tournament: 60-66
+            db 2, $39, SCENE_PAGE, 7        ; 1 the tournament: 60-66
             dw sn_tourn
-            db 4, 0, SCENE_PAGE + 7, 12     ; the lane: 67-78
+            db 4, $18, SCENE_PAGE + 7, 12   ; 2 the lane: 67-78
             dw sn_lane
+            db 8, $37, SCENE_PAGE, 17       ; 3 the ladies: 60-76
+            dw sn_ladies
+            db 16, $2F, SCENE_PAGE, 12      ; 4 the romance: 60-71
+            dw sn_romance
+            db 32, $1B, SCENE_PAGE, 5       ; 5 the window: 60-64
+            dw sn_window
 sn_siege:   db "DOTC_GFX/SIEGE.SPR", 0
 sn_tourn:   db "DOTC_GFX/TOURN.SPR", 0
 sn_lane:    db "DOTC_GFX/LANE.SPR", 0
+sn_ladies:  db "DOTC_GFX/LADIES.SPR", 0
+sn_romance: db "DOTC_GFX/ROMANCE.SPR", 0
+sn_window:  db "DOTC_GFX/WINDOW.SPR", 0

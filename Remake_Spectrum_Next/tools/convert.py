@@ -42,6 +42,7 @@ test (test/run_nex.py) runs it beside the Next's Z80 port to check it.
 
 Usage: python3 convert.py GAME.DAT OUTPUT-FOLDER
 """
+import copy
 import struct
 import sys
 import zlib
@@ -276,17 +277,60 @@ DS_SIZE = 0x6000                 # the data segment as the Next keeps it (4000h-
 PAGE = 0x2000
 
 
-def sprite_blob(items):
+def split_wide(items):
+    """An opaque item larger than a page (the ladies' pictures, Bj 2, 8, 14,
+    20) in strips of whole columns, each within a page: the first keeps its
+    number, the others take free numbers from 64 on; each strip but the last
+    has flags bit 2 and, in adv, the number of the strip to its right (drawn
+    at its x + its w: ov_raid.asm lady_put)."""
+    out = dict(items)
+    spare = 64
+    for i in sorted(items):
+        im = items[i]
+        if im.mask is not None or 6 + im.w * im.h <= PAGE:
+            continue
+        cw = (PAGE - 6) // im.h
+        parts = []
+        for x0 in range(0, im.w, cw):
+            w = min(cw, im.w - x0)
+            part = copy.copy(im)
+            part.w = w
+            part.pix = [im.pix[y * im.w + x0 + x] for y in range(im.h) for x in range(w)]
+            parts.append(part)
+        nums = [i] + list(range(spare, spare + len(parts) - 1))
+        spare += len(parts) - 1
+        if spare > 256 or any(n in items for n in nums[1:]):
+            raise SystemExit(f"no free item numbers for item {i:02X}h's strips")
+        for n, part, nxt in zip(nums, parts, nums[1:] + [0]):
+            part.next = nxt
+            out[n] = part
+    return out
+
+
+def in_runs(im):
+    """a masked item whose masks are each 0 or 15, its see-through pixels 0"""
+    return im.kind != IT_GLYPH and all(m == 0 or (m == 15 and p == 0) for m, p in zip(im.mask, im.pix))
+
+
+def sprite_blob(items, runs=False):
     """a sprite file for the Next: for each of 256 items 3 bytes, its 8K page in the
     blob and its address there (0, 0: none), then the items, none across a page:
-    kind, flags (bit 0: masked), w (word),
+    kind, flags (bit 0: masked; bit 1: in runs, below), w (word),
     h, adv (the glyph's width word / 2 + 1, the original's advance), then the
     pixels column by column (Layer 2 320x256 keeps its columns whole): for each
     column its h pixels, top to bottom. A masked item has, for each column,
     the row its span starts at and the span's length (the rows above and below
     are see-through: mask 15, pixel 0), then each of the span's pixels as its
-    mask byte and the pixel"""
+    mask byte and the pixel.
+
+    With runs (the scenes' and the battle's sprites, whose masks are each 0 or
+    15, a see-through pixel 0): a masked item's column is its span's first row
+    and length, the bytes after these four (a word), then the span as runs: so
+    many solid pixels and the pixels, then so many see-through rows, and so on
+    (gfx.asm bl_runs copies the solid ones whole). The territories' shapes
+    (set_region_colour reads their pixels) and the letters keep the pairs."""
     blob = bytearray(768)
+    items = split_wide(items)
     for i in sorted(items):
         im = items[i]
         data = bytearray()
@@ -296,11 +340,29 @@ def sprite_blob(items):
                 continue
             seen = [y for y in range(im.h) if not (im.mask[y * im.w + x] == 15 and im.pix[y * im.w + x] == 0)]
             first, n = (seen[0], seen[-1] - seen[0] + 1) if seen else (0, 0)
+            if runs and in_runs(im):
+                col = bytearray()
+                y = first
+                while y < first + n:
+                    y0 = y
+                    while y < first + n and im.mask[y * im.w + x] == 0:
+                        y += 1
+                    col += bytes([y - y0]) + bytes(im.pix[k * im.w + x] for k in range(y0, y))
+                    if y < first + n:
+                        y0 = y
+                        while im.mask[y * im.w + x] == 15:
+                            y += 1
+                        col += bytes([y - y0])
+                data += bytes([first, n, len(col) & 255, len(col) >> 8]) + col
+                continue
             data += bytes([first, n])
             for y in range(first, first + n):
                 data += bytes([im.mask[y * im.w + x], im.pix[y * im.w + x]])
-        adv = (im.adv >> 1) + 1 if im.kind == IT_GLYPH else 0
-        item = bytes([im.kind, 1 if im.mask is not None else 0, im.w & 255, im.w >> 8, im.h, adv]) + data
+        adv = (im.adv >> 1) + 1 if im.kind == IT_GLYPH else getattr(im, "next", 0)
+        flags = (1 if im.mask is not None else 0) | (4 if getattr(im, "next", 0) else 0)
+        if runs and im.mask is not None and in_runs(im):
+            flags |= 2
+        item = bytes([im.kind, flags, im.w & 255, im.w >> 8, im.h, adv]) + data
         if len(item) > PAGE:
             raise SystemExit(f"sprite item {i:02X}h is larger than 8K")
         if len(blob) % PAGE + len(item) > PAGE:
@@ -614,10 +676,11 @@ def main():
     (out / "spr_font.bin").write_bytes(sprite_blob(sprites[F_FONT]))
     (out / "spr_chars.bin").write_bytes(sprite_blob(sprites[F_CHARS]))
     (out / "spr_portraits.bin").write_bytes(sprite_blob(sprites[F_PORTRAITS]))
-    (out / "spr_sword.bin").write_bytes(sprite_blob(sprites[5]))         # Ba: the sword fight, the battle's men
+    (out / "spr_sword.bin").write_bytes(sprite_blob(sprites[5], runs=True))   # Ba: the sword fight, the battle's men
     (out / "spr_end.bin").write_bytes(sprite_blob(sprites[6]))           # Bb: THE END, the bars, the sparks
-    for name, f in (("SIEGE", 7), ("TOURN", 3), ("LANE", 4)):             # the scenes' own, read from the card
-        (sd / f"{name}.SPR").write_bytes(sprite_blob(sprites[f]))
+    for name, f in (("SIEGE", 7), ("TOURN", 3), ("LANE", 4),             # the scenes' own, read from the card
+                    ("LADIES", 8), ("ROMANCE", 9), ("WINDOW", 10)):
+        (sd / f"{name}.SPR").write_bytes(sprite_blob(sprites[f], runs=True))
     (out / "tourn_scripts.bin").write_bytes(tourn_scripts(dat))
     (out / "speaker.bin").write_bytes(speaker_tunes(dat))
     bg = dat_file(dat, "BG")

@@ -32,7 +32,11 @@ REF_MARKS=../../build/ref/siege.marks REF_DS=../../build/ref/siege_ds.bin \
 ./ref $GAME ../../build/ref/siege.rec 230.5 70:4D 71:50 72:1C 110:50 111:1C 113:1C 115:4D 116:1C   # a siege of Norfolk
 REF_POLL=110 REF_MARKS=../../build/ref/tourn.marks REF_DS=../../build/ref/tourn_ds.bin \
 ./ref $GAME ../../build/ref/tourn.rec 165 70:4D 71:50 72:1C                         # Hold Tournament
+REF_POLL=114 REF_POLL_N=20 REF_MARKS=../../build/ref/raid.marks REF_DS=../../build/ref/raid_ds.bin \
+./ref $GAME ../../build/ref/raid.rec 145.9 70:4D 71:50 72:1C 110:50 110.3:50 110.6:1C 112:4B 112.5:50 113:1C   # Go Raiding
+REF_POKE="107:53=3,494=B,4D=1,111=1" REF_POLL=108 REF_POLL_N=4 REF_MARKS=../../build/ref/rescue.marks \
+REF_DS=../../build/ref/rescue_ds.bin ./ref $GAME ../../build/ref/rescue.rec 235.2 70:4D 71:50 72:1C            # a rescue
 ./dump_tandy $GAME /tmp/tandy_sprites.bin
 python3 check_sprites.py $GAME/GAME.DAT /tmp/tandy_sprites.bin
 ```
-Each key is `seconds:scan code` (the PC's, in hex). With `REF_AUTO=seconds`, from then on each wait for a key at a menu gets Enter after 1 s (its times written to `REF_MARKS`); `REF_DS_AT=n` writes the data segment to `REF_DS` at the n-th such Enter and ends the run there. `../run_nex.py` then runs the Next's program with the same keys and checks that it shows the same screens.
+Each key is `seconds:scan code` (the PC's, in hex). With `REF_AUTO=seconds`, from then on each wait for a key at a menu gets Enter after 1 s (its times written to `REF_MARKS`); `REF_DS_AT=n` writes the data segment to `REF_DS` at the n-th such Enter and ends the run there. With `REF_POLL=seconds`, from then on each read of the keys that has gone a second without one gets Enter (or the next of `REF_POLL_KEYS`, hex scan codes); `REF_POKE=seconds:addr=word,...` writes words into the data segment then. With `REF_POLL_N=n` too, reads a frame apart (a sword fight's, 30 ms to 0.25 s after the read before) get it at the n-th of such a run instead: the Next's program reads the keys at the same moments of a fight, so the two fight it the same way however fast each draws. `../run_nex.py` then runs the Next's program with the same keys and checks that it shows the same screens.

@@ -125,6 +125,8 @@ class Next:
         self.poll_from = None            # from then on (s), Enter after 1 s of reading the keys without one
         self.poll_since = self.poll_last = None
         self.poll_keys = []              # those Enters: these keys first
+        self.poll_quick = False
+        self.poll_n, self.poll_count = 0, 0   # poll_n: instead, at the poll_n-th poll without one (REF_POLL_N)
         self.marks = []                  # the times of those Enters
         self.pokes = []                  # (s, address, word): written to the data segment then
         self.m.set_input_callback(self.port_in)
@@ -159,17 +161,32 @@ class Next:
         return out
 
     def key_polled(self):
-        """no key (bios_key): Enter after 1 s of polls less than 0.1 s apart, from poll_from on"""
+        """no key (bios_key): Enter after 1 s of polls less than 0.1 s apart, from poll_from on
+        (poll_n: polls a frame apart, 30 ms to 0.25 s, at the poll_n-th of such a run since the last given,
+        as REF_POLL_N)"""
         t = self.t / CPU_HZ
         while self.pokes and t >= self.pokes[0][0]:
             _, a, w = self.pokes.pop(0)
             self.ds_poke(a, w)
         if self.poll_from is None or self.release_at is not None:
             return
-        if self.poll_last is None or t - self.poll_last > 0.1:
+        paced = self.poll_n and self.poll_last is not None and t - self.poll_last >= 0.03
+        if not paced and self.poll_quick or self.poll_last is not None and t - self.poll_last > 0.25:
+            self.poll_count = 0          # (a run of polls a frame apart, each frame's flush aside: from its first)
+        self.poll_quick = not paced
+        if self.poll_last is None or t - self.poll_last > 0.1 or paced:
             self.poll_since = t
         self.poll_last = t
+        if paced and t >= self.poll_from:
+            self.poll_count += 1
+        if t >= self.poll_from and self.poll_n and self.poll_count >= self.poll_n:
+            self.poll_count = 0      # (as the reference: this read gets it)
+            key = self.poll_keys.pop(0) if self.poll_keys else "ENTER"
+            self.poll_since = t
+            self.marks.append(t)
+            return SCAN[key]
         if t >= self.poll_from and t - self.poll_since >= 1.0:
+            self.poll_count = 0
             key = self.poll_keys.pop(0) if self.poll_keys else "ENTER"
             self.keys, self.release_at = {key}, self.t + int(0.08 * CPU_HZ)
             self.poll_since = t
@@ -210,6 +227,9 @@ class Next:
 
     def remap(self, s, p):
         self._save(s)
+        for s2 in range(8):              # (the same page in another slot: as written there, as the Next's one memory)
+            if s2 != s and self.mmu[s2] == p:
+                self._save(s2)
         self.mmu[s] = p
         self._load(s)
 
@@ -415,8 +435,8 @@ class Next:
             elif pc == L["key_wait"]:
                 self.ret()
                 self.key_waiting()
-            elif pc == L["key_none"]:   # (then as idle)
-                self.key_polled()
+            elif pc == L["key_none"]:   # (then as idle: A the key this read gets, 0 none)
+                m.a = self.key_polled() or 0
                 self.ret()
                 if m.iff1 and self.next_int is not None and self.t < self.next_int:
                     self.t = self.next_int
@@ -830,6 +850,73 @@ TOURN_RIDE_IN = 133.3                   # the reference's knights ride in (its t
 DS_TOURN = [("the tournament", 0x3D, 0x43), ("the beats", 0x5F, 0x67), ("the joust", 0xD0C, 0xD24)]
 
 
+def raid(build, ref_dir, L):
+    """Go Raiding at the first orders: the castle of side 3 (territory 8, left
+    and down from home), The Raid, the attack at night with the guards and
+    the two behind, Enter (a thrust) each second until the player is captured
+    and ransomed, then the next month to its orders (the reference's raid.rec)"""
+    nex = build / "sd" / "DOTC" / "DOTC.NEX"
+    nx = Next(nex, L, build / "sd" / "DOTC")
+    ref = read_rec(ref_dir / "raid.rec")
+    nx.run(until=lambda: bool(nx.frames))
+    d = nx.frames[0][0] - ref[0][0]
+    nx.poll_from, nx.poll_n = RAID_POLL + d, 20
+    press_keys(nx, SHERWOOD_KEYS + RAID_KEYS, ref)
+    ref_marks = [float(x) for x in (ref_dir / "raid.marks").read_text().split()]
+    nx.run(until=lambda: nx.frames[-1][1] == ref[-1][1] and nx.t / CPU_HZ > RAID_POLL + 20,
+           seconds=ref[-1][0] + d + 20.0)
+    n, shown, ref_shown, worst = compare("raid", nx.shown(), ref, build / "check", slack=2.0, early=CHOICE_UP,
+                                         marks=(nx.marks, ref_marks))
+    print(f"8. Go Raiding (the castle chosen, the attack at night, a thrust a second until captured, then the "
+          f"next month to its orders): the reference's {n} different screens, pixel for pixel, first shown within "
+          f"{worst * 1000:.0f} ms of its ({shown} screens shown, the reference {ref_shown})")
+    want, got = (ref_dir / "raid_ds.bin").read_bytes(), nx.data_segment()
+    for name, lo, hi in DS_CHECKED + DS_WAR + DS_RAID:
+        diff = [o for o in range(lo, hi) if got[o] != want[o]]
+        assert not diff, f"{name}: the data segment differs at " + ", ".join(f"{o:04X}h ({got[o]:02X}, the reference {want[o]:02X})" for o in diff[:8])
+    print("8. the data segment then: as the reference's")
+
+
+def rescue(build, ref_dir, L):
+    """A lady kidnapped (Rosalind of Bedford, held at Norfolk, the Norman of
+    side 4, whose swordplay is made 1), Robin's help asked: a computer lord's
+    tournament first, then the offer at the player's month, taken; The
+    Attack and The Defense won (Enter, a thrust, every 4th frame of a
+    fight), the romance (the lady, the bedchamber, the window), her ward's
+    land the player's, then the next month to its orders (rescue.rec)"""
+    nex = build / "sd" / "DOTC" / "DOTC.NEX"
+    nx = Next(nex, L, build / "sd" / "DOTC")
+    ref = read_rec(ref_dir / "rescue.rec")
+    nx.run(until=lambda: bool(nx.frames))
+    d = nx.frames[0][0] - ref[0][0]
+    nx.pokes = [(RESCUE_POKE_AT + d, a, w) for a, w in RESCUE_POKES]
+    nx.poll_from, nx.poll_n = RESCUE_POLL + d, 4
+    press_keys(nx, SHERWOOD_KEYS, ref)
+    ref_marks = [float(x) for x in (ref_dir / "rescue.marks").read_text().split()]
+    nx.run(until=lambda: nx.frames[-1][1] == ref[-1][1] and nx.t / CPU_HZ > RESCUE_POLL + 60,
+           seconds=ref[-1][0] + d + 30.0)
+    # (the computer lord's tournament: its knights ride in when the Tandy music ends, before the reference's
+    # speaker timing; and the Next draws the outcome over the stands slower)
+    n, shown, ref_shown, worst = compare("rescue", nx.shown(), ref, build / "check", slack=6.0, early=CHOICE_UP,
+                                         marks=(nx.marks, ref_marks))
+    print(f"9. a rescue (a computer lord's tournament, the offer taken, The Attack and The Defense won, the "
+          f"romance, then the next month to its orders): the reference's {n} different screens, pixel for pixel, "
+          f"first shown within {worst * 1000:.0f} ms of its ({shown} screens shown, the reference {ref_shown})")
+    want, got = (ref_dir / "rescue_ds.bin").read_bytes(), nx.data_segment()
+    for name, lo, hi in DS_CHECKED + DS_WAR + DS_RAID + DS_TOURN:
+        diff = [o for o in range(lo, hi) if got[o] != want[o]]
+        assert not diff, f"{name}: the data segment differs at " + ", ".join(f"{o:04X}h ({got[o]:02X}, the reference {want[o]:02X})" for o in diff[:8])
+    print("9. the data segment then: as the reference's")
+
+
+RESCUE_POKE_AT = 107.0
+RESCUE_POKES = [(0x53, 3), (0x494, 0x0B), (0x4D, 1), (0x111, 1)]   # lady 3 kidnapped, at Norfolk; Robin; side 4's swordplay
+RESCUE_POLL = 108.0
+RAID_POLL = 114.0
+RAID_KEYS = [(110.0, "2"), (110.3, "2"), (110.6, "ENTER"), (112.0, "4"), (112.5, "2"), (113.0, "ENTER")]  # Go Raiding, left, down: 8
+DS_RAID = [("the raid", 0x8C7, 0x8C9), ("the fight", 0xAF2, 0xB32)]
+
+
 def conquest(build, ref_dir, L):
     """the player's orders on the map: Read Map (Lincolnshire), Seek Conquest:
     Transfer Forces (4 soldiers), then the campaign army sent into Lincolnshire,
@@ -898,6 +985,8 @@ def press_keys(nx, keys, ref, at=None):
 CHOICE_UP = (67.9, 70.0)
 
 # the keys for the reference's sherwood.rec (test/ref/README.md): keypad 6, 2, Enter
+SCAN = {"ENTER": 0x1C, "SPACE": 0x39, "S": 0x1F, "7": 0x47, "8": 0x48, "9": 0x49, "4": 0x4B, "5": 0x4C,
+        "6": 0x4D, "1": 0x4F, "2": 0x50, "3": 0x51}     # the game's scan codes (key_table)
 SHERWOOD_KEYS = [(70.0, "6"), (71.0, "2"), (72.0, "ENTER")]
 SHERWOOD_END = 103.2                    # the reference goes on to the first month at 103.3 s
 
@@ -914,6 +1003,8 @@ def main():
     conquest(build, ref_dir, L)
     siege(build, ref_dir, L)
     tournament(build, ref_dir, L)
+    raid(build, ref_dir, L)
+    rescue(build, ref_dir, L)
     print("all checks passed")
 
 

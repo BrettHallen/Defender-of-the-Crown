@@ -349,6 +349,18 @@ bombard:                            ; A: the territory -> A: the castle's protec
             db OV_SIEGE
             dw $2000
 
+go_raiding:                         ; -> A: 1 if the month goes on
+            call ovl_go
+            db OV_RAID
+            dw $2000
+rescue_offer:                       ; -> A: 1 if the player sets out to rescue her
+            call ovl_go
+            db OV_RAID
+            dw $2003
+ask_robin:                          ; See Robin (Sherwood chosen)
+            call ovl_go
+            db OV_CONQ
+            dw $200C
 tournament:                         ; A: the side holding it -> A: 1 if held
             call ovl_go
             db OV_TOURN
@@ -467,6 +479,7 @@ bl_stride:  dw 0
 bl_next_src: dw 0
 bl_pairs:   dw 0
 bl_n:       db 0
+bl_left:    db 0                ; a column in runs: its rows still to draw
 bl_col:     dw 0
 sv_w:       db 0                ; saving a rectangle
 sv_h:       db 0

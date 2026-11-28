@@ -305,8 +305,8 @@ bl_column:
             cp 320 - 256
             jp nc, bl_done
 bl_on:
-            ld a, (bl_masked)
-            or a
+            ld a, (bl_masked)       ; (flags bit 0; bit 2: a strip continued in item adv)
+            and 1
             jp nz, bl_spanned
             ld a, (bl_dest)
             ld d, a
@@ -357,12 +357,25 @@ bl_span:
             inc hl
             ld b, (hl)              ; the length
             inc hl
+            ld a, (bl_masked)
+            and 2
+            jp z, bl_span_pairs
+            ld e, (hl)              ; in runs: the next column's after so many bytes
+            inc hl
+            ld d, (hl)
+            inc hl
+            push hl
+            add hl, de
+            pop de
+            jp bl_span_set
+bl_span_pairs:
             push hl
             ld l, b                 ; the next column's: after 2 * length bytes
             ld h, 0
             add hl, hl
             pop de
             add hl, de
+bl_span_set:
             ld (bl_next_src), hl
             ld (bl_pairs), de
             ld a, b
@@ -396,6 +409,9 @@ bl_span_fits:
             pop bc
             ex de, hl               ; DE: the screen, HL: the pairs
             ld hl, (bl_pairs)
+            ld a, (bl_masked)
+            and 2
+            jp nz, bl_runs
             ld a, (bl_op)
             cp OP_MASKED
             jp z, bl_mask
@@ -427,6 +443,143 @@ bl_mask:
             ld (de), a
             inc e
             djnz bl_mask
+            jp bl_span_next
+
+; a column in runs: B rows of it (at least 1) at DE, from HL: so many solid
+; pixels (copied, or XORed), then so many see-through rows, and so on (put
+; whole: its see-through rows were cleared above)
+bl_runs:
+            ld a, b
+            ld (bl_left), a
+br_run:
+            ld c, (hl)              ; the solid pixels (no more than the rows left)
+            inc hl
+            ld a, (bl_left)
+            cp c
+            jp nc, br_whole
+            ld c, a
+br_whole:
+            sub c
+            ld (bl_left), a
+            ld a, c
+            or a
+            jp z, br_gap
+            ld a, (bl_op)
+            cp OP_XOR
+            jp z, br_xor
+            ld a, c
+            call ldi_n
+            jp br_gap
+br_xor:
+            ld b, c
+br_xor_px:
+            ld a, (de)
+            xor (hl)
+            ld (de), a
+            inc hl
+            inc de
+            djnz br_xor_px
+br_gap:
+            ld a, (bl_left)         ; the see-through rows: skipped
+            or a
+            jp z, bl_span_next
+            sub (hl)
+            jp c, bl_span_next
+            jp z, bl_span_next
+            ld (bl_left), a
+            ld a, e
+            add a, (hl)
+            ld e, a
+            inc hl
+            jp br_run
+
+; A bytes (1-255) from HL to DE, as LDIs (16 T-states a byte)
+ldi_n:
+            cp 65
+            jp c, ldi_last
+            sub 64
+            push af
+            call ldi_64
+            pop af
+            jp ldi_n
+ldi_last:
+            push hl
+            ld hl, ldi_end
+            ld c, a
+            ld b, 0
+            or a
+            sbc hl, bc
+            sbc hl, bc
+            ex (sp), hl
+            ret                     ; into the LDIs: the last of them returns from ldi_n
+ldi_64:
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+            ldi
+ldi_end:
+            ret
+
 bl_span_next:
             ld hl, (bl_next_src)
             ld (bl_src), hl

@@ -23,6 +23,7 @@ T_NB          EQU 8
             jp o_read_map           ; 2003h: read_map -> A: 0
             jp o_seek_conquest      ; 2006h: seek_conquest -> A: 1 if the month goes on
             jp o_choose_territory   ; 2009h: choose_territory (A: from) -> A: the territory
+            jp see_robin            ; 200Ch: ask_robin
 
 ; ------------------------------------------------------------------ choosing a territory (4142)
 

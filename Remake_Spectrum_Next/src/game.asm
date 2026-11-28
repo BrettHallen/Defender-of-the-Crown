@@ -1461,6 +1461,8 @@ orders_menu:
             jp z, om_tournament
             cp 2
             jp z, seek_conquest
+            cp 3
+            jp z, go_raiding
             cp 4
             jp z, buy_army
             cp 5
@@ -1469,7 +1471,7 @@ orders_menu:
             jp z, om_pass
             cp 7
             jp z, options_menu
-            xor a                   ; (Go Raiding: still to come)
+            xor a
             ret
 om_tournament:
             ld a, (DSEG + D_PLAYER)
@@ -1493,9 +1495,6 @@ om_pass:
 
 ; 4316: at the start of the player's month, if a Norman has kidnapped a lady
 ; (the raid comes with Go Raiding: none is kidnapped yet)
-rescue_offer:
-            xor a
-            ret
 
 
 ; ------------------------------------------------------------------ the month (1B44)

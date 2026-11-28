@@ -30,6 +30,9 @@ SCENE_PAGE  EQU 60              ; after the opening: the scenes' sprites (load_s
 SIEGE_PAGE  EQU SCENE_PAGE      ; Be (3 pages)
 TOURN_PAGE  EQU SCENE_PAGE      ; BX (7)
 LANE_PAGE   EQU SCENE_PAGE + 7  ; BY (12)
+LADIES_PAGE EQU SCENE_PAGE      ; Bj (17), Bk (12), Bl (5): each loaded when its part of the romance comes
+ROMANCE_PAGE EQU SCENE_PAGE
+WINDOW_PAGE EQU SCENE_PAGE
 SAVE_PAGE   EQU SCENE_PAGE + 3  ; the back page saved (gfx_copy_page(PAGE_SAVE, ...)): 8 pages
 NUM_SLOTS   EQU 12              ; the sprite slots (gfx.asm): 8 bytes each
 SLOT_SIZE   EQU 8
@@ -39,6 +42,7 @@ OV_WAR      EQU 3
 OV_CONQ     EQU 4
 OV_SIEGE    EQU 19
 OV_TOURN    EQU 23
+OV_RAID     EQU 1               ; (bank 0's upper half)
 HI_TAB      EQU DSEG + $5C00    ; 256 bytes: each byte's high nibble (picture_to)
 STACK_TOP   EQU $DE00
 TOP         EQU 28              ; the picture's first row in Layer 2's 256

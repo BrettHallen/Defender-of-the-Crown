@@ -116,7 +116,10 @@ void sys_set_speed(double s) { (void)s; }
  * segment once the clock passes then (the same state for the Next's test).
  * REF_POLL=seconds: from then on, keys read for 1 s without one (polls less
  * than 0.1 s apart) get Enter (its time written to REF_MARKS too), or the
- * next of REF_POLL_KEYS. */
+ * next of REF_POLL_KEYS. REF_POLL_N=n: reads a frame apart (30 ms to 0.25 s
+ * after the one before: a sword fight's, each frame's flush_keys aside) get it
+ * at the n-th of such a run since the last given instead (the same reads in the Next's program: the same moves in the
+ * fight, however fast each draws its frames); quicker ones as before. */
 static void pokes_due(void)
 {
     static const char *p;
@@ -149,11 +152,19 @@ int bios_key(void)
     static const char *pf;
     static double since = -1, last = -1;
     if (!pf) pf = getenv("REF_POLL") ? getenv("REF_POLL") : "";
+    static int every = -1, count;
+    if (every < 0) every = getenv("REF_POLL_N") ? atoi(getenv("REF_POLL_N")) : 0;
     if (!k && *pf) {
         double t = vt / 1e9;
-        if (t - last > 0.1) since = t;
+        static int quick;              /* the read before was quick too: a busy wait, not a frame's */
+        int paced = every && last >= 0 && t - last >= 0.03;
+        if (!paced && quick || t - last > 0.25) count = 0;   /* (a run of reads a frame apart: from its first) */
+        quick = !paced;
+        if (t - last > 0.1 || paced) since = t;
         last = t;
-        if (t >= atof(pf) && t - since >= 1.0) {
+        if (paced && t >= atof(pf)) count++;
+        if (t >= atof(pf) && (every && count >= every || t - since >= 1.0)) {
+            count = 0;
             static const char *pk;      /* REF_POLL_KEYS=1C,50,...: these first (hex scan codes), then Enter */
             if (!pk) pk = getenv("REF_POLL_KEYS") ? getenv("REF_POLL_KEYS") : "";
             k = KEY_ENTER;

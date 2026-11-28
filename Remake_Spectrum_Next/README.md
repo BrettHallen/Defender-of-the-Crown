@@ -27,6 +27,8 @@ Then the game itself begins, month by month:
 - the computer lords' turns: each picks its order (buy, march on a target, a Norman's raid, go home), and their armies fight it out on the map;
 - a battle where your castle or army is attacked: the tactics menu (Up, Down, Enter) and the men fighting, round by round;
 - **Hold Tournament** (5 gold), and the computer lords' tournaments: the trumpeters' fanfare, then up to three rounds. Each round you choose the stakes, Fame (your leadership) or Land (a territory without a castle), and your opponent. The knights ride in, then the joust down the lane: after Enter, the keypad or cursor keys steer your lance's point (7 8 9 up, 1 2 3 down, 4 and 6 sideways) at the oncoming knight's shield, and the outcome plays out over the stands. Each key press moves the point one step (2 sideways, 4 up or down) while the gallop bobs it, so tap rather than hold. A hit is judged as the Tandy program does: however much better your opponent jousts, a narrow hit always wins (the Mac remake, as the EGA program, allows none then). The computer lords call tournaments from 1150 on: each Saxon with 5 gold has about a 1 in 8 chance a month when it isn't marching home or buying. A near miss runs again; striking the horse means disgrace. **S** skips the fanfare and the knights riding in;
+- **Go Raiding**: choose another lord's home castle (Sherwood asks Robin, whose help makes you stronger), then the attack at night against the guards, with two more fighting behind you, and in the hall against the lord himself. In the sword fight **Enter** thrusts, 8 raises the sword, 2 parries, and 7 4 1 step back and 9 6 3 forward with the sword raised, in the middle or parrying (the cursor keys: up raises, down parries, left and right step); the strength bars show who's winning. Win and you take half his gold; lose and you're captured and pay a ransom; retreat and lose your leadership;
+- **a kidnapped lady**: at the start of your month, the offer to rescue her from the Norman holding her. Win both fights and the romance follows: the lady, the bedchamber by the fire, the window; she is yours, with her ward's land;
 - **Your Orders?**: the keypad or cursor keys move the bar, **Enter** chooses, **Left** and **Right** change the amounts in Buy Home Army and Transfer Forces. Held, a key repeats, as on the PC, and as with the PC's keyboard buffer a key pressed and let go between the game's reads still counts (the keyboard is read 60 times a second in the interrupt):
   - **Seek Conquest**: send your campaign army into a neighbouring territory (with Robin's men, if you asked him), Transfer Forces, Read Map, See Robin; safe passage through a friendly Saxon's land, and battles;
   - **a siege**: marching on a lord's castle with a catapult brings up the bombardment. Choose the ammunition (Up, Down, Enter), then pull the catapult back (Up and Down set how far, Enter lets go) and watch the shot fly. Each day's hits wear down the castle's walls, and after the last day your army storms it, against what is left of its protection. Without a catapult, the castle can't be besieged;
@@ -35,7 +37,6 @@ Then the game itself begins, month by month:
   - **Pass** ends your month. **Options** sets the music on or off, starts a new game, or ends this one, which resets the Next back to its menu.
 
 Not yet:
-- **Go Raiding** does nothing yet and brings the menu back, and a kidnapped lady is never offered for rescue.
 - The game's end: winning or losing.
 
 Checked on a real Next so far: the opening, including its pictures, colours, music and keys. The rest has been checked in the emulator test below.
@@ -60,8 +61,9 @@ A note of the music sometimes holds on a little too long: the Mac remake's Tandy
   - **`ov_war.asm`**: the computer lords (`ai.c`), the armies, attacks, battles and the computer lords' sieges (`war.c`);
   - **`ov_conq.asm`**: choosing a territory, Buy Home Army, Read Map and Seek Conquest (`month.c`, `conquest.c`);
   - **`ov_siege.asm`**: the siege's bombardment: the ammunition, the catapult and the shot's flight (`war.c`);
-  - **`ov_tourn.asm`**: the tournament, its rounds, the knights riding in, the joust and its outcome (`tourney.c`).
-- **The scenes' sprites** (`DOTC_GFX/SIEGE.SPR`, `TOURN.SPR`, `LANE.SPR`) are read from the card when a scene first needs them (`load_sprites`), into the pages the opening's pictures leave free once the game begins.
+  - **`ov_tourn.asm`**: the tournament, its rounds, the knights riding in, the joust and its outcome (`tourney.c`);
+  - **`ov_raid.asm`**: Go Raiding, the sword fight, the rescue offer and the romance (`raid.c`), in page 1 (bank 0's other half).
+- **The scenes' sprites** (`DOTC_GFX/SIEGE.SPR`, `TOURN.SPR`, `LANE.SPR`, `LADIES.SPR`, `ROMANCE.SPR`, `WINDOW.SPR`) are read from the card when a scene first needs them (`load_sprites`), into the pages the opening's pictures leave free once the game begins. The ladies' pictures, each larger than an 8K page, are kept in strips side by side. The scenes' and the battle's masked sprites are kept as runs of solid pixels, copied whole, between the see-through ones.
 - **The picture's proportions** (`gfx.asm` `stretch_on`): a copper program, written at the start for the frame's line count (HDMI, VGA, 50 or 60 Hz), sets Layer 2's vertical scroll back by a line every 6 display lines, in the blanking at each line's end, so the picture's 200 lines fill 240.
 - **The sprite slots** (`gfx.asm`): the game's 12 moving sprites, drawn masked over what they cover each frame and taken off again after it, as the Mac remake's `gfx_sprites_draw` and `gfx_sprites_erase`. What they cover is kept in pages 37-39.
   - **`tandy.asm`**: the Tandy music driver (AC 7444-7C53), reading the music data through slot 1 from inside the interrupt.
@@ -75,7 +77,7 @@ A note of the music sometimes holds on a little too long: the Mac remake's Tandy
   | 5-6 | A000h | the code; the interrupt vectors at DF00h, the stack below them |
   | 7 | E000h | the window onto Layer 2's pages, and the files' while loading |
 
-  Pages 2-4, 19 and 23 hold the overlays, 6-9 the sword fight's and battle's sprites, 12-14 the data segment, 16-18 the music, 20-36 the other sprites, 37-39 what the sprite slots cover, 40-59 Layer 2's two buffers, 60-83 the opening's six pictures (then the scenes' sprites), 84-91 the map, and 92-95 any other picture, one at a time. All of it fits in the Next's 1MB. The opening's pictures are read from the card before it starts, so it never waits for the card while it plays. The map is unpacked once, at the start, to a byte a pixel, so the DMA can put it back on the screen in about 10 ms each time the game redraws it.
+  Pages 1-4, 19 and 23 hold the overlays, 6-9 the sword fight's and battle's sprites, 12-14 the data segment, 16-18 the music, 20-36 the other sprites, 37-39 what the sprite slots cover, 40-59 Layer 2's two buffers, 60-83 the opening's six pictures (then the scenes' sprites), 84-91 the map, and 92-95 any other picture, one at a time. All of it fits in the Next's 1MB. The opening's pictures are read from the card before it starts, so it never waits for the card while it plays. The map is unpacked once, at the start, to a byte a pixel, so the DMA can put it back on the screen in about 10 ms each time the game redraws it.
 - **`tools/make_nex.py`** packs the program and its data into `DOTC.NEX`.
 
 The Z80 code follows Tomaž Kragelj's [ZX Spectrum Next Assembly Developer Guide](https://github.com/tomaz/zx-next-dev-guide) for Layer 2, the palette and the AY (Turbosound), Klive IDE's [book](https://kliveide.net/en/book/) for the CTC and the hardware IM2 controller, the Next wiki for the DMA, and the [NextZXOS and esxDOS APIs](https://gitlab.com/thesmog358/tbblue/-/blob/master/docs/nextzxos/NextZXOS_and_esxDOS_APIs.pdf) document for the file calls.
@@ -91,6 +93,8 @@ The Z80 code follows Tomaž Kragelj's [ZX Spectrum Next Assembly Developer Guide
 5. **The map's orders**: Buy Home Army (buying, a refusal, selling back), and Read Map, Transfer Forces and a march into Lincolnshire, each with its keys and the same screens and data segment as the remake.
 6. **A siege**: an army with a catapult sent into Norfolk, the six days' bombardment (each ammunition and pull chosen with keys), the battle at the walls, then the next month up to its orders: the same screens and data segment. A battle's rounds run at about the original's pace (the whole battle about 2% longer than the remake's); the screens are timed from the bombardment's last key.
 7. **A tournament**: Hold Tournament at the first orders, the fanfare, a joust for fame, a near miss and a second pass, then the next month up to its orders: the same screens and data segment. The knights ride in when the tournament's tune ends: on the Next when its Tandy music does, about 4.6 s before the remake's speaker timing, so the screens from there on are timed in their own part. The Next draws the outcome over the stands at about 34 frames a second against the remake's 60, so that part trails by up to 3 s.
+8. **Go Raiding**: side 3's castle chosen on the map, the attack at night, a thrust every 20 frames of the fight (Enter on the 20th read of the keys a frame apart, in both: the same moves whatever each's drawing speed), the player captured and ransomed, then the next month to its orders: the same screens and data segment.
+9. **A rescue**: a kidnapped lady (Rosalind of Bedford, held at Norfolk, its lord's swordplay made 1) and Robin's help asked: a computer lord's tournament, the offer taken, The Attack and The Defense won (a thrust every 4 frames), the romance (the lady's blinks, the bedchamber's three steps by the fire, the window), her ward's land the player's, then the next month to its orders: the same screens and data segment.
 
 The reference's recordings for these are made as `test/ref/README.md` shows.
 
@@ -119,4 +123,5 @@ python3 test/run_nex.py build
 - **On the Mac:** open it in a Next emulator such as [ZEsarUX](https://github.com/chernandezba/zesarux) or [#CSpect](http://www.cspect.org) (CSpect needs Mono on macOS), with `build/sd` as its SD card folder.
 
 ## Next steps
-- Go Raiding with the sword fights and the ladies, and the game's end. Their sprites and pictures will be read from the card for each scene, into the pages the opening's pictures leave free once the game begins.
+- The game's end, winning or losing.
+- Speed: a sword fight frame needs about 35 ms of drawing where the original's pace allows 33, so some of its frames take a refresh longer (about 15% slower). The battles and the joust's outcome are drawn a little slower too.
