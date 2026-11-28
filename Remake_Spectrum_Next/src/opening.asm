@@ -13,21 +13,10 @@
 ; The dialog boxes (7A80) and the texts are the original's, in its data
 ; segment (BH, at DS).
 
-D_FIRST_GAME EQU $002F
-D_TUNE_ONCE  EQU $0035
-D_TUNE_STOP  EQU $0039
-D_PLAYER     EQU $0051
-
-PIC_SCROLL   EQU 0
-PIC_TITLE    EQU 1
-PIC_CAST     EQU 2
-PIC_INTRO    EQU 3
-PIC_CHOOSE   EQU 4
-PIC_SHERWOOD EQU 5
-
 ; ------------------------------------------------------------------ new_game (10B2)
 
 new_game:
+            call seed_random
             ld hl, 0
             ld (DSEG + $67), hl
             ld hl, 1
@@ -95,6 +84,10 @@ ng_twinkle:
             call dialog
             ld hl, $1689
             call dialog
+ng_credit:                          ; the Next's own credit card, after the original's
+            ld hl, cr_box - DSEG
+            call dialog
+ng_credit_end:
             ld a, PIC_CAST
             call show_picture
             call present
@@ -119,7 +112,7 @@ ng_skipped:
             ld a, $97
             call skipped
 ng_choose:
-            call wait_tune          ; (the map's palette and planes: with the map)
+            call wait_tune          ; (the map's palette and planes: kept at the start, map_keep)
             ld a, PIC_CHOOSE
             call show_picture
             call present
@@ -170,9 +163,7 @@ ng_sherwood_skipped:
             ld a, $98
             call skipped
 ng_setup:
-            ld a, $98               ; (the setup of a new game: with the month)
-            ld hl, (DSEG + D_TUNE_STOP)
-            jp play_tune
+            jp game_setup
 
 ; the crown's place on the scroll cleared (fill_rect(20, 61, 42, 78, DDFFh))
 clear_crown:
@@ -201,7 +192,8 @@ skipped:
 ; width, icon (-2: the text only; -3: a box without its frame; -1: the box but
 ; no text), the first and last line to choose from (the first < 0: not a
 ; menu), the line chosen at first, the ticks to wait at the end, then a word:
-; the table of the lines' pointers. (The menus come with the month.)
+; the table of the lines' pointers. A menu returns the line chosen in A (1:
+; the first it can choose); Left and Right set DS:0A9C to -1 or 1 and end it.
 dialog:
             ld de, DSEG
             add hl, de
@@ -217,6 +209,12 @@ dialog:
             ld (dl_wd), a
             ld a, (ix + 4)
             ld (dl_icon), a
+            ld a, (ix + 5)
+            ld (dl_first), a
+            ld a, (ix + 6)
+            ld (dl_last), a
+            ld a, (ix + 7)
+            ld (dl_start), a
             ld a, (ix + 8)
             ld (dl_wait), a
             ld l, (ix + 9)
@@ -421,6 +419,132 @@ dl_eol:
             jp dl_line
 dl_shown:
             call present
+            ld a, (dl_first)
+            bit 7, a
+            jp z, dl_menu
+            call dl_end_wait        ; not a menu: A = the first (< 0)
+            ld a, (dl_first)
+            ret
+dl_menu:
+            call flush_keys
+            ld a, (dl_start)
+            bit 7, a
+            jp z, dl_from
+            ld a, (dl_first)
+dl_from:
+            ld (dl_si), a
+            ld a, $FF
+            ld (dl_prev), a
+            xor a
+            ld (dl_keyv), a
+            ld h, a
+            ld l, a
+            ld (DSEG + $0A9C), hl
+dl_loop:
+            ld a, (dl_keyv)
+            cp $48
+            jp z, dl_up
+            cp $50
+            jp z, dl_down
+            cp $4B
+            jp z, dl_go_left
+            cp $4D
+            jp z, dl_go_right
+            jp dl_moved
+dl_up:
+            ld a, (dl_si)
+            ld hl, dl_first
+            cp (hl)
+            jp z, dl_up_wrap
+            dec a
+            jp dl_set
+dl_up_wrap:
+            ld a, (dl_last)
+            jp dl_set
+dl_down:
+            ld a, (dl_si)
+            ld hl, dl_last
+            cp (hl)
+            jp z, dl_down_wrap
+            inc a
+            jp dl_set
+dl_down_wrap:
+            ld a, (dl_first)
+dl_set:
+            ld (dl_si), a
+            jp dl_moved
+dl_go_left:
+            ld hl, $FFFF
+            jp dl_lr
+dl_go_right:
+            ld hl, 1
+dl_lr:
+            ld a, (dl_start)        ; only where a line is chosen at first, and not with icon 1
+            bit 7, a
+            jp nz, dl_moved
+            ld a, (dl_icon)
+            cp 1
+            jp z, dl_moved
+            ld (DSEG + $0A9C), hl
+dl_moved:
+            ld a, (dl_si)           ; the bar moves
+            ld hl, dl_prev
+            cp (hl)
+            jp z, dl_present
+            ld a, (hl)
+            cp $FF
+            call nz, dl_bar
+            ld a, (dl_si)
+            ld (dl_prev), a
+            call dl_bar
+dl_present:
+            call present
+            ld hl, (DSEG + $0A9C)
+            ld a, h
+            or l
+            jp nz, dl_chosen
+            call wait_key
+            ld (dl_keyv), a
+            cp KEY_ENTER
+            jp nz, dl_loop
+dl_chosen:
+            ld a, (dl_si)           ; the bar off
+            call dl_bar
+            call present
+            call dl_end_wait
+            ld a, (dl_first)
+            ld c, a
+            ld a, (dl_si)
+            sub c
+            inc a
+            ret
+
+; the bar over line A XORed: xor_rect3(x0 + 4, (A + 1) * 11 + y0, width - 8, 11, FFFFh)
+dl_bar:
+            inc a
+            ld c, a
+            add a, a
+            add a, a
+            add a, a
+            add a, c
+            add a, c
+            add a, c
+            ld hl, dl_y0
+            add a, (hl)
+            ld (rc_y), a
+            ld a, 11
+            ld (rc_h), a
+            ld a, (dl_x0)
+            add a, 4
+            ld (rc_x), a
+            ld a, (dl_wd)
+            sub 8
+            ld (rc_w), a
+            ld hl, $FFFF
+            ld (rc_colour), hl
+            jp xor_rect3
+
+dl_end_wait:
             ld a, (dl_wait)
             ld l, a
             ld h, 0
@@ -562,6 +686,15 @@ tw_slot:
             ret
 
 ; the six sparkles: x, y, the ticks after
+; the Next's own credit card: a box as the credits' (1689: no frame, 54 ticks),
+; kept here (the dialog's offsets reach it past the data segment)
+cr_box:     db $14, $48, 3, $2E, $FD, $FF, $00, $FF, $36
+            dw cr_lines - DSEG
+cr_lines:   dw cr_l1 - DSEG, cr_l2 - DSEG, cr_l3 - DSEG
+cr_l1:      db "  ZX Spectrum Next remake", 0
+cr_l2:      db "    using Claude Opus 5.5,", 0
+cr_l3:      db "          Nov. 2026", 0
+
 twinkles:
             dw 55
             db 67, 9

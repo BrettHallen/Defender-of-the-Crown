@@ -13,7 +13,8 @@ the program loads them.
               (the upper half of bank 2 and the lower of bank 0, where the
               .nex loader puts them at A000h-DFFFh)
   PAGE:FILE   a file from 8K page PAGE on (the data segment, the music, the
-              sprite files: see src/main.asm)
+              sprite files: see src/main.asm); a .ovl file is an overlay,
+              assembled at 2000h: its one page
 
 Usage: python3 make_nex.py CODE.BIN OUT.NEX [PAGE:FILE ...]
 """
@@ -22,6 +23,7 @@ import sys
 from pathlib import Path
 
 ORG = 0xA000
+OVL = 0x2000                                    # where the overlays run
 PAGE = 8192
 BANK = 16384
 ORDER = [5, 2, 0, 1, 3, 4] + list(range(6, 112))   # the order banks are stored in
@@ -43,6 +45,11 @@ def main():
     for arg in sys.argv[3:]:
         first, name = arg.split(":", 1)
         data = Path(name).read_bytes()
+        if name.endswith(".ovl"):                   # an overlay, assembled at 2000h (slot 1)
+            if len(data) > OVL and not any(data[:OVL]):
+                data = data[OVL:]
+            if len(data) > PAGE:
+                raise SystemExit(f"{name} is {len(data)} bytes: more than its 8K page")
         for k in range(0, len(data), PAGE):
             p = int(first) + k // PAGE
             if p in pages:

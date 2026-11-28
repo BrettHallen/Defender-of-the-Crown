@@ -20,5 +20,13 @@ fi
 mkdir -p build
 python3 tools/convert.py "$GAME_DAT" build
 zxbasm --zxnext src/main.asm -o build/main.bin -M build/main.map
+python3 tools/syms.py build/main.map build/main_syms.asm      # the program's labels, for the overlays
+OVERLAYS=""
+for ov in setup:2 war:3 conq:4 siege:19 tourn:23; do                                         # each overlay and its page (src/defs.asm OV_...)
+    name=${ov%%:*}; page=${ov##*:}
+    zxbasm --zxnext src/ov_$name.asm -o build/ov_$name.ovl -M build/ov_$name.map
+    OVERLAYS="$OVERLAYS $page:build/ov_$name.ovl"
+done
 python3 tools/make_nex.py build/main.bin build/sd/DOTC/DOTC.NEX \
-    12:build/ds.bin 16:build/bg.bin 20:build/spr_font.bin 24:build/spr_chars.bin
+    12:build/ds.bin 16:build/bg.bin 20:build/spr_font.bin 22:build/spr_chars.bin \
+    24:build/spr_portraits.bin 6:build/spr_sword.bin 15:build/spr_end.bin $OVERLAYS

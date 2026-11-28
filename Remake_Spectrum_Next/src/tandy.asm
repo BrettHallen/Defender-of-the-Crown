@@ -38,8 +38,8 @@ V_SIZE      EQU 32
 ; ------------------------------------------------------------------ BG access
 
 ; HL = the word at BG offset HL (BC, DE kept). BG is in its own pages
-; (BG_PAGE on); each byte is read through slot 1 (2000h-3FFFh), which is the
-; ROM again afterwards: only this driver uses it (and esxDOS, with interrupts off).
+; (BG_PAGE on); each byte is read through slot 1 (2000h-3FFFh), which is as it
+; was again afterwards (ovl_cur: the ROM, or the overlay that runs there).
 bgw:
             push de
             call bg_byte
@@ -48,7 +48,8 @@ bgw:
             call bg_byte
             ld d, a
             ex de, hl
-            nextreg $51, $FF
+            ld a, (ovl_cur)         ; slot 1 as it was: the ROM or an overlay
+            nextreg $51, a
             pop de
             ret
 

@@ -22,11 +22,14 @@ music is kept in the repository.
   rgb16.bin   the Tandy's 16 colours as the Next's (NextReg 44h's two bytes each)
   ds.bin      the data segment (BH: the game's texts, tables and variables),
               24K, as the Next keeps it at 4000h-9FFFh
-  spr_font.bin, spr_chars.bin
-              the Tandy font and box pieces (BC) and the character-choice name
-              boxes (BF) in the Next's sprite format (sprite_blob below)
+  spr_font.bin, spr_chars.bin, spr_portraits.bin, spr_sword.bin
+              the Tandy font and box pieces (BC), the character-choice name
+              boxes (BF), and the territories' shapes, the castles, the army
+              and the portraits (BR, BS), in the Next's sprite format
+              (sprite_blob below)
   speaker.bin the PC-speaker tunes' note lengths (BB items 97h-9Eh): the game
               times itself by them in every mode, under the Tandy music
+  tourn_scripts.bin  the joust's outcome scripts (BX items 37-40)
   bg.bin      the Tandy music (BG), for the Next's port of the original's
               driver (src/tandy.asm)
   ay_period.bin  1024 words: the AY period for each Tandy tone register
@@ -274,15 +277,16 @@ PAGE = 0x2000
 
 
 def sprite_blob(items):
-    """a sprite file for the Next: 256 words, each item's offset in the blob (0: none),
-    then the items, none across an 8K page: kind, flags (bit 0: masked), w (word),
+    """a sprite file for the Next: for each of 256 items 3 bytes, its 8K page in the
+    blob and its address there (0, 0: none), then the items, none across a page:
+    kind, flags (bit 0: masked), w (word),
     h, adv (the glyph's width word / 2 + 1, the original's advance), then the
     pixels column by column (Layer 2 320x256 keeps its columns whole): for each
     column its h pixels, top to bottom. A masked item has, for each column,
     the row its span starts at and the span's length (the rows above and below
     are see-through: mask 15, pixel 0), then each of the span's pixels as its
     mask byte and the pixel"""
-    blob = bytearray(512)
+    blob = bytearray(768)
     for i in sorted(items):
         im = items[i]
         data = bytearray()
@@ -301,11 +305,23 @@ def sprite_blob(items):
             raise SystemExit(f"sprite item {i:02X}h is larger than 8K")
         if len(blob) % PAGE + len(item) > PAGE:
             blob += bytes(PAGE - len(blob) % PAGE)
-        struct.pack_into("<H", blob, 2 * i, len(blob))
+        struct.pack_into("<BH", blob, 3 * i, len(blob) // PAGE, len(blob) % PAGE)
         blob += item
-    if len(blob) > 0x10000:
-        raise SystemExit("a sprite file is larger than 64K")
     return bytes(blob)
+
+
+def tourn_scripts(dat):
+    """the joust's outcome over the stands (tourney.c joust_outcome): BX items
+    37-40, its four scripts (a near miss, the opponent unhorsed, the player,
+    the horse hit), as they are in the file: 4 words, each script's offset
+    from the start of this, then the scripts"""
+    bx = dat_file(dat, "BX")
+    w = lambda o: bx[o] | bx[o + 1] << 8
+    offs = [w(2 * (37 + r)) for r in range(4)]
+    first, last = offs[0], offs[3] + 0x14C
+    if sorted(offs) != offs or last > len(bx):
+        raise SystemExit("BX's outcome scripts are not as expected")
+    return struct.pack("<4H", *[8 + o - first for o in offs]) + bx[first:last]
 
 
 def speaker_tunes(dat):
@@ -326,8 +342,11 @@ def speaker_tunes(dat):
 
 
 def to_333(rgb):
-    """an 8-bit colour to the Next's 3 bits a component (nearest)"""
-    return tuple(min(7, (c * 7 + 127) // 255) for c in rgb)
+    """an 8-bit colour to the Next's 3 bits a component: the nearest, but the
+    Tandy's middle level (AAh, 170) as 4 (146), not 5 (182). Rounded up, the
+    dark colours come too close to the light ones (cyan to light cyan: two
+    Saxon lords' territories on the map)."""
+    return tuple(4 if c == 170 else min(7, (c * 7 + 127) // 255) for c in rgb)
 
 
 def from_333(c):
@@ -594,6 +613,12 @@ def main():
     sprites = tandy_sprites(dat)
     (out / "spr_font.bin").write_bytes(sprite_blob(sprites[F_FONT]))
     (out / "spr_chars.bin").write_bytes(sprite_blob(sprites[F_CHARS]))
+    (out / "spr_portraits.bin").write_bytes(sprite_blob(sprites[F_PORTRAITS]))
+    (out / "spr_sword.bin").write_bytes(sprite_blob(sprites[5]))         # Ba: the sword fight, the battle's men
+    (out / "spr_end.bin").write_bytes(sprite_blob(sprites[6]))           # Bb: THE END, the bars, the sparks
+    for name, f in (("SIEGE", 7), ("TOURN", 3), ("LANE", 4)):             # the scenes' own, read from the card
+        (sd / f"{name}.SPR").write_bytes(sprite_blob(sprites[f]))
+    (out / "tourn_scripts.bin").write_bytes(tourn_scripts(dat))
     (out / "speaker.bin").write_bytes(speaker_tunes(dat))
     bg = dat_file(dat, "BG")
     (out / "bg.bin").write_bytes(bg)
@@ -603,7 +628,7 @@ def main():
 
     print(f"sd/DOTC/DOTC_GFX/CA.PIC-{name}.PIC, preview/: the {PICTURES} Tandy pictures")
     print(f"ds.bin: the data segment (BH, {len(bh)} bytes); spr_font.bin, spr_chars.bin: the font and name boxes; "
-          f"speaker.bin: the speaker tunes' timing")
+          f"spr_portraits.bin: the map's shapes, the castles and the portraits; spr_sword.bin: the sword fight and the battle; speaker.bin: the speaker tunes' timing")
     print(f"bg.bin: the Tandy music (BG, {len(bg)} bytes); ay_period.bin, ay_volume.bin: the AY tables")
 
 

@@ -63,7 +63,17 @@ void SDL_DelayNS(Uint64 ns)
  * game's random numbers (seeded from it) are the same every run */
 #define TICKS_AT_START 786520u
 
-uint32_t sys_ticks(void) { return TICKS_AT_START + (uint32_t)(vt / TICK_NS); }
+/* a loop that only reads the clock (flash_territory's: while (sys_ticks() == t0)
+ * sys_check()) waits in real time in sys.c: here the virtual clock moves on
+ * 50 us at each read after 64 at the same moment */
+uint32_t sys_ticks(void)
+{
+    static Uint64 last_vt;
+    static int same;
+    if (vt != last_vt) { last_vt = vt; same = 0; }
+    else if (++same > 64) { SDL_DelayNS(50000); last_vt = vt; same = 0; }
+    return TICKS_AT_START + (uint32_t)(vt / TICK_NS);
+}
 
 void sys_check(void)
 {
@@ -102,12 +112,56 @@ void sys_key(int scan) { (void)scan; }
 uint32_t sys_frames(void) { return frames; }
 void sys_set_speed(double s) { (void)s; }
 
+/* REF_POKE=seconds:addr=word,addr=word,... (hex): words written to the data
+ * segment once the clock passes then (the same state for the Next's test).
+ * REF_POLL=seconds: from then on, keys read for 1 s without one (polls less
+ * than 0.1 s apart) get Enter (its time written to REF_MARKS too), or the
+ * next of REF_POLL_KEYS. */
+static void pokes_due(void)
+{
+    static const char *p;
+    static int done;
+    if (!p) p = getenv("REF_POKE") ? getenv("REF_POKE") : "";
+    if (done || !*p || vt < (Uint64)(atof(p) * 1e9)) return;
+    done = 1;
+    for (const char *s = strchr(p, ':'); s && *s; s = strchr(s, ',')) {
+        unsigned a, w;
+        if (sscanf(s + 1, "%x=%x", &a, &w) == 2) { ds[a] = w & 0xFF; ds[a + 1] = w >> 8; }
+        s++;
+    }
+}
+
+static void mark(void)
+{
+    static int n;
+    const char *mf = getenv("REF_MARKS");
+    FILE *f = mf ? fopen(mf, n++ ? "a" : "w") : NULL;
+    if (f) { fprintf(f, "%.6f\n", vt / 1e9); fclose(f); }
+}
+
 int bios_key(void)
 {
     sys_check();
     keys_due();
+    pokes_due();
     int k = 0;
     if (kcount) { k = keys[khead]; khead = (khead + 1) % 64; kcount--; }
+    static const char *pf;
+    static double since = -1, last = -1;
+    if (!pf) pf = getenv("REF_POLL") ? getenv("REF_POLL") : "";
+    if (!k && *pf) {
+        double t = vt / 1e9;
+        if (t - last > 0.1) since = t;
+        last = t;
+        if (t >= atof(pf) && t - since >= 1.0) {
+            static const char *pk;      /* REF_POLL_KEYS=1C,50,...: these first (hex scan codes), then Enter */
+            if (!pk) pk = getenv("REF_POLL_KEYS") ? getenv("REF_POLL_KEYS") : "";
+            k = KEY_ENTER;
+            if (*pk) { k = (int)strtol(pk, NULL, 16); pk = strchr(pk, ','); pk = pk ? pk + 1 : ""; }
+            since = t;
+            mark();
+        }
+    }
     if (!k) SDL_DelayNS(200000);
     return k;
 }
@@ -120,7 +174,34 @@ static int translate(int k)
 }
 
 int get_key(void) { return translate(bios_key()); }
-int wait_key(void) { int k; while (!(k = bios_key())) {} return translate(k); }
+/* REF_AUTO=seconds (to REF_AUTO_END, if set): from then on, a wait for a key
+ * (wait_key: the menus) gets Enter after 1 s (its time written to REF_MARKS); REF_DS_AT=n: the data
+ * segment to REF_DS at the n-th such Enter (before it), and the run ends there */
+static int auto_n;
+int wait_key(void)
+{
+    static const char *af, *dn;
+    if (!af) { af = getenv("REF_AUTO") ? getenv("REF_AUTO") : ""; dn = getenv("REF_DS_AT") ? getenv("REF_DS_AT") : ""; }
+    Uint64 t0 = vt;
+    int k;
+    while (!(k = bios_key())) {
+        static const char *ae;
+        if (!ae) ae = getenv("REF_AUTO_END") ? getenv("REF_AUTO_END") : "";
+        if (*af && vt >= (Uint64)(atof(af) * 1e9) && (!*ae || vt < (Uint64)(atof(ae) * 1e9)) && vt - t0 >= 1000000000u) {
+            auto_n++;
+            if (*dn && auto_n == atoi(dn)) {
+                const char *dsf = getenv("REF_DS");
+                FILE *f = dsf ? fopen(dsf, "wb") : NULL;
+                if (f) { fwrite(ds, 1, 0x6000, f); fclose(f); }
+                fprintf(stderr, "the data segment at Enter %d, %.3f s\n", auto_n, vt / 1e9);
+                longjmp(out, 1);
+            }
+            mark();                 /* each such Enter's time, to time the screens between them */
+            return KEY_ENTER;
+        }
+    }
+    return translate(k);
+}
 void flush_keys(void) { while (get_key()) {} }
 void sys_dos_ticks(bool on) { (void)on; }
 
@@ -173,6 +254,11 @@ int main(int argc, char **argv)
     sound_data(A.tunes, A.tunes_len, A.bg, A.bg_len);
     if (setjmp(out) == 0) game_main();
     fclose(rec);
+    const char *dsf = getenv("REF_DS");   /* the data segment at the end, to compare the game's state */
+    if (dsf && !getenv("REF_DS_AT")) {
+        FILE *f = fopen(dsf, "wb");
+        if (f) { fwrite(ds, 1, 0x6000, f); fclose(f); }
+    }
     fprintf(stderr, "%u frames presented, %u screens recorded, %.1f s\n", frames, records, vt / 1e9);
     assets_free(&A);
     return 0;

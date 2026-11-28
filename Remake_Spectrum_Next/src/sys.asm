@@ -24,9 +24,6 @@
 ; the cursor keys as the arrows, and 1-9 without Caps Shift as the numeric
 ; keypad (7 8 9 / 4 5 6 / 1 2 3), as the game's choices use it.
 
-KEY_ENTER   EQU $1C
-KEY_S       EQU $1F
-KEY_SPACE   EQU $39
 
 ; ------------------------------------------------------------------ the interrupt
 
@@ -61,6 +58,12 @@ ci_bios:
             ld hl, (bios_ticks)
             inc hl
             ld (bios_ticks), hl
+            ld a, h
+            or l
+            jp nz, ci_tick
+            ld hl, bios_hi
+            inc (hl)
+ci_tick:
             call tick_player
 ci_music:
             ld a, (drv_playing)
@@ -203,7 +206,10 @@ pt_done:
             ei
             ret
 
-; 958E: wait for the game's tune to end (its loop flag off first)
+; 958E: wait for the game's tune to end (its loop flag off first). The Next's
+; own: when the Tandy music is heard (flags 8000h without 2000h), its end ends
+; the wait too. The opening's (97h) ends about 15 s before the speaker's
+; timing, which the original (and the Mac remake) go on waiting for in silence.
 wait_tune:
             di
             ld hl, spk_flags + 1
@@ -213,7 +219,14 @@ wt_loop:
             call get_key
             ld a, (spk_flags)
             bit 0, a
-            jp z, wt_loop
+            ret nz
+            ld a, (spk_flags + 1)
+            and $A0
+            cp $80
+            jp nz, wt_loop
+            ld a, (drv_playing)
+            or a
+            jp nz, wt_loop
             ret
 
 ; 95BE: A = 1 while the game's tune plays (C = n: 0 for any; else 0 once its note index reaches n)
@@ -270,6 +283,18 @@ scan_keys:
             ld bc, $FEFE            ; Caps Shift: row FEh, bit 0
             in a, (c)
             cpl
+            ld e, a
+            and $10                 ; V (bit 4), as it goes down: the picture stretched or not
+            ld hl, sk_v
+            cp (hl)
+            ld (hl), a
+            jp z, sk_no_v
+            or a
+            push de
+            call nz, stretch_toggle
+            pop de
+sk_no_v:
+            ld a, e
             and 1
             ld (sk_caps), a
             ld ix, key_table
@@ -308,12 +333,47 @@ sk_next:
             ret
 
 ; 7F8C: a key pressed since last time (its scan code), else 0. Each key counts
-; once when it goes down; several at once wait their turn.
+; once when it goes down; several at once wait their turn. Held, they repeat as
+; the PC's keyboard did: after about half a second, then 9 times a second.
+; (7F5E get_key: the same; its keypad + and F1, Enter, the Next has neither.)
+REPEAT_DELAY EQU 9                  ; BIOS ticks (18.2 a second)
+REPEAT_RATE  EQU 2
+get_key:
 bios_key:
             call sys_check
             call scan_keys
             ld de, (keys_held)      ; the new ones: held now, not before
             ld (keys_held), hl
+            ld a, h                 ; the same keys held as before (some): repeat them when due
+            or l
+            jp z, bk_rep_from
+            push hl
+            or a
+            sbc hl, de
+            jp nz, bk_rep_new
+            ld hl, (bios_ticks)
+            ld bc, (key_rep_at)
+            or a
+            sbc hl, bc
+            jp m, bk_rep_not
+            ld hl, (bios_ticks)
+            ld bc, REPEAT_RATE
+            add hl, bc
+            ld (key_rep_at), hl
+            ld de, 0                ; due: all held count as new
+bk_rep_not:
+            pop hl
+            jp bk_new
+bk_rep_new:
+            pop hl
+bk_rep_from:
+            push hl                 ; changed: the first repeat after the delay
+            ld hl, (bios_ticks)
+            ld bc, REPEAT_DELAY
+            add hl, bc
+            ld (key_rep_at), hl
+            pop hl
+bk_new:
             ld a, e
             cpl
             and l
@@ -360,17 +420,25 @@ bk_got:
             ret
 bk_none:
             ld (keys_waiting), hl
-            call idle
+            call key_none
             xor a
             ret
 
+; no key (the test's model can press Enter here, after a while: then as idle)
+key_none:
+            jp idle
+
 ; 7F5E: keypad + and F1 are Enter (the Next has neither); 7F2A; 7FA7
-get_key     EQU bios_key
 
 wait_key:
             call bios_key
             or a
-            jp z, wait_key
+            ret nz
+            call key_wait
+            jp wait_key
+
+; waiting for a key (the test's model can press Enter here, after a while)
+key_wait:
             ret
 
 flush_keys:
@@ -537,6 +605,8 @@ files_on:
             ret
 
 files_off:
+            ld a, (ovl_cur)         ; (flags kept)
+            nextreg $51, a
             nextreg $52, DS_PAGE
             nextreg $53, DS_PAGE + 1
             nextreg $54, DS_PAGE + 2
@@ -556,17 +626,25 @@ load_picture:
             ld de, pic_page
             add hl, de
             ld a, (hl)
+            ld ix, pic_name
+            ld b, 4
+            ; (on into load_file)
+
+; the file named at IX (from the current folder) into B pages from page A,
+; 8K each through slot 7 (the last may be short); carry if it can't be read
+; (and a red border). Interrupts are off meanwhile; they are on after.
+load_file:
             ld (lp_pg), a
             di
             call files_on
+            push bc
             ld a, '*'               ; the current drive; the name relative to the current folder
-            ld ix, pic_name
             ld b, $01               ; read, the file must exist
             rst $08
             db F_OPEN
+            pop bc
             jp c, lp_failed
             ld (pic_handle), a
-            ld b, 4
 lp_page:
             push bc
             ld a, (lp_pg)
@@ -604,3 +682,53 @@ lp_failed:
             ei
             scf
             ret
+
+; The scenes' sprite files, read from the card when a scene needs them, into
+; the pages the opening's pictures leave once the game has begun (SCENE_PAGE
+; on): A = 0 the siege's (Be), 1 the tournament's (BX), 2 the lane's (BY).
+; Each is kept until another (or the saved back page, save_back) takes its
+; pages. Carry if it can't be read.
+load_sprites:
+            ld (ls_id), a
+            ld l, a                 ; its entry (6 bytes): the bit, the pages it takes from others,
+            add a, a                ; its first page, how many, its name
+            add a, l
+            add a, a
+            ld l, a
+            ld h, 0
+            ld de, scene_files
+            add hl, de
+            push hl
+            pop iy
+            ld a, (scene_has)
+            and (iy + 0)
+            ret nz                  ; (no carry)
+            ld a, (iy + 1)
+            cpl
+            ld hl, scene_has
+            and (hl)
+            ld (hl), a
+            ld l, (iy + 4)
+            ld h, (iy + 5)
+            push hl
+            pop ix
+            ld a, (iy + 2)
+            ld b, (iy + 3)
+            push iy
+            call load_file
+            pop iy
+            ret c
+            ld a, (scene_has)
+            or (iy + 0)
+            ld (scene_has), a
+            ret
+scene_files:
+            db 1, 2, SCENE_PAGE, 3  ; the siege: pages 60-62 (the tournament's)
+            dw sn_siege
+            db 2, 1, SCENE_PAGE, 7  ; the tournament: 60-66
+            dw sn_tourn
+            db 4, 0, SCENE_PAGE + 7, 12     ; the lane: 67-78
+            dw sn_lane
+sn_siege:   db "DOTC_GFX/SIEGE.SPR", 0
+sn_tourn:   db "DOTC_GFX/TOURN.SPR", 0
+sn_lane:    db "DOTC_GFX/LANE.SPR", 0
