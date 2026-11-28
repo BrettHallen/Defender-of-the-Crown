@@ -50,6 +50,7 @@ ci_retrace:
             ld (ret_acc), hl
             ld hl, retraces
             inc (hl)
+            call key_latch
 ci_bios:
             ld hl, (tick_acc)       ; the BIOS clock
             add hl, de
@@ -90,6 +91,22 @@ ci_done:
             pop af
             ei
             reti
+
+; 60 times a second (the interrupt's retraces): the keys down in each of the
+; keyboard's 8 rows, kept until the game next reads the keys (scan_keys), as
+; the PC's keyboard buffer keeps a key pressed and let go between its reads
+key_latch:
+            ld hl, key_seen
+            ld bc, $FEFE
+kl_row:
+            in a, (c)
+            cpl
+            or (hl)
+            ld (hl), a
+            inc hl
+            rlc b
+            jp c, kl_row
+            ret
 
 ; anything else (none is enabled): acknowledge all
 other_isr:
@@ -294,7 +311,22 @@ scan_keys:
             call nz, stretch_toggle
             pop de
 sk_no_v:
-            ld a, e
+            ld hl, key_seen         ; each row: the keys down now, or at a retrace since the last read
+            ld de, sk_rows
+            ld bc, $FEFE
+            di
+sk_row:
+            in a, (c)
+            cpl
+            or (hl)
+            ld (de), a
+            ld (hl), 0
+            inc hl
+            inc de
+            rlc b
+            jp c, sk_row
+            ei
+            ld a, (sk_rows)
             and 1
             ld (sk_caps), a
             ld ix, key_table
@@ -303,11 +335,19 @@ sk_no_v:
             ld a, KEYS
 sk_key:
             push af
-            ld b, (ix + 1)
-            ld c, $FE
-            in a, (c)
+            push hl
+            ld a, (ix + 1)          ; its row's entry: the place of the 0 in the port's high byte
+            ld hl, sk_rows
+sk_find:
+            rrca
+            jp nc, sk_found
+            inc hl
+            jp sk_find
+sk_found:
+            ld a, (hl)
+            pop hl
             and (ix + 2)
-            jp nz, sk_next          ; not held
+            jp z, sk_next           ; not held
             ld a, (ix + 3)
             cp 2
             jp z, sk_held

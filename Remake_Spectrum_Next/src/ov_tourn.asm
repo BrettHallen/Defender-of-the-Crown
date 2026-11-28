@@ -768,8 +768,8 @@ tu_meet:
 ; A pass down the lane after a key: 17 pictures of the opponent coming
 ; closer, three lance steps each. Then the point (x 20-50, y 120-180) is
 ; judged: within x 26 +- (1 if the player jousts better, else 0) and y 138 +-
-; (the player's jousting + 2 - the opponent's; 0 is 1, as the EGA program
-; compares it unsigned) the opponent falls (1); x below 30 with y over 170
+; (the player's jousting + 2 - the opponent's; 0 or less is 1, as the Tandy
+; program compares it; the Mac remake keeps the EGA program's) the opponent falls (1); x below 30 with y over 170
 ; is the horse (3); otherwise random(opponent's jousting) of 2 or more
 ; unhorses the player (2), else a near miss and another pass (the fourth
 ; pass is always lost). A: the side whose jousting it is judged by.
@@ -808,16 +808,16 @@ tj_picture:
             ld c, S_JOUST
             call tu_side_w
             ld (tj_oj), hl
-            ex de, hl               ; l4 = pj + 2 - oj (0: 1)
-            ld hl, (tj_pj)
-            inc hl
+            ex de, hl               ; l4 = pj + 2 - oj (0 or less: 1, as the Tandy program
+            ld hl, (tj_pj)          ; compares it, signed; the EGA one, unsigned, lets a
+            inc hl                  ; negative one stand, and no thrust can then win)
             inc hl
             or a
             sbc hl, de
-            ld a, h
-            or l
-            jp nz, tj_l4
-            inc hl
+            jp z, tj_l4_one
+            jp p, tj_l4
+tj_l4_one:
+            ld hl, 1
 tj_l4:
             ld (tj_l4v), hl
             ld hl, (tj_oj)          ; l6 = 1 if pj > oj (unsigned)

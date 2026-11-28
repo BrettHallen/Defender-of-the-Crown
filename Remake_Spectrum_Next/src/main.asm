@@ -399,6 +399,8 @@ cp_lines:   dw 312              ; the frame's lines
 cp_j:       db 0
 keys_held:  dw 0
 keys_waiting: dw 0
+key_seen:   ds 8                ; the keyboard's rows: the keys down at a retrace since the last read (key_latch)
+sk_rows:    ds 8                ; the rows as scan_keys reads them
 key_rep_at: dw 0                ; when the keys held repeat (BIOS ticks)
 ; the waits
 wt_n:       dw 0
