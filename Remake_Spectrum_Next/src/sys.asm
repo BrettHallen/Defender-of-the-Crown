@@ -21,8 +21,9 @@
 ;
 ; The keys: the Next's keyboard read as the PC's scan codes the game wants
 ; (bios_key): Enter, Space, S (skips parts of the opening),
-; the cursor keys as the arrows, and 1-9 without Caps Shift as the numeric
-; keypad (7 8 9 / 4 5 6 / 1 2 3), as the game's choices use it.
+; the cursor keys as the arrows (two together, one up or down and one left or
+; right, as the keypad's diagonal: 7 9 1 3), and 1-9 without Caps Shift as
+; the numeric keypad (7 8 9 / 4 5 6 / 1 2 3), as the game's choices use it.
 
 
 ; ------------------------------------------------------------------ the interrupt
@@ -429,6 +430,32 @@ bk_new:
             ld a, h
             or d
             ld h, a
+            ld a, (keys_held)       ; two cursor keys held together, one of them new: the diagonal
+            and $78                 ; (bits 3-6: left, down, up, right)
+            ld b, $47               ; up and left: 7
+            cp $28
+            jp z, bk_diagonal
+            ld b, $49               ; up and right: 9
+            cp $60
+            jp z, bk_diagonal
+            ld b, $4F               ; down and left: 1
+            cp $18
+            jp z, bk_diagonal
+            ld b, $51               ; down and right: 3
+            cp $50
+            jp nz, bk_waiting
+bk_diagonal:
+            ld c, a
+            and l
+            jp z, bk_waiting
+            ld a, c
+            cpl
+            and l
+            ld l, a
+            ld (keys_waiting), hl
+            ld a, b
+            ret
+bk_waiting:
             ld a, h
             or l
             jp z, bk_none
