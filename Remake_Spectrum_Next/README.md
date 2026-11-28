@@ -1,6 +1,9 @@
 # Defender of the Crown - Spectrum Next remake
 A version of Defender of the Crown for the ZX Spectrum Next, built from the booter's **Tandy 1000** program (`AC` in GAME.DAT), in Z80 assembly. It follows the [Mac remake](../Remake)'s port of the original, routine by routine. The pictures are shown pixel for pixel on Layer 2 (320×256, 256 colours), and the three-voice music is played by the original's own driver on the Next's AY chips.
 
+## TL;DR Summary
+Copy the DOTC folder in [build/sd/](/Remake_Spectrum_Next/build/sd) (contains DOTC.NEX and DOTC_GFX folder) to your SD card and run the NEX file.
+
 ## Status: the opening, the months, the computer lords and the map's orders
 `DOTC.NEX` plays the start of a new game, as the original did in Tandy mode:
 - the credits on the scroll, and the title with its sparkles;
